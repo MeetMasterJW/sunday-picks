@@ -152,7 +152,8 @@ tr:last-child td{border-bottom:0}
 td.win{color:var(--accent);font-weight:800}
 td.tot{font-family:var(--numeric);font-weight:700;font-size:21px}
 .rk{display:inline-block;min-width:18px;color:var(--ink-3);font-weight:700}
-.allpicks th{vertical-align:bottom;min-width:64px}
+.allpicks th{vertical-align:top;min-width:64px}
+.allpicks th:first-child{vertical-align:bottom}
 .allpicks th small{display:block;font-size:12px;color:var(--ink-2)}
 .allpicks .jersey{width:28px;height:28px;font-size:13px;margin:0 auto 4px;display:grid}
 .gcell b{display:block;font-weight:700;font-family:var(--numeric);font-size:16px;letter-spacing:.02em}
@@ -183,8 +184,8 @@ td.none,td.sealedc{color:var(--ink-3)}
 .rrow{display:grid;grid-template-columns:20px 34px 1fr auto;gap:12px;align-items:center;padding:11px 0;border-top:1px solid var(--line)}
 .rrow:first-child{border-top:0}
 .pos{font-weight:800;color:var(--ink-3);text-align:center}
-.who b{display:block;font-weight:700;font-size:16px}
-.who span{font-size:12.5px;color:var(--ink-3)}
+.who>b{display:block;font-weight:700;font-size:16px}
+.who span{display:block;font-size:12.5px;color:var(--ink-3);min-height:1.4em}
 .rec{font-family:var(--numeric);font-size:32px;font-weight:700;text-align:right;line-height:1}
 .rec small{display:block;font-family:var(--font);font-size:11px;font-weight:600;color:var(--ink-3);margin-top:3px}
 .ptsb{color:var(--accent);font-weight:800;font-size:12px}
@@ -593,12 +594,15 @@ function renderStandings(app){
   sc.rows.forEach((r,i)=>{
     if(sc.complete)pos=r.place; else if(prev===null||r.right!==prev){pos=i+1;prev=r.right}
     if(!sc.done)pos='–';
+    // Every row gets a second line so names stay in one column
+    const left=sc.total-sc.done;
     const notes=[];
     if(!sc.done)notes.push(`${r.made}/${sc.total} picked`);
     else if(!sc.complete&&r.up)notes.push(`<b class="upct">${r.up} winning now</b>`);
-    if(sc.complete&&r.tied)notes.push(`Tiebreaker ${r.tb===null?'—':r.tb}`);
+    else if(!sc.complete)notes.push(`${left} game${left===1?'':'s'} left`);
+    else notes.push(r.tied?`Tiebreaker ${r.tb===null?'—':r.tb}`:'Final');
     h+=`<div class="rrow" style="--c:${esc(r.p.color)}"><span class="pos num">${pos}</span><span class="jersey">${initial(r.p)}</span>
-      <div class="who"><b>${esc(r.p.name)} ${sc.complete&&r.place===1?'<span class="crown" aria-label="Week winner">★</span>':''}</b>${notes.length?`<span class="num">${notes.join(' · ')}</span>`:''}</div>
+      <div class="who"><b>${esc(r.p.name)} ${sc.complete&&r.place===1?'<span class="crown" aria-label="Week winner">★</span>':''}</b><span class="num">${notes.join(' · ')}</span></div>
       <div class="rec num">${r.right}–${r.wrong}<small>${sc.complete?`<b class="ptsb">+${r.pts} pts</b>`:'W–L'}</small></div></div>`;
   });
   h+='</div></section>';
