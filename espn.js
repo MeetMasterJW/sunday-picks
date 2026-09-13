@@ -15,6 +15,8 @@ function team(c) {
     loc: t.location || '',
     c: '#' + (t.color || '555555'),
     c2: '#' + (t.alternateColor || 'ffffff'),
+    logo: t.logo || '',
+    rec: ((c.records || []).find((r) => r.type === 'total') || {}).summary || '',
   };
 }
 
@@ -22,6 +24,8 @@ function game(e) {
   const comp = e.competitions[0];
   const side = Object.fromEntries(comp.competitors.map((x) => [x.homeAway, x]));
   const st = e.status.type;
+  // Sportsbook line is only published before kickoff; shown for reference, never used for scoring
+  const odds = (comp.odds || [])[0] || {};
   let w = null;
   if (st.completed) w = (comp.competitors.find((x) => x.winner) || { team: { abbreviation: 'TIE' } }).team.abbreviation;
   return {
@@ -35,6 +39,8 @@ function game(e) {
     w,
     as: Number(side.away.score || 0),
     hs: Number(side.home.score || 0),
+    spread: odds.details || '',
+    ou: odds.overUnder ?? null,
   };
 }
 

@@ -8,3 +8,7 @@ export const firebaseConfig = {
   messagingSenderId: '458757735076',
   appId: '1:458757735076:web:3f18607b214f8d38471c31',
 };
+
+// The parent login created in Firebase console → Authentication → Users.
+// It only identifies the account; the password is what protects it.
+export const parentEmail = 'parents@sundaypicks-5de31.firebaseapp.com';

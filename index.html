@@ -85,7 +85,8 @@ main>*{min-width:0}
 .dayhead::after{content:"";flex:1;height:8px;background:repeating-linear-gradient(90deg,var(--line) 0 2px,transparent 2px 14px)}
 .slot{font:700 11px "Barlow Semi Condensed",sans-serif;letter-spacing:.1em;background:var(--pylon);color:#fff;border-radius:4px;padding:1px 6px}
 .game{background:var(--surface);border-radius:14px;box-shadow:var(--shadow);padding:10px;display:grid;gap:8px}
-.gmeta{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--ink-3);padding:0 2px}
+.gmeta{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:2px 10px;font-size:12px;color:var(--ink-3);padding:0 2px}
+.gmeta .line{font-weight:600;color:var(--ink-2)}
 .gmeta .st{font:700 11px "Barlow Semi Condensed",sans-serif;letter-spacing:.1em;text-transform:uppercase}
 .st.final{color:var(--ink)} .st.live{color:var(--bad)}
 .matchup{display:grid;grid-template-columns:1fr auto 1fr;gap:6px;align-items:stretch}
@@ -96,7 +97,10 @@ main>*{min-width:0}
 .team .chip{width:44px;height:40px;border-radius:8px;background:var(--tc);color:var(--tx);display:grid;place-items:center;font:900 16px "Big Shoulders Display",sans-serif;letter-spacing:.02em;box-shadow:inset 0 -4px 0 var(--tc2)}
 .team .tn{min-width:0}
 .team .tn b{display:block;font-weight:700;font-size:15px;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.team .tn span{display:block;font-size:12px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.team .tn .sub{display:block;font-size:12px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.team .tn .recn{font-weight:700;color:var(--ink-2)}
+.team .chip.logo{background:#fff;box-shadow:inset 0 -4px 0 var(--tc)}
+.team .chip img{width:32px;height:32px;object-fit:contain;display:block}
 .team.lost{opacity:.55}
 .team.behind{opacity:.78}
 .team.ahead .tn b,.team.won .tn b{font-weight:800}
@@ -196,13 +200,43 @@ td.none,td.sealedc{color:var(--ink-3)}
 .muted{color:var(--ink-3);font-size:14px}
 .empty{text-align:center;padding:40px 10px;color:var(--ink-2)}
 
+.alert{position:fixed;left:50%;top:max(10px,env(safe-area-inset-top));transform:translateX(-50%);z-index:6;width:min(440px,calc(100% - 20px));background:var(--tc);color:var(--tx);border-radius:16px;padding:12px 16px 14px;box-shadow:inset 0 -5px 0 var(--tc2),0 16px 40px -12px rgba(0,0,0,.6);cursor:pointer;overflow:hidden;text-align:left;border:0;font:inherit}
+.alert::after{content:"";position:absolute;left:0;bottom:5px;height:3px;width:100%;background:currentColor;opacity:.45;transform-origin:left}
+.alert.in{animation:alertIn .5s cubic-bezier(.2,1.3,.4,1)}
+.alert.in::after{animation:alertTimer 6s linear forwards}
+@keyframes alertIn{from{transform:translate(-50%,-130%)}to{transform:translate(-50%,0)}}
+@keyframes alertTimer{to{transform:scaleX(0)}}
+.al-head{display:flex;align-items:center;gap:10px}
+.al-head .al-meta{margin-left:auto}
+.al-logo{width:42px;height:42px;flex:none;background:#fff;border-radius:10px;padding:4px;object-fit:contain}
+.al-kind{font:900 28px/1 "Big Shoulders Display",Impact,sans-serif;text-transform:uppercase;letter-spacing:.02em}
+.al-meta{font:700 12px "Barlow Semi Condensed",sans-serif;letter-spacing:.08em;text-transform:uppercase;opacity:.85;white-space:nowrap}
+.al-score{display:flex;gap:10px;align-items:baseline;font:900 36px/1.05 "Big Shoulders Display",Impact,sans-serif;margin-top:4px}
+.al-score .lo{opacity:.55}
+.al-people{margin-top:6px;font:600 13px Barlow,sans-serif;display:flex;flex-wrap:wrap;gap:2px 12px}
+.al-people b{font-weight:800}
+.score b.bump{animation:bump 1.4s ease-out}
+@keyframes bump{0%{transform:scale(1.7);color:var(--pylon)}55%{transform:scale(1);color:var(--pylon)}}
+.game.flash{animation:flash 2.4s ease-out}
+@keyframes flash{0%,40%{box-shadow:0 0 0 3px var(--pylon),var(--shadow)}}
+.confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:7}
+.setrow{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;margin-top:10px}
+@media (prefers-reduced-motion:reduce){.alert.in,.alert.in::after,.score b.bump,.game.flash{animation:none}}
+dialog{border:0;border-radius:16px;padding:20px;width:calc(100% - 32px);max-width:360px;background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
+dialog::backdrop{background:rgba(8,16,12,.6)}
+dialog h3{margin:0 0 4px;font:900 28px/1 "Big Shoulders Display",Impact,sans-serif;text-transform:uppercase}
+dialog p{margin:6px 0 0}
+#parentPw{width:100%;margin-top:12px;font:600 17px Barlow,sans-serif;padding:10px 12px;border-radius:9px;border:1px solid var(--line);background:var(--ground);color:var(--ink)}
+.keep{display:flex;gap:8px;align-items:center;margin-top:12px;font-size:14px;color:var(--ink-2)}
+.err{color:var(--bad);font-weight:600;font-size:14px}
+.dlgbtns{display:flex;justify-content:flex-end;gap:10px;margin-top:16px}
 .toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:var(--ink);color:var(--ground);padding:10px 16px;border-radius:10px;font-weight:600;font-size:14px;box-shadow:var(--shadow);z-index:5;max-width:90vw}
 @media (max-width:520px){
   .team{grid-template-columns:auto 1fr;gap:7px;padding:6px}
   .team.home{grid-template-columns:auto 1fr}
   .team .chip{width:38px;height:34px;font-size:14px}
-  .team .tn span{display:none}
-  .team .tn span:has(.tag){display:block}
+  .team .tn .loc{display:none}
+  .team .chip img{width:28px;height:28px}
   .score{min-width:74px}
   /* All picks: fit five players on a phone instead of scrolling sideways */
   .allpicks{width:100%;table-layout:fixed;font-size:12px}
@@ -245,16 +279,29 @@ td.none,td.sealedc{color:var(--ink-3)}
   </div>
 </header>
 <main id="app"><div class="empty">Loading…</div></main>
+<div class="alert" id="alert" role="status" aria-live="polite" hidden></div>
 <div class="toast" id="toast" hidden></div>
+<dialog id="parentDlg" aria-labelledby="parentTitle">
+  <form id="parentForm">
+    <h3 id="parentTitle">Parent password</h3>
+    <p class="muted" id="parentWhy"></p>
+    <input type="email" id="parentUser" autocomplete="username" hidden>
+    <input type="password" id="parentPw" autocomplete="current-password" aria-label="Parent password" required>
+    <label class="keep"><input type="checkbox" id="parentKeep"> Keep a parent signed in on this device</label>
+    <p class="err" id="parentErr" hidden></p>
+    <div class="dlgbtns"><button type="button" class="toggle" id="parentCancel">Cancel</button><button type="submit" class="primary" id="parentGo">Continue</button></div>
+  </form>
+</dialog>
 
 <script type="module">
-import {firebaseConfig} from './config.js';
+import {firebaseConfig,parentEmail} from './config.js';
 import {fetchWeek,groupIntoPickWeeks} from './espn.js';
 import {initializeApp} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
 import {getFirestore,doc,collection,setDoc,onSnapshot} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
-const COLORS=['#E8641E','#2E6FD8','#C23B6B','#1E9E8A','#7B4FC9','#C9A200','#2F8F3A','#4A5560'];
+import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,signOut} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
+const COLORS=['#E8641E','#2E6FD8','#C23B6B','#1E9E8A','#7B4FC9','#D9432B','#B71C1C','#AD1457','#E0457B','#A43BB5','#5B5BD6','#1565C0','#1B8FD1','#0F8C9E','#2F8F3A','#558B2F','#8A7A12','#C9A200','#D98200','#A0522D','#6D4C41','#4A5560','#37474F','#2B2F36'];
 const DEFAULT_FAMILY={players:[1,2,3,4,5].map((i)=>({id:'p'+i,name:'Player '+i,color:COLORS[i-1]}))};
-const S={db:null,family:DEFAULT_FAMILY,weeks:{},picks:{},locks:{},week:null,me:'p1',tab:'picks',results:false,ready:false,offline:false};
+const S={db:null,auth:null,parent:false,family:DEFAULT_FAMILY,weeks:{},picks:{},locks:{},week:null,me:'p1',tab:'picks',results:false,ready:false,offline:false};
 const $=(s)=>document.querySelector(s);
 const esc=(v)=>String(v??'').replace(/[&<>"']/g,(c)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const store={get(k){try{return localStorage.getItem(k)}catch{return null}},set(k,v){try{localStorage.setItem(k,v)}catch{}}};
@@ -377,8 +424,51 @@ function maybeAutoLock(){
   }
 }
 
+function setLock(w,locked){
+  const key='w'+w,prev=S.locks[key];
+  S.locks={...S.locks,[key]:{week:w,locked,at:new Date().toISOString()}};render();
+  return S.db.doc('locks/'+key).set(S.locks[key])
+    .then(()=>toast(locked?`Week ${w} picks locked`:`Week ${w} picks unlocked`))
+    .catch(()=>{S.locks={...S.locks,[key]:prev};render();toast(locked?'The lock didn’t save. Try again.':'Only a parent can unlock picks.')});
+}
+
+/* ---- parent controls ---- */
+let afterParent=null;
+function requireParent(why,action){
+  if(S.parent){action();return}
+  if(!S.auth){toast('Parent sign-in isn’t available right now.');return}
+  afterParent=action;
+  $('#parentWhy').textContent=why;
+  $('#parentErr').hidden=true;
+  $('#parentPw').value='';
+  $('#parentKeep').checked=false;
+  $('#parentDlg').showModal();
+  $('#parentPw').focus();
+}
+function signInError(code){
+  if(code==='auth/too-many-requests')return 'Too many tries. Wait a few minutes, then try again.';
+  if(code==='auth/network-request-failed')return 'No connection. Check your internet and try again.';
+  if(code==='auth/operation-not-allowed'||code==='auth/configuration-not-found')return 'Parent sign-in isn’t turned on in Firebase yet.';
+  return 'That password didn’t work. Try again.';
+}
+$('#parentUser').value=parentEmail||'';
+$('#parentCancel').addEventListener('click',()=>{afterParent=null;$('#parentDlg').close()});
+$('#parentForm').addEventListener('submit',async(e)=>{
+  e.preventDefault();e.stopPropagation();
+  const go=$('#parentGo');go.disabled=true;
+  try{
+    await signInWithEmailAndPassword(S.auth,parentEmail,$('#parentPw').value);
+    const keep=$('#parentKeep').checked,action=afterParent;
+    afterParent=null;$('#parentPw').value='';$('#parentDlg').close();
+    try{if(action)await action()}
+    finally{if(!keep)await signOut(S.auth)}
+  }catch(err){
+    $('#parentErr').textContent=signInError(err&&err.code);$('#parentErr').hidden=false;
+  }finally{go.disabled=false}
+});
+
 function lockButton(w){
-  return `<button class="toggle" id="lockToggle" aria-pressed="${weekLocked(w)}">${weekLocked(w)?'Unlock picks':'Lock all picks'}</button>`;
+  return `<button class="toggle" id="lockToggle" aria-pressed="${weekLocked(w)}">${weekLocked(w)?'Unlock picks · parent':'Lock all picks'}</button>`;
 }
 
 function renderPicks(app){
@@ -416,15 +506,15 @@ function teamBtn(g,side,me,mine){
   const cls=['team',side==='h'?'home':'away',isMine&&!S.results?'mine':'',mineState,won?'won':'',lost&&!S.results?'lost':'',behind?'behind':'',ahead?'ahead':''].join(' ');
   const dis=!S.results&&locked(g);
   const tag=mineState==='up'?'Winning':mineState==='down'?'Losing':mineState==='even'?'Tied':mineState==='ok'?'Right':mineState==='no'?'Wrong':'';
-  return `<button class="${cls}" style="--tc:${esc(t.c)};--tc2:${esc(t.c2)};--tx:${textOn(t.c)};--me:${esc(me.color)}" data-game="${esc(g.id)}" data-team="${esc(t.ab)}" ${dis?'aria-disabled="true"':''} aria-pressed="${S.results?won:isMine}" aria-label="${esc(t.loc+' '+t.name)}">
-    <span class="chip">${esc(t.ab)}</span><span class="tn"><b>${esc(t.name)}</b><span>${tag?`<em class="tag">${tag}</em>`:esc(t.loc)}</span></span></button>`;
+  return `<button class="${cls}" style="--tc:${esc(t.c)};--tc2:${esc(t.c2)};--tx:${textOn(t.c)};--me:${esc(me.color)}" data-game="${esc(g.id)}" data-team="${esc(t.ab)}" ${dis?'aria-disabled="true"':''} aria-pressed="${S.results?won:isMine}" aria-label="${esc(t.loc+' '+t.name+(t.rec?', '+t.rec:''))}">
+    <span class="chip${t.logo?' logo':''}">${t.logo?`<img src="${esc(t.logo)}" alt="" width="36" height="36" loading="lazy">`:esc(t.ab)}</span><span class="tn"><b>${esc(t.name)}</b><span class="sub">${tag?`<em class="tag">${tag}</em>`:`<span class="recn num">${esc(t.rec||'')}</span><span class="loc">${t.rec?' · ':''}${esc(t.loc)}</span>`}</span></span></button>`;
 }
 function scoreBlock(g){
   if(g.st==='pre'&&!g.w)return '<span class="at">@</span>';
   const live=!g.w&&g.st==='in';
   const label=g.w?'Final':live?(g.d||'Live'):'';
   return `<div class="score${live?' live':''}" aria-label="Score ${esc(g.a.ab)} ${g.as}, ${esc(g.h.ab)} ${g.hs}">
-    <b class="num${g.as>g.hs?' hi':''}">${g.as}</b><span class="dash">–</span><b class="num${g.hs>g.as?' hi':''}">${g.hs}</b>
+    <b class="num${g.as>g.hs?' hi':''}${flashing(g,'a')?' bump':''}">${g.as}</b><span class="dash">–</span><b class="num${g.hs>g.as?' hi':''}${flashing(g,'h')?' bump':''}">${g.hs}</b>
     ${label?`<small>${esc(label)}</small>`:''}</div>`;
 }
 
@@ -437,13 +527,23 @@ function tiebreakRow(g,w,me){
   return `<div class="tb"><span><b>Tiebreaker guesses</b>${g.w?` · final total <b class="num">${g.as+g.hs}</b>`:''}</span><div class="dots">${guesses}</div></div>`;
 }
 
+// Spreads disappear from the feed at kickoff, so remember the last one seen on this device
+const spreads=(()=>{try{return JSON.parse(store.get('spreads')||'{}')}catch{return {}}})();
+function spreadText(g){
+  if(g.spread&&(!spreads[g.id]||spreads[g.id].s!==g.spread||spreads[g.id].ou!==g.ou)){
+    spreads[g.id]={s:g.spread,ou:g.ou};store.set('spreads',JSON.stringify(spreads));
+  }
+  const sp=g.spread?{s:g.spread,ou:g.ou}:spreads[g.id];
+  return sp?`${sp.s}${sp.ou!=null?' · O/U '+sp.ou:''}`:`${g.a.ab} @ ${g.h.ab}`;
+}
+
 function gameCard(g,w,me,mine,isLast){
   const lk=locked(g),slot=slotLabel(g);
   let status;
   if(g.w)status=`<span class="st final">${g.w==='TIE'?'Final · Tie':'Final'}</span>`;
   else if(Date.now()>=new Date(g.t).getTime()||g.st==='in')status=`<span class="st live">${g.st==='in'?'Live':'Kicked off'}${g.d?' · '+esc(g.d):''} · ${lk?'picks locked':'picks open until '+fmtTime.format(new Date(lockTime(g)))}</span>`;
   else status=`<span>${g.tbd?'Time TBD':fmtTime.format(new Date(g.t))}${slot?` <span class="slot">${slot}</span>`:''}${lk?' · picks locked':''}</span>`;
-  let h=`<article class="game"><div class="gmeta">${status}<span>${esc(g.a.ab)} @ ${esc(g.h.ab)}</span></div>
+  let h=`<article class="game${flashing(g)?' flash':''}"><div class="gmeta">${status}<span class="line">${esc(spreadText(g))}</span></div>
     <div class="matchup">${teamBtn(g,'a',me,mine)}${scoreBlock(g)}${teamBtn(g,'h',me,mine)}</div>`;
   if(S.results){
   }else{
@@ -521,14 +621,29 @@ function renderStandings(app){
   app.innerHTML=h;
 }
 
+function alertsCard(){
+  const on=alertsOn();
+  let notify='';
+  if('Notification' in window){
+    if(Notification.permission==='granted')notify='<span class="muted">Notifications are on while this page is open in the background.</span>';
+    else if(Notification.permission==='denied')notify='<span class="muted">Notifications are blocked in this browser’s settings.</span>';
+    else notify='<button type="button" class="toggle" id="notifyBtn">Also notify me in the background</button>';
+  }
+  return `<section class="card"><p class="eyebrow">Score alerts · this device</p>
+    <p class="muted">A banner pops up when a team scores, a game kicks off or ends, and when someone wins the week. It shows whose picks are winning or losing.</p>
+    <div class="setrow"><button type="button" class="toggle" id="alertsToggle" aria-pressed="${on}">${on?'Alerts on':'Alerts off'}</button>${on?notify:''}<button type="button" class="linkbtn" id="testAlert">Show a sample alert</button></div></section>`;
+}
+
 function renderFamily(app){
-  let h='<section class="card"><p class="eyebrow">The five of you</p><form id="famForm">';
+  let h=alertsCard();
+  h+=`<section class="card"><p class="eyebrow">Parent controls</p><p class="muted">${S.parent?'A parent is signed in on this device. <button type="button" class="linkbtn" id="parentSignOut">Sign out</button>':'Unlocking picks and changing names or colors asks for the parent password.'}</p></section>`;
+  h+='<section class="card"><p class="eyebrow">The five of you</p><form id="famForm">';
   players().forEach((p,i)=>{
     h+=`<div class="frow" style="--c:${esc(p.color)}"><span class="jersey pkj" style="width:34px;height:34px;border-radius:9px 9px 12px 12px;background:var(--c);color:#fff;display:grid;place-items:center;font:900 17px 'Big Shoulders Display',sans-serif">${initial(p)}</span>
       <input name="n${i}" value="${esc(p.name)}" maxlength="16" aria-label="Name for player ${i+1}" autocomplete="off">
       <div class="sw" role="group" aria-label="Color for ${esc(p.name)}">${COLORS.map(c=>`<button type="button" style="--c:${c}" data-swatch="${i}" data-color="${c}" aria-pressed="${c===p.color}" aria-label="Color ${c}"></button>`).join('')}</div></div>`;
   });
-  h+='<div style="margin-top:12px;display:flex;gap:12px;align-items:center"><button class="primary" type="submit">Save family</button><span class="muted">Everyone who opens this page sees these names.</span></div></form></section>';
+  h+='<div style="margin-top:12px;display:flex;gap:12px;align-items:center"><button class="primary" type="submit">Save family</button><span class="muted">Needs the parent password. Everyone sees these names.</span></div></form></section>';
   h+=`<section class="card"><p class="eyebrow">How it works</p><p class="muted" style="margin:6px 0 0">Pick who you are at the top of the Picks tab, then tap the team you think will win each game. You can change a pick until kickoff; then it locks and everyone’s picks show. Each week runs Sunday through the next Thursday, so the Thursday night game counts toward the week you pick on Sunday. Scores come from ESPN and update every minute during games while the page is open. Each week has one winner, who gets 1 point: whoever has the most correct picks, with ties broken by the closest guess of total points in the last game of the week. Most points at the end of the season wins.</p></section>`;
   app.innerHTML=h;
   S.draft=players().map(p=>({...p}));
@@ -564,12 +679,16 @@ document.addEventListener('click',(e)=>{
   if(e.target.closest('#resToggle')){S.results=!S.results;render();return}
   if(e.target.closest('#revealToggle')){S.revealAll=!S.revealAll;render();return}
   if(e.target.closest('#lockToggle')){
-    const w=S.week,key='w'+w,next=!weekLocked(w),prev=S.locks[key];
-    S.locks={...S.locks,[key]:{week:w,locked:next,at:new Date().toISOString()}};render();
-    S.db.doc('locks/'+key).set(S.locks[key])
-      .then(()=>toast(next?`Week ${w} picks locked`:`Week ${w} picks unlocked`))
-      .catch(()=>{S.locks={...S.locks,[key]:prev};render();toast('The lock didn’t save. Try again.')});
+    const w=S.week;
+    if(!weekLocked(w))setLock(w,true);
+    else requireParent(`Enter the parent password to unlock Week ${w} picks.`,()=>setLock(w,false));
     return}
+  if(e.target.closest('#alertsToggle')){store.set('alerts',alertsOn()?'off':'on');render();return}
+  if(e.target.closest('#notifyBtn')){Notification.requestPermission().then(()=>render());return}
+  if(e.target.closest('#testAlert')){sampleAlert();return}
+  const al=e.target.closest('#alert');
+  if(al){const id=al.dataset.game;nextAlert();if(id){S.tab='picks';store.set('tab','picks');render();const el=document.querySelector(`.team[data-game="${id}"]`);if(el)el.closest('.game').scrollIntoView({block:'center',behavior:'smooth'})}return}
+  if(e.target.closest('#parentSignOut')){signOut(S.auth).then(()=>toast('Parent signed out on this device'));return}
   const sw=e.target.closest('[data-swatch]');
   if(sw){const i=+sw.dataset.swatch;S.draft[i].color=sw.dataset.color;sw.parentElement.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b===sw)));sw.closest('.frow').style.setProperty('--c',sw.dataset.color);return}
   const tb=e.target.closest('.team[data-game]');
@@ -581,9 +700,11 @@ document.addEventListener('submit',async(e)=>{
   if(e.target.id!=='famForm')return;e.preventDefault();
   const fd=new FormData(e.target);
   const next={players:S.draft.map((p,i)=>({id:p.id,name:(fd.get('n'+i)||'').trim().slice(0,16)||'Player '+(i+1),color:p.color}))};
-  S.family=next;
-  try{await S.db.doc('config/family').set(next);toast('Family saved');S.tab='picks';store.set('tab','picks');render()}
-  catch{toast('Names didn’t save. Try again.')}
+  requireParent('Enter the parent password to change names and colors.',async()=>{
+    const prev=S.family;S.family=next;
+    try{await S.db.doc('config/family').set(next);toast('Family saved');S.tab='picks';store.set('tab','picks');render()}
+    catch{S.family=prev;render();toast('Only a parent can change names and colors.')}
+  });
 });
 $('#prev').onclick=()=>{if(S.week>1){S.week--;S.results=false;render()}};
 $('#next').onclick=()=>{if(S.week<18){S.week++;S.results=false;render()}};
@@ -622,6 +743,112 @@ function activeNflWeeks(){
   }
   return out;
 }
+/* ---- score alerts ---- */
+let lastSeen=null;
+S.flash={};
+function flashing(g,side){const f=S.flash[g.id];return !!f&&f.until>Date.now()&&(!side||f[side])}
+function alertsOn(){return store.get('alerts')!=='off'}
+function pickWeekOf(id){for(const [w,wk] of Object.entries(S.weeks))if(wk.games.some(g=>g.id===id))return +w;return null}
+function scoreKind(pts){return pts>=6&&pts<=8?'Touchdown':pts===3?'Field goal':pts===2?'Two points':pts===1?'Extra point':'Score'}
+function nameList(list){return list.map(p=>`<b style="color:inherit">${esc(p.name)}</b>`).join(', ')}
+
+function detectEvents(){
+  const now=new Map();
+  for(const games of Object.values(nfl))for(const g of games)now.set(g.id,g);
+  const before=lastSeen;lastSeen=new Map([...now].map(([id,g])=>[id,{as:g.as,hs:g.hs,st:g.st,w:g.w}]));
+  if(!before)return;
+  const shown=currentWeek(),events=[];
+  for(const g of now.values()){
+    const b=before.get(g.id);if(!b||pickWeekOf(g.id)!==shown)continue;
+    const da=g.as-b.as,dh=g.hs-b.hs;
+    if(da>0||dh>0)S.flash[g.id]={a:da>0,h:dh>0,until:Date.now()+3000};
+    if(b.st==='pre'&&g.st==='in')events.push({kind:'kickoff',g});
+    if(da>0)events.push({kind:'score',g,side:'a',pts:da});
+    if(dh>0)events.push({kind:'score',g,side:'h',pts:dh});
+    if(!b.w&&g.w){
+      events.push({kind:'final',g});
+      const sc=weekScore(shown);
+      if(sc.complete&&sc.winner&&sc.last&&sc.last.id===g.id)events.push({kind:'week',w:shown,sc});
+    }
+  }
+  if(events.length)setTimeout(()=>render(),3100);
+  events.forEach(queueAlert);
+}
+
+const alertQueue=[];let alertShowing=false,alertTimer=null;
+function queueAlert(ev){
+  if(!alertsOn())return;
+  alertQueue.push(ev);
+  if(alertQueue.length>8)alertQueue.splice(0,alertQueue.length-8);
+  systemNotify(ev);
+  if(!alertShowing)nextAlert();
+}
+function alertView(ev){
+  if(ev.kind==='week'){
+    const r=ev.sc.winner;
+    return {tc:r.p.color,tc2:'rgba(0,0,0,.25)',tx:'#fff',title:`Week ${ev.w} winner`,meta:'+1 point',
+      score:`<span>${esc(r.p.name)}</span>`,people:`<span>${r.right} of ${ev.sc.total} correct${ev.sc.byTiebreak?' · won the tiebreaker':''}</span>`,
+      plain:`${r.p.name} wins Week ${ev.w} with ${r.right} correct`,confetti:[r.p.color,'#ffffff','#E8641E']};
+  }
+  const g=ev.g,w=pickWeekOf(g.id);
+  const team=ev.kind==='score'?g[ev.side]:ev.kind==='final'&&g.w&&g.w!=='TIE'?(g.w===g.a.ab?g.a:g.h):g.h;
+  const title=ev.kind==='score'?`${scoreKind(ev.pts)} ${team.name}`:ev.kind==='final'?(g.w==='TIE'?'Final · tie':`Final · ${team.name} win`):'Kickoff';
+  const meta=ev.kind==='final'?`${g.a.ab} @ ${g.h.ab}`:(g.d||`${g.a.ab} @ ${g.h.ab}`);
+  const picks=players().map(p=>({p,st:pickState(g,picksFor(w,p.id)[g.id])}));
+  const groups=ev.kind==='final'?[['Right','ok'],['Wrong','no']]:[['Winning','up'],['Losing','down'],['Tied','even']];
+  const people=groups.map(([label,st])=>{const list=picks.filter(x=>x.st===st).map(x=>x.p);return list.length?`<span>${label}: ${nameList(list)}</span>`:''}).join('');
+  const me=player(S.me),mineRight=ev.kind==='final'&&picks.some(x=>x.p.id===me.id&&x.st==='ok');
+  return {tc:team.c,tc2:team.c2,tx:textOn(team.c),title,meta,game:g.id,logo:ev.kind==='kickoff'?'':team.logo,
+    score:`<span class="${g.as<g.hs?'lo':''}">${esc(g.a.ab)} ${g.as}</span><span class="lo">–</span><span class="${g.hs<g.as?'lo':''}">${g.hs} ${esc(g.h.ab)}</span>`,
+    people,plain:`${title}: ${g.a.ab} ${g.as}, ${g.h.ab} ${g.hs}`,confetti:mineRight?[team.c,team.c2,'#ffffff']:null};
+}
+function nextAlert(){
+  clearTimeout(alertTimer);
+  const el=$('#alert'),ev=alertQueue.shift();
+  if(!ev){alertShowing=false;el.hidden=true;return}
+  alertShowing=true;
+  const v=alertView(ev);
+  el.style.setProperty('--tc',v.tc);el.style.setProperty('--tc2',v.tc2);el.style.setProperty('--tx',v.tx);
+  el.dataset.game=v.game||'';
+  el.innerHTML=`<div class="al-head">${v.logo?`<img class="al-logo" src="${esc(v.logo)}" alt="">`:''}<span class="al-kind">${esc(v.title)}</span><span class="al-meta">${esc(v.meta)}</span></div><div class="al-score num">${v.score}</div>${v.people?`<div class="al-people">${v.people}</div>`:''}`;
+  el.hidden=false;el.classList.remove('in');void el.offsetWidth;el.classList.add('in');
+  if(v.confetti)confetti(v.confetti);
+  alertTimer=setTimeout(nextAlert,6000);
+}
+function systemNotify(ev){
+  try{
+    if(!document.hidden||!('Notification' in window)||Notification.permission!=='granted')return;
+    const v=alertView(ev);
+    new Notification('Sunday Picks',{body:v.plain,tag:v.game||('week'+ev.w)});
+  }catch{}
+}
+function confetti(colors){
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  const c=document.createElement('canvas');c.className='confetti';document.body.appendChild(c);
+  const dpr=window.devicePixelRatio||1,W=innerWidth,H=innerHeight;c.width=W*dpr;c.height=H*dpr;
+  const x=c.getContext('2d');x.scale(dpr,dpr);
+  const bits=Array.from({length:110},()=>({x:W/2+(Math.random()-.5)*80,y:110,vx:(Math.random()-.5)*11,vy:-Math.random()*9-3,s:Math.random()*7+4,c:colors[Math.floor(Math.random()*colors.length)],a:Math.random()*6,va:(Math.random()-.5)*.4}));
+  let last=performance.now();
+  requestAnimationFrame(function frame(t){
+    const k=Math.min(40,t-last)/16;last=t;
+    x.clearRect(0,0,W,H);let alive=false;
+    for(const b of bits){b.vy+=.28*k;b.vx*=.99;b.x+=b.vx*k;b.y+=b.vy*k;b.a+=b.va*k;
+      if(b.y<H+20)alive=true;
+      x.save();x.translate(b.x,b.y);x.rotate(b.a);x.fillStyle=b.c;x.fillRect(-b.s/2,-b.s/4,b.s,b.s/2);x.restore();}
+    if(alive)requestAnimationFrame(frame);else c.remove();
+  });
+}
+function sampleAlert(){
+  const w=S.week||currentWeek(),gs=weekGames(w);
+  const g=gs.find(x=>x.st==='in')||gs.find(x=>x.w&&x.w!=='TIE')||gs[0];
+  if(!g){toast('No games to show yet.');return}
+  const side=g.as>=g.hs?'a':'h';
+  const was=alertsOn();store.set('alerts','on');
+  queueAlert({kind:'score',g,side,pts:7});
+  if(g.w&&g.w!=='TIE')queueAlert({kind:'final',g});
+  if(!was)store.set('alerts','off');
+}
+
 let pollTimer=null;
 async function refresh(){
   clearTimeout(pollTimer);
@@ -630,8 +857,9 @@ async function refresh(){
     if(!lastFullLoad||Date.now()-lastFullLoad>30*60e3)await loadAllWeeks();
     else for(const w of active)nfl[w]=await fetchWeek(w);
     applySchedule();
+    detectEvents();
   }catch(e){S.ready=true;S.scoreError=true;render()}
-  pollTimer=setTimeout(refresh,activeNflWeeks().length?60e3:10*60e3);
+  pollTimer=setTimeout(refresh,activeNflWeeks().length?30e3:10*60e3);
 }
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&S.updatedAt&&Date.now()-S.updatedAt>60e3)refresh()});
 
@@ -639,7 +867,10 @@ render();
 if(!firebaseConfig||!firebaseConfig.projectId||firebaseConfig.projectId.startsWith('YOUR')){
   S.offline=true;render();
 }else{
-  const db=makeDb(getFirestore(initializeApp(firebaseConfig)));
+  const app=initializeApp(firebaseConfig);
+  S.auth=getAuth(app);
+  onAuthStateChanged(S.auth,(user)=>{S.parent=!!user;render()});
+  const db=makeDb(getFirestore(app));
   S.db=db;
   db.doc('config/family').onSnapshot(s=>{if(s.exists){S.family=s.data();render()}},()=>{});
   db.collection('locks').onSnapshot(s=>{

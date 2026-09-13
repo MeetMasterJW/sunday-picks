@@ -1,29 +1,44 @@
 rules_version = '2';
 
-// Sunday Picks has no sign-in: anyone with the link can read and make picks.
-// These rules keep writes to the three shapes the page uses and block deletes.
+// Sunday Picks: anyone with the link can read and make picks. Only the parent
+// login can unlock a week or change family names and colors. Deletes are blocked.
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    function weekId(id) { return id.matches('w([1-9]|1[0-8])'); }
+    // User UID of the parent login (Firebase console → Authentication → Users)
+    function isParent() {
+      return request.auth != null && request.auth.uid == 'PARENT_UID';
+    }
+
+    function weekLocked(week) {
+      let lock = /databases/$(database)/documents/locks/$('w' + string(week));
+      return exists(lock) && get(lock).data.locked == true;
+    }
 
     match /picks/{id} {
       allow read: if true;
-      allow create, update: if id.matches('w([1-9]|1[0-8])-p[1-5]')
-        && request.resource.data.keys().hasOnly(['week', 'player', 'picks', 'tb', 'tbAt'])
-        && request.resource.data.picks is map;
+      allow create, update: if request.resource.data.keys().hasOnly(['week', 'player', 'picks', 'tb', 'tbAt'])
+        && request.resource.data.week is int
+        && request.resource.data.week >= 1 && request.resource.data.week <= 18
+        && request.resource.data.player.matches('p[1-5]')
+        && id == 'w' + string(request.resource.data.week) + '-' + request.resource.data.player
+        && request.resource.data.picks is map
+        && (isParent() || !weekLocked(request.resource.data.week));
     }
 
+    // Anyone can lock a week (the lock button and auto-lock); only a parent can unlock.
     match /locks/{id} {
       allow read: if true;
-      allow create, update: if weekId(id)
+      allow create, update: if id.matches('w([1-9]|1[0-8])')
         && request.resource.data.keys().hasOnly(['week', 'locked', 'auto', 'at'])
-        && request.resource.data.locked is bool;
+        && request.resource.data.locked is bool
+        && (request.resource.data.locked == true || isParent());
     }
 
     match /config/family {
       allow read: if true;
-      allow create, update: if request.resource.data.keys().hasOnly(['players'])
+      allow create, update: if isParent()
+        && request.resource.data.keys().hasOnly(['players'])
         && request.resource.data.players is list
         && request.resource.data.players.size() == 5;
     }
