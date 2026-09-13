@@ -124,6 +124,9 @@ main>*{min-width:0}
 .score.live small{color:var(--bad)}
 .score.live small::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--bad);margin-right:4px;vertical-align:1px}
 .upct{color:var(--good)}
+.podium{display:flex;flex-wrap:wrap;gap:2px 14px;margin:6px 0 0}
+.podium b{color:var(--pylon)}
+.ptsb{color:var(--pylon);font-weight:800;font-size:12px}
 .legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin:12px 0 0;font-size:12px;font-weight:700}
 .lg.ok,.lg.up{color:var(--good)} .lg.no,.lg.down{color:var(--bad)}
 .team:disabled{cursor:default}
@@ -345,7 +348,10 @@ function slotLabel(g){
 }
 
 /* ---- scoring ---- */
-/* One winner a week: most correct picks, then closest guess of total points in the
+// Week points by final place: 1st, 2nd, 3rd
+const PLACE_POINTS=[3,2,1];
+const PLACE_LABEL=['1st','2nd','3rd','4th','5th'];
+/* Weekly order: most correct picks, then closest guess of total points in the
    week's last game, then a guess that isn't over, then whoever saved their guess first. */
 function weekScore(w){
   const games=weekGames(w);const done=games.filter(g=>g.w);
@@ -368,6 +374,11 @@ function weekScore(w){
     return a.tbAt<b.tbAt?-1:a.tbAt>b.tbAt?1:a.idx-b.idx;
   };
   rows.sort((a,b)=>b.right-a.right||(complete?tiebreak(a,b):a.wrong-b.wrong||a.idx-b.idx));
+  rows.forEach((r,i)=>{
+    r.place=i+1;
+    r.pts=complete?(PLACE_POINTS[i]||0):0;
+    r.tied=rows.some(x=>x!==r&&x.right===r.right);
+  });
   const top=Math.max(...rows.map(r=>r.right));
   rows.forEach(r=>r.lead=done.length>0&&r.right===top&&top>0);
   const winner=complete?rows[0]:null;
@@ -590,34 +601,42 @@ function renderAllPicks(app){
 function renderStandings(app){
   const w=S.week,sc=weekScore(w);
   let h='';
-  if(sc.winner){
-    const r=sc.winner;
-    const how=sc.byTiebreak?` · won the tiebreaker (guessed ${r.tb===null?'nothing':r.tb}, final total ${sc.actual})`:'';
-    h+=`<div class="champ"><span class="trophy">★</span><div><p class="eyebrow" style="color:inherit;opacity:.7">Week ${w} winner · +1 point</p><h3>${esc(r.p.name)}</h3><p class="num">${r.right} of ${sc.total} correct${how}</p></div></div>`;
+  if(sc.complete){
+    h+=`<div class="champ"><span class="trophy">★</span><div><p class="eyebrow" style="color:inherit;opacity:.7">Week ${w} final</p><h3>${esc(sc.winner.p.name)} wins the week</h3><p class="podium">${sc.rows.slice(0,3).map(r=>`<span>${PLACE_LABEL[r.place-1]} ${esc(r.p.name)} <b>+${r.pts}</b></span>`).join('')}</p></div></div>`;
   }
-  h+=`<section class="card"><p class="eyebrow">Week ${w} · ${sc.complete?'Final':`${sc.done} of ${sc.total} games final`}</p><div class="rank">`;
+  h+=`<section class="card"><p class="eyebrow">Week ${w} record · ${sc.complete?'Final':`${sc.done} of ${sc.total} games final`}</p><div class="rank">`;
   let pos=0,prev=null;
   sc.rows.forEach((r,i)=>{
-    if(sc.complete)pos=i+1; else if(prev===null||r.right!==prev){pos=i+1;prev=r.right}
+    if(sc.complete)pos=r.place; else if(prev===null||r.right!==prev){pos=i+1;prev=r.right}
     const pct=sc.done?Math.round(r.right/Math.max(1,sc.done)*100):0;
-    const isWinner=r===sc.winner;
+    const notes=[`${r.made}/${sc.total} picked`,`tiebreaker ${r.tb===null?'not set':r.tb}`];
+    if(r.up)notes.push(`<b class="upct">${r.up} winning now</b>`);
+    if(r.lead&&!sc.complete)notes.push('leading');
+    if(sc.complete&&r.tied)notes.push('place set by tiebreaker');
     h+=`<div class="rrow" style="--c:${esc(r.p.color)}"><span class="pos num">${pos}</span><span class="jersey">${initial(r.p)}</span>
-      <div class="who"><b>${esc(r.p.name)} ${isWinner?'<span class="crown" aria-label="Week winner">★</span>':''}</b><span class="num">${r.made}/${sc.total} picked · tiebreaker ${r.tb===null?'not set':r.tb}${r.up?` · <b class="upct">${r.up} winning now</b>`:''}${r.lead&&!sc.complete?' · leading':''}</span><div class="bar"><i style="width:${pct}%"></i></div></div>
-      <div class="rec num">${r.right}–${r.wrong}<small>W–L</small></div></div>`});
+      <div class="who"><b>${esc(r.p.name)} ${sc.complete&&r.place===1?'<span class="crown" aria-label="Week winner">★</span>':''}</b><span class="num">${notes.join(' · ')}</span><div class="bar"><i style="width:${pct}%"></i></div></div>
+      <div class="rec num">${r.right}–${r.wrong}<small>${sc.complete?`<b class="ptsb">+${r.pts} pts</b>`:'W–L'}</small></div></div>`;
+  });
   h+='</div></section>';
 
-  // season: one point per week won
-  const season=players().map(p=>({p,points:0,right:0,wrong:0,byWeek:{}}));
-  const byId=Object.fromEntries(season.map(s=>[s.p.id,s]));
-  let weeksDone=0;const cols=[];
-  for(let k=1;k<=18;k++){const s=weekScore(k);if(!s.done)continue;
-    cols.push(k);if(s.complete)weeksDone++;
-    s.rows.forEach(r=>{const row=byId[r.p.id];row.right+=r.right;row.wrong+=r.wrong;row.byWeek[k]={n:r.right,win:r===s.winner}; if(r===s.winner)row.points++});}
-  season.sort((a,b)=>b.points-a.points||b.right-a.right);
-  const seasonOver=weeksDone===18;
-  h+=`<section class="card"><p class="eyebrow">${seasonOver?`Season champion · ${esc(season[0].p.name)}`:`Season · ${weeksDone} of 18 weeks complete`}</p><div class="scroll"><table class="num"><thead><tr><th>Player</th><th>Points</th><th>W–L</th>${cols.map(k=>`<th>Wk ${k}</th>`).join('')}</tr></thead><tbody>`;
-  season.forEach((r,i)=>{h+=`<tr><td><b style="color:${esc(r.p.color)}">●</b> ${esc(r.p.name)}${seasonOver&&i===0?' <span class="crown">★</span>':''}</td><td class="tot">${r.points}</td><td>${r.right}–${r.wrong}</td>${cols.map(k=>{const c=r.byWeek[k];return c?`<td class="${c.win?'win':''}">${c.n}${c.win?' ★':''}</td>`:'<td>–</td>'}).join('')}</tr>`});
-  h+=`</tbody></table></div></section><p class="muted">Each week has one winner, who gets 1 point. If people tie on correct picks, the closest guess of total points in the week’s last game wins. If the guesses are equally close, the guess that didn’t go over wins, then whoever saved their guess first. Tied NFL games don’t count, and a missed pick counts as a loss. Most points after Week 18 wins the season. If points are tied, the most correct picks all season wins.</p>`;
+  // season: total week points only
+  const season=players().map(p=>({p,points:0,byWeek:{}}));
+  const byId=Object.fromEntries(season.map(x=>[x.p.id,x]));
+  const cols=[];
+  for(let k=1;k<=18;k++){
+    const s2=weekScore(k);if(!s2.complete)continue;
+    cols.push(k);
+    s2.rows.forEach(r=>{const row=byId[r.p.id];row.points+=r.pts;row.byWeek[k]={pts:r.pts,place:r.place}});
+  }
+  season.sort((a,b)=>b.points-a.points);
+  season.forEach((r,i)=>r.rank=i>0&&r.points===season[i-1].points?season[i-1].rank:i+1);
+  const seasonOver=cols.length===18,champs=season.filter(r=>r.rank===1);
+  const eyebrow=seasonOver?`Season ${champs.length>1?'co-champions':'champion'} · ${champs.map(r=>esc(r.p.name)).join(' & ')}`:`Season points · ${cols.length} of 18 weeks final`;
+  h+=`<section class="card"><p class="eyebrow">${eyebrow}</p><div class="scroll"><table class="num"><thead><tr><th>Player</th><th>Rank</th><th>Points</th>${cols.map(k=>`<th>Wk ${k}</th>`).join('')}</tr></thead><tbody>`;
+  season.forEach(r=>{
+    h+=`<tr><td><b style="color:${esc(r.p.color)}">●</b> ${esc(r.p.name)}${seasonOver&&r.rank===1?' <span class="crown">★</span>':''}</td><td>${r.rank}</td><td class="tot">${r.points}</td>${cols.map(k=>{const c=r.byWeek[k];return `<td class="${c.place===1?'win':''}">${c.pts}${c.place===1?' ★':''}</td>`}).join('')}</tr>`;
+  });
+  h+=`</tbody></table></div></section><p class="muted">Each week ends with a final order by correct picks. 1st place gets 3 points, 2nd gets 2 and 3rd gets 1. If people tie on correct picks, the closest guess of total points in the week’s last game goes ahead, then a guess that didn’t go over, then whoever saved their guess first. Tied NFL games don’t count, and a missed pick counts as a loss. Season standings count points only; people tied on points share the spot.</p>`;
   app.innerHTML=h;
 }
 
@@ -644,7 +663,7 @@ function renderFamily(app){
       <div class="sw" role="group" aria-label="Color for ${esc(p.name)}">${COLORS.map(c=>`<button type="button" style="--c:${c}" data-swatch="${i}" data-color="${c}" aria-pressed="${c===p.color}" aria-label="Color ${c}"></button>`).join('')}</div></div>`;
   });
   h+='<div style="margin-top:12px;display:flex;gap:12px;align-items:center"><button class="primary" type="submit">Save family</button><span class="muted">Needs the parent password. Everyone sees these names.</span></div></form></section>';
-  h+=`<section class="card"><p class="eyebrow">How it works</p><p class="muted" style="margin:6px 0 0">Pick who you are at the top of the Picks tab, then tap the team you think will win each game. You can change a pick until kickoff; then it locks and everyone’s picks show. Each week runs Sunday through the next Thursday, so the Thursday night game counts toward the week you pick on Sunday. Scores come from ESPN and update every minute during games while the page is open. Each week has one winner, who gets 1 point: whoever has the most correct picks, with ties broken by the closest guess of total points in the last game of the week. Most points at the end of the season wins.</p></section>`;
+  h+=`<section class="card"><p class="eyebrow">How it works</p><p class="muted" style="margin:6px 0 0">Pick who you are at the top of the Picks tab, then tap the team you think will win each game. You can change a pick until kickoff; then it locks and everyone’s picks show. Each week runs Sunday through the next Thursday, so the Thursday night game counts toward the week you pick on Sunday. Scores come from ESPN and update every minute during games while the page is open. When a week ends, 1st place (most correct picks) gets 3 points, 2nd gets 2 and 3rd gets 1. Ties on correct picks are broken by the closest guess of total points in the week’s last game. Most points at the end of the season wins.</p></section>`;
   app.innerHTML=h;
   S.draft=players().map(p=>({...p}));
 }
@@ -786,8 +805,8 @@ function queueAlert(ev){
 function alertView(ev){
   if(ev.kind==='week'){
     const r=ev.sc.winner;
-    return {tc:r.p.color,tc2:'rgba(0,0,0,.25)',tx:'#fff',title:`Week ${ev.w} winner`,meta:'+1 point',
-      score:`<span>${esc(r.p.name)}</span>`,people:`<span>${r.right} of ${ev.sc.total} correct${ev.sc.byTiebreak?' · won the tiebreaker':''}</span>`,
+    return {tc:r.p.color,tc2:'rgba(0,0,0,.25)',tx:'#fff',title:`Week ${ev.w} winner`,meta:'+3 points',
+      score:`<span>${esc(r.p.name)}</span>`,people:ev.sc.rows.slice(0,3).map(x=>`<span>${PLACE_LABEL[x.place-1]} <b>${esc(x.p.name)}</b> +${x.pts}</span>`).join(''),
       plain:`${r.p.name} wins Week ${ev.w} with ${r.right} correct`,confetti:[r.p.color,'#ffffff','#E8641E']};
   }
   const g=ev.g,w=pickWeekOf(g.id);
