@@ -60,6 +60,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--pylon);outline-
 .tabs button[aria-selected="true"]{opacity:1;border-bottom-color:var(--pylon)}
 
 main{max-width:760px;margin:0 auto;padding:16px 14px 80px;display:grid;gap:14px}
+main>*{min-width:0}
 .eyebrow{font:700 12px "Barlow Semi Condensed",sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);margin:0}
 
 /* ---- picker ---- */
@@ -203,6 +204,20 @@ td.none,td.sealedc{color:var(--ink-3)}
   .team .tn span{display:none}
   .team .tn span:has(.tag){display:block}
   .score{min-width:74px}
+  /* All picks: fit five players on a phone instead of scrolling sideways */
+  .allpicks{width:100%;table-layout:fixed;font-size:12px}
+  .allpicks th,.allpicks td{padding:6px 2px;white-space:normal}
+  .allpicks th:first-child,.allpicks td:first-child{width:86px;padding-left:0}
+  .allpicks th{min-width:0;letter-spacing:.02em}
+  .allpicks .pname{display:none}
+  .allpicks th small{font-size:10px}
+  .allpicks th .upct{display:block}
+  .allpicks .jersey{width:24px;height:24px;font-size:13px}
+  .gcell b{font-size:12px}
+  .gcell span{font-size:10px;line-height:1.25}
+  .pchip{min-width:0;width:100%;padding:3px 0;font-size:13px;text-align:center}
+  .allpicks .mark{display:block;margin:1px 0 0;font-size:9px;text-align:center}
+  .tbrow td{font-size:13px}
   .score b{font-size:34px}
   .team .tn b{font-size:14px}
   .pk .nm{font-size:12px}
@@ -450,7 +465,7 @@ function renderAllPicks(app){
   const rec=Object.fromEntries(sc.rows.map(r=>[r.p.id,r]));
   const anyOpen=gs.some(g=>!locked(g));
   let h=`<div class="note"><span>${anyOpen?(S.revealAll?'<b>Showing every pick</b>, including games that haven’t locked yet.':'Picks for games that haven’t locked yet show as ✓ until they lock.'):'Every game this week is locked, so all picks show.'}</span><span style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">${lockButton(w)}${anyOpen?`<button class="toggle" id="revealToggle" aria-pressed="${!!S.revealAll}">${S.revealAll?'Hide open picks':'Show all picks'}</button>`:''}</span></div>`;
-  h+=`<section class="card"><div class="scroll" style="margin-top:-6px"><table class="allpicks"><thead><tr><th>Game</th>${ps.map(p=>`<th style="--c:${esc(p.color)}"><span class="jersey">${initial(p)}</span>${esc(p.name)}<small class="num">${rec[p.id].right}–${rec[p.id].wrong}${rec[p.id].up?` · <span class="upct">${rec[p.id].up} ▲</span>`:''}</small></th>`).join('')}</tr></thead><tbody>`;
+  h+=`<section class="card"><div class="scroll" style="margin-top:-6px"><table class="allpicks"><thead><tr><th>Game</th>${ps.map(p=>`<th style="--c:${esc(p.color)}"><span class="jersey">${initial(p)}</span><span class="pname">${esc(p.name)}</span><small class="num">${rec[p.id].right}–${rec[p.id].wrong}${rec[p.id].up?`<span class="upct"> · ${rec[p.id].up} ▲</span>`:''}</small></th>`).join('')}</tr></thead><tbody>`;
   gs.forEach(g=>{
     const show=locked(g)||S.revealAll;
     const status=g.w?(g.w==='TIE'?`Final · tie ${g.as}–${g.hs}`:`Final ${g.as}–${g.hs}`):g.st==='in'?`Live ${g.as}–${g.hs}${g.d?' · '+g.d:''}`:g.tbd?'Time TBD':fmtKick.format(new Date(g.t));
