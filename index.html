@@ -10,14 +10,16 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏈</text></svg>">
 <title>Sunday Picks</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&family=Saira+Condensed:wght@600;700&family=Unbounded:wght@600;700;800&display=swap">
 <style>
 :root{
   --bg:#0A0C0F;--surface:#14171C;--raised:#1C2027;--line:#242933;--line-2:#323946;
   --ink:#F4F6F8;--ink-2:#A8B0BC;--ink-3:#6E7785;
   --accent:#FF6A2B;--good:#30D158;--bad:#FF453A;--live:#FF453A;
   --radius:18px;
-  --font:"Archivo",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --font:"Figtree",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --display:"Unbounded","Figtree",system-ui,sans-serif;
+  --numeric:"Saira Condensed","Arial Narrow",system-ui,sans-serif;
   color-scheme:dark;
 }
 *{box-sizing:border-box}
@@ -30,15 +32,15 @@ button:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid
 /* top bar */
 .top{position:sticky;top:0;z-index:5;background:rgba(10,12,15,.8);-webkit-backdrop-filter:saturate(1.5) blur(18px);backdrop-filter:saturate(1.5) blur(18px);border-bottom:1px solid var(--line)}
 .top-in{max-width:760px;margin:0 auto;padding:calc(8px + env(safe-area-inset-top)) 10px 8px;display:grid;gap:0}
-.brand{font-size:12px;font-weight:600;color:var(--ink-3);text-align:center}
+.brand{font-family:var(--display);font-size:15px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;color:var(--ink);text-align:center}
 .brand b{color:var(--accent);font-weight:800}
-.top-in:has(.weeknav[hidden]) .brand{font-size:20px;font-weight:800;color:var(--ink);padding:10px 0}
+.top-in:has(.weeknav[hidden]) .brand{font-size:19px;padding:10px 0}
 .weeknav{display:grid;grid-template-columns:44px 1fr 44px;align-items:center}
 .nav{width:40px;height:40px;border-radius:50%;border:0;background:transparent;display:grid;place-items:center;color:var(--ink)}
 .nav:disabled{opacity:.25;cursor:default}
 .nav svg,.tabs svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .wk{text-align:center;line-height:1.15}
-.wk b{display:block;font-size:22px;font-weight:800;font-stretch:88%;letter-spacing:-.01em}
+.wk b{display:block;font-family:var(--display);font-size:19px;font-weight:700;margin-top:3px}
 .wk span{font-size:12.5px;color:var(--ink-2)}
 
 /* bottom tabs */
@@ -62,15 +64,21 @@ main>*{min-width:0}
 .empty{text-align:center;padding:48px 12px;color:var(--ink-2)}
 .jersey{border-radius:50%;background:var(--c);color:#fff;display:inline-grid;place-items:center;font-weight:800;width:34px;height:34px;font-size:15px;flex:none}
 
-/* who is picking */
-.pickers{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin:0 -12px;padding:2px 12px}
-.pickers::-webkit-scrollbar{display:none}
-.pk{flex:none;display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:5px 14px 5px 5px}
-.pk .jersey{width:30px;height:30px;font-size:13px}
-.pk .nm{font-weight:700;font-size:14px}
-.pk .ct{font-size:12px;color:var(--ink-3)}
-.pk[aria-pressed="true"]{border-color:var(--c);background:color-mix(in srgb,var(--c) 22%,var(--surface))}
+/* whose picks are shown */
+.viewer{display:grid;gap:8px}
+.viewer-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:0 4px;font-size:14px;color:var(--ink-2)}
+.viewer-head b{color:var(--ink);font-weight:800}
+.viewer-sum{font-size:14px;font-weight:600;color:var(--ink-2)}
+.viewer-sum .num{font-family:var(--numeric);font-size:20px;font-weight:700;color:var(--ink)}
+.pickers{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.pk{display:grid;justify-items:center;gap:3px;border:1px solid var(--line);background:var(--surface);border-radius:16px;padding:9px 2px 7px;min-width:0}
+.pk .jersey{width:34px;height:34px;font-size:15px}
+.pk .nm{max-width:100%;font-size:12.5px;font-weight:600;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pk .ct{font-family:var(--numeric);font-size:14px;font-weight:600;color:var(--ink-3);line-height:1}
+.pk[aria-pressed="true"]{border-color:var(--c);background:color-mix(in srgb,var(--c) 20%,var(--surface))}
+.pk[aria-pressed="true"] .nm{color:var(--ink);font-weight:800}
 .pk[aria-pressed="true"] .ct{color:var(--ink)}
+.pk[aria-pressed="true"] .jersey{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--c)}
 .note,.lockbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:8px 8px 8px 14px;font-size:14px;color:var(--ink-2)}
 .note b{color:var(--ink)}
 .lockbar{flex-wrap:nowrap;padding-left:8px}
@@ -81,7 +89,7 @@ main>*{min-width:0}
 /* games */
 .day{display:grid;gap:10px}
 .dayhead{margin:8px 4px 0}
-.dayhead h2{margin:0;font-size:16px;font-weight:800;letter-spacing:-.01em}
+.dayhead h2{margin:0;font-size:17px;font-weight:800;letter-spacing:-.01em}
 .slot{font-size:10px;font-weight:800;background:var(--accent);color:#fff;border-radius:5px;padding:1px 5px;margin-left:4px;vertical-align:1px}
 .game{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:8px 8px 8px;display:grid;gap:6px}
 .game.flash{animation:flash 2.4s ease-out}
@@ -105,7 +113,7 @@ main>*{min-width:0}
 .up .tag,.ok .tag{color:var(--good)}
 .down .tag,.no .tag{color:var(--bad)}
 .even .tag{color:var(--ink-2)}
-.sc{font-size:30px;font-weight:800;font-stretch:78%;min-width:1.6ch;text-align:right;color:var(--ink-3);line-height:1}
+.sc{font-family:var(--numeric);font-size:34px;font-weight:700;min-width:1.6ch;text-align:right;color:var(--ink-3);line-height:1}
 .team.ahead .sc,.team.won .sc{color:var(--ink)}
 .team.lost .tn b,.team.behind .tn b{color:var(--ink-2)}
 .team.lost .logo{opacity:.5}
@@ -127,7 +135,7 @@ main>*{min-width:0}
 .sealed{margin:0 6px 2px;font-size:12px;color:var(--ink-3)}
 .tb{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;border-top:1px solid var(--line);margin-top:2px;padding:10px 6px 4px;font-size:14px;color:var(--ink-2)}
 .tb b{color:var(--ink)}
-.tb input{width:80px;font:800 20px var(--font);text-align:center;padding:8px;border-radius:12px;border:1px solid var(--line-2);background:var(--bg);color:var(--ink)}
+.tb input{width:84px;font:700 26px var(--numeric);text-align:center;padding:8px;border-radius:12px;border:1px solid var(--line-2);background:var(--bg);color:var(--ink)}
 .tb input:focus{outline:none;border-color:var(--accent)}
 .dots{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
 .guess{display:inline-flex;align-items:center;gap:6px;font-weight:700;color:var(--ink)}
@@ -142,14 +150,14 @@ th{font-size:12px;font-weight:600;color:var(--ink-3)}
 td:first-child,th:first-child{text-align:left;position:sticky;left:0;background:var(--surface)}
 tr:last-child td{border-bottom:0}
 td.win{color:var(--accent);font-weight:800}
-td.tot{font-weight:800;font-size:16px}
+td.tot{font-family:var(--numeric);font-weight:700;font-size:21px}
 .rk{display:inline-block;min-width:18px;color:var(--ink-3);font-weight:700}
 .allpicks th{vertical-align:bottom;min-width:64px}
 .allpicks th small{display:block;font-size:12px;color:var(--ink-2)}
 .allpicks .jersey{width:28px;height:28px;font-size:13px;margin:0 auto 4px;display:grid}
-.gcell b{display:block;font-weight:700}
+.gcell b{display:block;font-weight:700;font-family:var(--numeric);font-size:16px;letter-spacing:.02em}
 .gcell span{display:block;font-size:12px;color:var(--ink-3)}
-.pchip{display:inline-block;min-width:44px;padding:4px 6px;border-radius:8px;background:var(--tc);color:var(--tx);font-size:12px;font-weight:800}
+.pchip{display:inline-block;min-width:44px;padding:3px 6px;border-radius:8px;background:var(--tc);color:var(--tx);font-family:var(--numeric);font-size:15px;font-weight:700;letter-spacing:.02em}
 td.ok{background:color-mix(in srgb,var(--good) 16%,transparent)}
 td.up{background:color-mix(in srgb,var(--good) 8%,transparent)}
 td.down{background:color-mix(in srgb,var(--bad) 8%,transparent)}
@@ -167,7 +175,7 @@ td.none,td.sealedc{color:var(--ink-3)}
 /* standings */
 .champ{background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 28%,var(--surface)),var(--surface) 72%);border:1px solid var(--line);border-radius:var(--radius);padding:16px;display:flex;gap:14px;align-items:center}
 .trophy{font-size:34px;color:var(--accent);line-height:1}
-.champ h3{margin:2px 0 0;font-size:22px;font-weight:800;letter-spacing:-.01em;text-wrap:balance}
+.champ h3{margin:4px 0 0;font-family:var(--display);font-size:18px;font-weight:700;line-height:1.25;text-wrap:balance}
 .champ .eyebrow{color:var(--ink-2)!important;opacity:1!important}
 .podium{display:flex;flex-wrap:wrap;gap:2px 14px;margin:6px 0 0;font-size:14px;color:var(--ink-2)}
 .podium b{color:var(--accent)}
@@ -177,8 +185,8 @@ td.none,td.sealedc{color:var(--ink-3)}
 .pos{font-weight:800;color:var(--ink-3);text-align:center}
 .who b{display:block;font-weight:700;font-size:16px}
 .who span{font-size:12.5px;color:var(--ink-3)}
-.rec{font-size:28px;font-weight:800;font-stretch:78%;text-align:right;line-height:1}
-.rec small{display:block;font-size:11px;font-weight:600;color:var(--ink-3);font-stretch:100%;margin-top:3px}
+.rec{font-family:var(--numeric);font-size:32px;font-weight:700;text-align:right;line-height:1}
+.rec small{display:block;font-family:var(--font);font-size:11px;font-weight:600;color:var(--ink-3);margin-top:3px}
 .ptsb{color:var(--accent);font-weight:800;font-size:12px}
 .crown{color:var(--accent)}
 .rules{padding:0 4px}
@@ -204,16 +212,16 @@ td.none,td.sealedc{color:var(--ink-3)}
 @keyframes alertTimer{to{transform:scaleX(0)}}
 .al-head{display:flex;align-items:center;gap:10px}
 .al-logo{width:40px;height:40px;flex:none;border-radius:50%;background:rgba(255,255,255,.16);padding:5px;object-fit:contain}
-.al-kind{font-size:20px;font-weight:800;letter-spacing:-.01em}
+.al-kind{font-family:var(--display);font-size:16px;font-weight:700;line-height:1.2}
 .al-meta{margin-left:auto;font-size:12px;font-weight:600;opacity:.8;white-space:nowrap}
-.al-score{display:flex;gap:10px;align-items:baseline;font-size:34px;font-weight:800;font-stretch:78%;margin-top:6px;line-height:1}
+.al-score{display:flex;gap:10px;align-items:baseline;font-family:var(--numeric);font-size:40px;font-weight:700;margin-top:6px;line-height:1}
 .al-score .lo{opacity:.5}
 .al-people{margin-top:8px;font-size:13px;display:flex;flex-wrap:wrap;gap:2px 12px}
 .al-people b{font-weight:800}
 .confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:9}
 dialog{border:1px solid var(--line-2);border-radius:22px;padding:20px;width:calc(100% - 32px);max-width:360px;background:var(--surface);color:var(--ink)}
 dialog::backdrop{background:rgba(0,0,0,.6);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
-dialog h3{margin:0;font-size:20px;font-weight:800}
+dialog h3{margin:0;font-family:var(--display);font-size:17px;font-weight:700}
 dialog p{margin:6px 0 0}
 #parentPw{width:100%;margin-top:14px;font:600 17px var(--font);padding:12px 14px;border-radius:12px;border:1px solid var(--line-2);background:var(--bg);color:var(--ink)}
 #parentPw:focus{outline:none;border-color:var(--accent)}
@@ -225,7 +233,7 @@ dialog p{margin:6px 0 0}
 @media (max-width:520px){
   .team{gap:10px;padding:7px 10px 7px 7px}
   .tn b{font-size:15px}
-  .sc{font-size:28px}
+  .sc{font-size:32px}
   .allpicks{width:100%;table-layout:fixed;font-size:12px}
   .allpicks th,.allpicks td{padding:6px 2px;white-space:normal}
   .allpicks th:first-child,.allpicks td:first-child{width:86px;padding-left:0}
@@ -234,9 +242,9 @@ dialog p{margin:6px 0 0}
   .allpicks th small{font-size:10px}
   .allpicks th .upct{display:block}
   .allpicks .jersey{width:24px;height:24px;font-size:12px}
-  .gcell b{font-size:12px}
+  .gcell b{font-size:15px}
   .gcell span{font-size:10px;line-height:1.25}
-  .pchip{min-width:0;width:100%;padding:3px 0;font-size:11px;text-align:center}
+  .pchip{min-width:0;width:100%;padding:2px 0;font-size:14px;text-align:center}
   .allpicks .mark{display:block;margin:1px 0 0;font-size:9px;text-align:center}
 }
 @media (prefers-reduced-motion:reduce){.alert.in,.alert.in::after,.sc.bump,.game.flash,.st.live::before{animation:none}}
@@ -466,14 +474,16 @@ function renderPicks(app){
   const sc=weekScore(w);
   const allLocked=gs.length>0&&gs.every(g=>locked(g));
   let h='';
-  if(!allLocked){
-  h+='<div class="pickers" role="group" aria-label="Who is picking">';
+  const byPlayer=Object.fromEntries(sc.rows.map(r=>[r.p.id,r]));
+  const meRow=byPlayer[me.id];
+  const summary=sc.done?`<span class="num">${meRow.right}–${meRow.wrong}</span>${meRow.up?` · <span class="upct">${meRow.up} winning now</span>`:''}`:'';
+  h+=`<section class="viewer"><div class="viewer-head"><span>${allLocked?'Viewing as':'Picking as'} <b>${esc(me.name)}</b></span><span class="viewer-sum">${summary}</span></div><div class="pickers" role="group" aria-label="Choose whose picks to show">`;
   players().forEach(p=>{
+    const r=byPlayer[p.id];
     const n=Object.keys(picksFor(w,p.id)).filter(id=>gs.some(g=>g.id===id)).length;
-    h+=`<button class="pk" style="--c:${esc(p.color)}" data-picker="${esc(p.id)}" aria-pressed="${p.id===me.id}"><span class="jersey">${initial(p)}</span><span class="nm">${esc(p.name)}</span><span class="ct num">${n}/${gs.length}</span></button>`;
+    h+=`<button class="pk" style="--c:${esc(p.color)}" data-picker="${esc(p.id)}" aria-pressed="${p.id===me.id}" aria-label="Show ${esc(p.name)}’s picks"><span class="jersey">${initial(p)}</span><span class="nm">${esc(p.name)}</span><span class="ct num">${sc.done?`${r.right}–${r.wrong}`:`${n}/${gs.length}`}</span></button>`;
   });
-  h+='</div>';
-  }
+  h+='</div></section>';
   const open=gs.filter(g=>!locked(g)&&!mine[g.id]).length;
   const defaults=players().every(p=>/^Player \d$/.test(p.name));
   const status=S.results?'<b>Entering results.</b> Tap the team that won each game.'
