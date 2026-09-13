@@ -1,0 +1,642 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1D5A38">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Sunday Picks">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏈</text></svg>">
+<title>Sunday Picks</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;900&family=Barlow:wght@400;500;600;700&family=Barlow+Semi+Condensed:wght@500;600;700&display=swap">
+<style>
+:root{
+  --ground:#EEF2EC; --surface:#FFFFFF; --sunk:#E2E8DF; --line:#CBD5C6;
+  --ink:#14201A; --ink-2:#4E5E54; --ink-3:#7C8A80;
+  --field:#1D5A38; --field-ink:#F4F8F2; --pylon:#E8641E;
+  --good:#1F8A4C; --bad:#C23A2B; --pending:#8A7A2E;
+  --shadow:0 1px 0 rgba(20,32,26,.06),0 6px 18px -10px rgba(20,32,26,.25);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --ground:#0D1511; --surface:#16211B; --sunk:#1D2A23; --line:#2B3A31;
+  --ink:#E6EDE7; --ink-2:#A6B4AB; --ink-3:#74847A;
+  --field:#143F28; --field-ink:#EAF2EC; --pylon:#FF7A33;
+  --good:#4CC27E; --bad:#FF6B5B; --pending:#D6BF5A;
+  --shadow:0 1px 0 rgba(0,0,0,.4),0 8px 20px -12px rgba(0,0,0,.7);
+}}
+:root[data-theme="dark"]{
+  --ground:#0D1511; --surface:#16211B; --sunk:#1D2A23; --line:#2B3A31;
+  --ink:#E6EDE7; --ink-2:#A6B4AB; --ink-3:#74847A;
+  --field:#143F28; --field-ink:#EAF2EC; --pylon:#FF7A33;
+  --good:#4CC27E; --bad:#FF6B5B; --pending:#D6BF5A;
+  --shadow:0 1px 0 rgba(0,0,0,.4),0 8px 20px -12px rgba(0,0,0,.7);
+}
+*{box-sizing:border-box}
+body{margin:0}
+[hidden]{display:none!important}
+body{background:var(--ground);color:var(--ink);font:16px/1.45 Barlow,system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible{outline:3px solid var(--pylon);outline-offset:2px}
+.num{font-variant-numeric:tabular-nums}
+
+/* ---- scoreboard header ---- */
+.board{background:var(--field);color:var(--field-ink);position:relative;overflow:hidden}
+.board::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.13;
+  background:repeating-linear-gradient(90deg,transparent 0 calc(10% - 2px),currentColor calc(10% - 2px) 10%)}
+.board-in{position:relative;max-width:760px;margin:0 auto;padding:18px 18px 0}
+.brand{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.brand h1{margin:0;font:900 30px/1 "Big Shoulders Display",Impact,"Arial Narrow",sans-serif;letter-spacing:.02em;text-transform:uppercase}
+.brand h1 i{font-style:normal;color:var(--pylon)}
+.brand small{font:600 12px "Barlow Semi Condensed",Barlow,sans-serif;letter-spacing:.14em;text-transform:uppercase;opacity:.75}
+.weeknav{display:flex;align-items:center;justify-content:space-between;margin-top:14px;gap:8px}
+.weeknav button{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:999px;width:40px;height:40px;font-size:20px;line-height:1}
+.weeknav button:disabled{opacity:.3;cursor:default}
+.wk{text-align:center}
+.wk b{display:block;font:900 44px/0.95 "Big Shoulders Display",Impact,sans-serif;text-transform:uppercase;letter-spacing:.01em}
+.wk span{font:600 13px "Barlow Semi Condensed",sans-serif;letter-spacing:.08em;text-transform:uppercase;opacity:.8}
+.tabs{display:flex;gap:4px;margin-top:14px}
+.tabs button{flex:1;background:none;border:0;padding:11px 2px 12px;font:700 14px "Barlow Semi Condensed",sans-serif;letter-spacing:.06em;text-transform:uppercase;color:inherit;opacity:.65;border-bottom:4px solid transparent}
+.tabs button[aria-selected="true"]{opacity:1;border-bottom-color:var(--pylon)}
+
+main{max-width:760px;margin:0 auto;padding:16px 14px 80px;display:grid;gap:14px}
+.eyebrow{font:700 12px "Barlow Semi Condensed",sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);margin:0}
+
+/* ---- picker ---- */
+.pickers{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.pk{background:var(--surface);border:2px solid var(--line);border-radius:12px;padding:8px 4px 7px;display:grid;justify-items:center;gap:3px;min-width:0}
+.pk .jersey{width:34px;height:34px;border-radius:9px 9px 12px 12px;background:var(--c);color:#fff;display:grid;place-items:center;font:900 17px "Big Shoulders Display",sans-serif}
+.pk .nm{font-weight:600;font-size:13px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pk .ct{font-size:11px;color:var(--ink-3)}
+.pk[aria-pressed="true"]{border-color:var(--c);box-shadow:0 0 0 2px var(--c) inset}
+.pk[aria-pressed="true"] .ct{color:var(--ink-2);font-weight:600}
+
+.note{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;background:var(--sunk);border-radius:10px;padding:10px 12px;font-size:14px;color:var(--ink-2)}
+.note b{color:var(--ink)}
+.linkbtn{background:none;border:0;padding:4px 0;color:var(--pylon);font-weight:700;text-decoration:underline;text-underline-offset:3px}
+.toggle{display:inline-flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-weight:600;font-size:13px}
+.toggle[aria-pressed="true"]{background:var(--ink);color:var(--ground);border-color:var(--ink)}
+
+/* ---- games ---- */
+.day{display:grid;gap:8px}
+.dayhead{display:flex;align-items:center;gap:10px;margin-top:6px}
+.dayhead h2{margin:0;font:700 15px "Barlow Semi Condensed",sans-serif;letter-spacing:.08em;text-transform:uppercase}
+.dayhead::after{content:"";flex:1;height:8px;background:repeating-linear-gradient(90deg,var(--line) 0 2px,transparent 2px 14px)}
+.slot{font:700 11px "Barlow Semi Condensed",sans-serif;letter-spacing:.1em;background:var(--pylon);color:#fff;border-radius:4px;padding:1px 6px}
+.game{background:var(--surface);border-radius:14px;box-shadow:var(--shadow);padding:10px;display:grid;gap:8px}
+.gmeta{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--ink-3);padding:0 2px}
+.gmeta .st{font:700 11px "Barlow Semi Condensed",sans-serif;letter-spacing:.1em;text-transform:uppercase}
+.st.final{color:var(--ink)} .st.live{color:var(--bad)}
+.matchup{display:grid;grid-template-columns:1fr auto 1fr;gap:6px;align-items:stretch}
+.at{align-self:center;font:700 13px "Barlow Semi Condensed",sans-serif;color:var(--ink-3)}
+.team{position:relative;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:9px;text-align:left;background:var(--sunk);border:2px solid transparent;border-radius:11px;padding:8px;min-height:58px;min-width:0}
+.team.home{grid-template-columns:auto 1fr auto;direction:rtl;text-align:right}
+.team.home>*{direction:ltr}
+.team .chip{width:44px;height:40px;border-radius:8px;background:var(--tc);color:var(--tx);display:grid;place-items:center;font:900 16px "Big Shoulders Display",sans-serif;letter-spacing:.02em;box-shadow:inset 0 -4px 0 var(--tc2)}
+.team .tn{min-width:0}
+.team .tn b{display:block;font-weight:700;font-size:15px;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.team .tn span{display:block;font-size:12px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.team.lost{opacity:.55}
+.team.behind{opacity:.78}
+.team.ahead .tn b,.team.won .tn b{font-weight:800}
+.team.mine{border-color:var(--me);background:color-mix(in srgb,var(--me) 14%,var(--surface))}
+.team.mine::after{content:"✓";position:absolute;top:-8px;right:-6px;width:22px;height:22px;border-radius:50%;background:var(--me);color:#fff;font-size:13px;font-weight:700;display:grid;place-items:center;direction:ltr}
+.team.home.mine::after{right:auto;left:-6px}
+.team.mine.up,.team.mine.ok{border-color:var(--good);background:color-mix(in srgb,var(--good) 20%,var(--surface));opacity:1}
+.team.mine.up::after,.team.mine.ok::after{background:var(--good)}
+.team.mine.down,.team.mine.no{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 12%,var(--surface))}
+.team.mine.down::after,.team.mine.no::after{content:"✗";background:var(--bad)}
+.team.mine.up{box-shadow:0 0 0 3px color-mix(in srgb,var(--good) 30%,transparent)}
+.tag{font-style:normal;font-weight:700;font-size:12px}
+.up .tag,.ok .tag{color:var(--good)} .down .tag,.no .tag{color:var(--bad)} .even .tag{color:var(--ink-2)}
+.score{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;column-gap:4px;align-self:center;text-align:center;min-width:92px}
+.score b{font:900 42px/1 "Big Shoulders Display",Impact,sans-serif;color:var(--ink-3)}
+.score b:first-child{text-align:right}
+.score b:nth-child(3){text-align:left}
+.score b.hi{color:var(--ink)}
+.score .dash{font:700 22px/1 "Big Shoulders Display",sans-serif;color:var(--ink-3)}
+.score small{grid-column:1/-1;margin-top:3px;font:700 11px "Barlow Semi Condensed",sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);white-space:nowrap}
+.score.live small{color:var(--bad)}
+.score.live small::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--bad);margin-right:4px;vertical-align:1px}
+.upct{color:var(--good)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin:12px 0 0;font-size:12px;font-weight:700}
+.lg.ok,.lg.up{color:var(--good)} .lg.no,.lg.down{color:var(--bad)}
+.team:disabled{cursor:default}
+.resultmode .team{border-style:dashed;border-color:var(--line)}
+.resultmode .team.won{border-style:solid;border-color:var(--good)}
+.whopicked{display:grid;grid-template-columns:1fr auto 1fr;gap:6px;font-size:12px;color:var(--ink-3)}
+.dots{display:flex;flex-wrap:wrap;gap:4px;min-height:22px;align-items:center}
+.dots.r{justify-content:flex-end}
+.dot{display:inline-flex;align-items:center;gap:3px;height:22px;padding:0 7px 0 3px;border-radius:999px;background:var(--sunk);font-weight:600;color:var(--ink-2)}
+.dot i{width:16px;height:16px;border-radius:50%;background:var(--c);color:#fff;font:900 10px/16px "Big Shoulders Display",sans-serif;text-align:center;font-style:normal}
+.dot.ok{background:color-mix(in srgb,var(--good) 22%,var(--surface));color:var(--good)}
+.dot.no{text-decoration:line-through;opacity:.7}
+.dot.up{background:color-mix(in srgb,var(--good) 14%,var(--surface));color:var(--good);box-shadow:inset 0 0 0 1.5px var(--good)}
+.dot.down{background:color-mix(in srgb,var(--bad) 10%,var(--surface));color:var(--bad)}
+.sealed{grid-column:1/-1;text-align:center}
+.tb{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;border-top:2px dashed var(--line);padding:10px 2px 2px;font-size:14px;color:var(--ink-2)}
+.tb b{color:var(--ink)}
+.tb input{width:84px;font:900 22px "Big Shoulders Display",sans-serif;text-align:center;padding:6px;border-radius:9px;border:2px solid var(--pylon);background:var(--ground);color:var(--ink)}
+.resrow{display:flex;gap:6px;justify-content:center}
+.resrow button{background:var(--sunk);border:1px solid var(--line);border-radius:8px;padding:4px 12px;font-size:13px;font-weight:600}
+.resrow button[aria-pressed="true"]{background:var(--ink);color:var(--ground)}
+
+/* ---- standings ---- */
+.card{background:var(--surface);border-radius:14px;box-shadow:var(--shadow);padding:14px}
+.champ{background:var(--field);color:var(--field-ink);border-radius:14px;padding:16px;display:flex;align-items:center;gap:14px}
+.champ .trophy{font:900 44px/1 "Big Shoulders Display",sans-serif;color:var(--pylon)}
+.champ h3{margin:0;font:900 30px/1 "Big Shoulders Display",sans-serif;text-transform:uppercase;text-wrap:balance}
+.champ p{margin:2px 0 0;opacity:.8;font-size:14px}
+.rank{display:grid;gap:6px;margin-top:8px}
+.rrow{display:grid;grid-template-columns:22px 34px 1fr auto;gap:10px;align-items:center;padding:6px 0;border-top:1px solid var(--line)}
+.rrow:first-child{border-top:0}
+.rrow .pos{font:900 20px "Big Shoulders Display",sans-serif;color:var(--ink-3);text-align:center}
+.rrow .jersey{width:34px;height:34px;border-radius:9px 9px 12px 12px;background:var(--c);color:#fff;display:grid;place-items:center;font:900 17px "Big Shoulders Display",sans-serif}
+.rrow .who b{display:block;font-weight:700}
+.rrow .who span{font-size:12px;color:var(--ink-3)}
+.bar{height:6px;border-radius:3px;background:var(--sunk);margin-top:4px;overflow:hidden;max-width:220px}
+.bar i{display:block;height:100%;background:var(--c)}
+.rec{font:900 26px "Big Shoulders Display",sans-serif;text-align:right}
+.rec small{display:block;font:600 11px Barlow,sans-serif;color:var(--ink-3);letter-spacing:.04em}
+.crown{color:var(--pylon)}
+.scroll{overflow-x:auto;margin:8px -14px -14px;padding:0 14px 14px}
+table{border-collapse:collapse;font-size:13px;min-width:100%}
+th,td{padding:7px 6px;text-align:center;white-space:nowrap;border-bottom:1px solid var(--line)}
+th{font:700 11px "Barlow Semi Condensed",sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+td:first-child,th:first-child{text-align:left;position:sticky;left:0;background:var(--surface)}
+td.win{font-weight:700;color:var(--pylon)}
+td.tot{font-weight:700}
+tr:last-child td{border-bottom:0}
+.allpicks{font-size:14px}
+.allpicks th{vertical-align:bottom;min-width:68px}
+.allpicks th small{display:block;font:600 12px Barlow,sans-serif;color:var(--ink-2);letter-spacing:0;text-transform:none}
+.allpicks .jersey{display:grid;margin:0 auto 4px;width:26px;height:26px;border-radius:7px 7px 9px 9px;background:var(--c);color:#fff;place-items:center;font:900 14px "Big Shoulders Display",sans-serif}
+.gcell b{display:block;font-weight:700}
+.gcell span{display:block;font-size:12px;color:var(--ink-3)}
+.pchip{display:inline-block;min-width:44px;padding:3px 6px;border-radius:6px;background:var(--tc);color:var(--tx);font:900 15px "Big Shoulders Display",sans-serif;letter-spacing:.02em}
+td.no .pchip{opacity:.4}
+td.ok{background:color-mix(in srgb,var(--good) 22%,var(--surface))}
+td.up{background:color-mix(in srgb,var(--good) 12%,var(--surface))}
+td.down{background:color-mix(in srgb,var(--bad) 9%,var(--surface))}
+td.up .mark{color:var(--good);font-size:11px} td.down .mark{color:var(--bad);font-size:11px}
+.mark{font-style:normal;font-weight:700;margin-left:4px}
+td.ok .mark{color:var(--good)} td.no .mark{color:var(--bad)}
+td.none,td.sealedc{color:var(--ink-3)}
+.tbrow td{border-top:2px dashed var(--line);font-weight:700}
+
+/* ---- family ---- */
+.frow{display:grid;grid-template-columns:34px 1fr;gap:10px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.frow:first-of-type{border-top:0}
+.frow input{width:100%;font:600 16px Barlow,sans-serif;padding:9px 11px;border-radius:9px;border:1px solid var(--line);background:var(--ground);color:var(--ink)}
+.sw{grid-column:2;display:flex;gap:6px;flex-wrap:wrap}
+.sw button{width:26px;height:26px;border-radius:50%;border:0;background:var(--c)}
+.sw button[aria-pressed="true"]{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--c)}
+.primary{background:var(--pylon);color:#fff;border:0;border-radius:10px;padding:12px 18px;font:700 15px "Barlow Semi Condensed",sans-serif;letter-spacing:.08em;text-transform:uppercase}
+.muted{color:var(--ink-3);font-size:14px}
+.empty{text-align:center;padding:40px 10px;color:var(--ink-2)}
+
+.toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:var(--ink);color:var(--ground);padding:10px 16px;border-radius:10px;font-weight:600;font-size:14px;box-shadow:var(--shadow);z-index:5;max-width:90vw}
+@media (max-width:520px){
+  .team{grid-template-columns:auto 1fr;gap:7px;padding:6px}
+  .team.home{grid-template-columns:auto 1fr}
+  .team .chip{width:38px;height:34px;font-size:14px}
+  .team .tn span{display:none}
+  .team .tn span:has(.tag){display:block}
+  .score{min-width:74px}
+  .score b{font-size:34px}
+  .team .tn b{font-size:14px}
+  .pk .nm{font-size:12px}
+  .wk b{font-size:38px}
+}
+@media (prefers-reduced-motion:no-preference){.team,.pk{transition:border-color .15s,background-color .15s,transform .1s}.team:active:not(:disabled),.pk:active{transform:scale(.97)}}
+</style>
+</head>
+<body>
+
+<header class="board">
+  <div class="board-in">
+    <div class="brand"><h1>Sunday <i>Picks</i></h1><small>Family Pick ’Em · 2026</small></div>
+    <div class="weeknav">
+      <button id="prev" aria-label="Previous week">‹</button>
+      <div class="wk"><b id="wkTitle">Week –</b><span id="wkDates">Loading schedule…</span></div>
+      <button id="next" aria-label="Next week">›</button>
+    </div>
+    <nav class="tabs" role="tablist">
+      <button role="tab" data-tab="picks" aria-selected="true">Picks</button>
+      <button role="tab" data-tab="all" aria-selected="false">All picks</button>
+      <button role="tab" data-tab="standings" aria-selected="false">Standings</button>
+      <button role="tab" data-tab="family" aria-selected="false">Family</button>
+    </nav>
+  </div>
+</header>
+<main id="app"><div class="empty">Loading…</div></main>
+<div class="toast" id="toast" hidden></div>
+
+<script type="module">
+import {firebaseConfig} from './config.js';
+import {fetchWeek,groupIntoPickWeeks} from './espn.js';
+import {initializeApp} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
+import {getFirestore,doc,collection,setDoc,onSnapshot} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
+const COLORS=['#E8641E','#2E6FD8','#C23B6B','#1E9E8A','#7B4FC9','#C9A200','#2F8F3A','#4A5560'];
+const DEFAULT_FAMILY={players:[1,2,3,4,5].map((i)=>({id:'p'+i,name:'Player '+i,color:COLORS[i-1]}))};
+const S={db:null,family:DEFAULT_FAMILY,weeks:{},picks:{},locks:{},week:null,me:'p1',tab:'picks',results:false,ready:false,offline:false};
+const $=(s)=>document.querySelector(s);
+const esc=(v)=>String(v??'').replace(/[&<>"']/g,(c)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const store={get(k){try{return localStorage.getItem(k)}catch{return null}},set(k,v){try{localStorage.setItem(k,v)}catch{}}};
+S.me=store.get('picker')||'p1';S.tab=store.get('tab')||'picks';
+
+function toast(msg){const t=$('#toast');t.textContent=msg;t.hidden=false;clearTimeout(toast._t);toast._t=setTimeout(()=>t.hidden=true,2400)}
+function textOn(hex){const h=hex.replace('#','');const [r,g,b]=[0,2,4].map(i=>parseInt(h.substr(i,2),16)/255).map(c=>c<=.03928?c/12.92:((c+.055)/1.055)**2.4);return (.2126*r+.7152*g+.0722*b)>.45?'#111':'#fff'}
+function players(){return (S.family.players||DEFAULT_FAMILY.players).slice(0,5)}
+function player(id){return players().find(p=>p.id===id)||players()[0]}
+function initial(p){return esc((p.name||'?').trim().charAt(0).toUpperCase())}
+// Late-pick days (Eastern date -> minutes after kickoff that picks stay open)
+const LATE_PICKS={'2026-09-13':60};
+const etDate=new Intl.DateTimeFormat('en-CA',{timeZone:'America/New_York',year:'numeric',month:'2-digit',day:'2-digit'});
+function lockTime(g){const t=new Date(g.t);return t.getTime()+(LATE_PICKS[etDate.format(t)]||0)*60e3}
+// Who a pick is tracking: final result, or the current leader while a game is live
+function pickState(g,pick){
+  if(!pick)return '';
+  if(g.w)return g.w==='TIE'?'':(pick===g.w?'ok':'no');
+  if(g.st!=='in')return '';
+  if(g.as===g.hs)return 'even';
+  return pick===(g.as>g.hs?g.a.ab:g.h.ab)?'up':'down';
+}
+function weekLocked(w=S.week){return !!(S.locks['w'+w]&&S.locks['w'+w].locked)}
+function locked(g,w=S.week){return weekLocked(w)||g.st==='post'||!!g.w||Date.now()>=lockTime(g)}
+function pickDoc(week,pid){return S.picks['w'+week+'-'+pid]||{week,player:pid,picks:{}}}
+function picksFor(week,pid){return pickDoc(week,pid).picks||{}}
+function weekGames(w){return (S.weeks[w]||{}).games||[]}
+
+const fmtDay=new Intl.DateTimeFormat('en-US',{weekday:'long',month:'short',day:'numeric'});
+const fmtShort=new Intl.DateTimeFormat('en-US',{month:'short',day:'numeric'});
+const fmtTime=new Intl.DateTimeFormat('en-US',{hour:'numeric',minute:'2-digit'});
+const etParts=new Intl.DateTimeFormat('en-US',{timeZone:'America/New_York',weekday:'short',hour:'numeric',hour12:false});
+function slotLabel(g){
+  if(g.tbd)return '';
+  const p=Object.fromEntries(etParts.formatToParts(new Date(g.t)).map(x=>[x.type,x.value]));
+  const h=+p.hour;
+  if(p.weekday==='Thu'&&h>=19)return 'TNF';
+  if(p.weekday==='Sun'&&h>=20)return 'SNF';
+  if(p.weekday==='Mon'&&h>=19)return 'MNF';
+  return '';
+}
+
+/* ---- scoring ---- */
+/* One winner a week: most correct picks, then closest guess of total points in the
+   week's last game, then a guess that isn't over, then whoever saved their guess first. */
+function weekScore(w){
+  const games=weekGames(w);const done=games.filter(g=>g.w);
+  const last=games[games.length-1];
+  const actual=last&&last.w?last.as+last.hs:null;
+  const rows=players().map((p,idx)=>{
+    const doc=pickDoc(w,p.id),pk=doc.picks||{};let right=0,wrong=0,made=0,up=0;
+    games.forEach(g=>{if(pk[g.id])made++;if(pickState(g,pk[g.id])==='up')up++});
+    done.forEach(g=>{if(g.w==='TIE')return; if(pk[g.id]===g.w)right++; else wrong++});
+    return {p,right,wrong,made,up,idx,tb:typeof doc.tb==='number'?doc.tb:null,tbAt:doc.tbAt||'9999'};
+  });
+  const complete=games.length>0&&done.length===games.length;
+  const tiebreak=(a,b)=>{
+    if(actual===null)return 0;
+    if((a.tb===null)!==(b.tb===null))return a.tb===null?1:-1;
+    if(a.tb!==null){
+      const d=Math.abs(a.tb-actual)-Math.abs(b.tb-actual);if(d)return d;
+      const oa=a.tb>actual,ob=b.tb>actual;if(oa!==ob)return oa?1:-1;
+    }
+    return a.tbAt<b.tbAt?-1:a.tbAt>b.tbAt?1:a.idx-b.idx;
+  };
+  rows.sort((a,b)=>b.right-a.right||(complete?tiebreak(a,b):a.wrong-b.wrong||a.idx-b.idx));
+  const top=Math.max(...rows.map(r=>r.right));
+  rows.forEach(r=>r.lead=done.length>0&&r.right===top&&top>0);
+  const winner=complete?rows[0]:null;
+  const byTiebreak=!!winner&&rows.filter(r=>r.right===winner.right).length>1;
+  return {rows,winner,byTiebreak,actual,last,complete,done:done.length,total:games.length,top};
+}
+function currentWeek(){
+  const now=Date.now();
+  for(let w=1;w<=18;w++){const gs=weekGames(w);if(!gs.length)continue;
+    const last=Math.max(...gs.map(g=>new Date(g.t).getTime()));
+    if(last+12*3600e3>now||gs.some(g=>!g.w))return w;}
+  return 18;
+}
+
+/* ---- rendering ---- */
+function render(){
+  const w=S.week;
+  $('#prev').disabled=!w||w<=1;$('#next').disabled=!w||w>=18;
+  document.querySelectorAll('.tabs button').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.tab===S.tab)));
+  const gs=weekGames(w);
+  $('#wkTitle').textContent=S.tab==='family'?'Family':(S.tab==='standings'&&!w?'Standings':'Week '+(w||'–'));
+  if(S.tab==='family'){$('#wkDates').textContent='Names & colors'}
+  else if(gs.length){const a=new Date(gs[0].t),b=new Date(gs[gs.length-1].t);$('#wkDates').textContent=fmtShort.format(a)+' – '+fmtShort.format(b)+' · '+gs.length+' games'+(S.scoreError?' · scores offline':S.updatedAt?' · updated '+fmtTime.format(S.updatedAt):'')}
+  else $('#wkDates').textContent=S.ready?'Schedule not loaded yet':'Loading schedule…';
+  $('.weeknav').style.visibility=S.tab==='family'?'hidden':'visible';
+  const app=$('#app');
+  if(S.offline){app.innerHTML='<div class="empty"><b>Sunday Picks isn’t connected to its database yet.</b><br>Add your Firebase settings to config.js.</div>';return}
+  if(S.tab==='family')return renderFamily(app);
+  if(!gs.length){app.innerHTML='<div class="empty">'+(S.ready?'No games found for this week yet.':'Loading the schedule…')+'</div>';return}
+  if(S.tab==='standings')return renderStandings(app);
+  if(S.tab==='all')return renderAllPicks(app);
+  renderPicks(app);
+}
+
+// Everyone has picked every game they still can (and set a tiebreaker while it's open)
+function allSubmitted(w){
+  const gs=weekGames(w);if(!gs.length)return false;
+  const now=Date.now(),last=gs[gs.length-1];
+  return players().every(p=>{
+    const d=pickDoc(w,p.id),pk=d.picks||{};
+    return gs.every(g=>pk[g.id]||g.w||now>=lockTime(g))&&(typeof d.tb==='number'||now>=lockTime(last));
+  });
+}
+// Lock a week automatically once all picks are in. A week with any lock record
+// (including one someone unlocked by hand) is left alone.
+function maybeAutoLock(){
+  if(!S.db||!S.ready||!S.picksLoaded||!S.locksLoaded)return;
+  for(let w=1;w<=18;w++){
+    const key='w'+w;
+    if(S.locks[key]||!allSubmitted(w))continue;
+    S.locks={...S.locks,[key]:{week:w,locked:true,auto:true,at:new Date().toISOString()}};
+    S.db.doc('locks/'+key).set(S.locks[key]).then(()=>toast(`Everyone’s picks are in. Week ${w} is locked.`)).catch(()=>{const n={...S.locks};delete n[key];S.locks=n;render()});
+    render();
+  }
+}
+
+function lockButton(w){
+  return `<button class="toggle" id="lockToggle" aria-pressed="${weekLocked(w)}">${weekLocked(w)?'Unlock picks':'Lock all picks'}</button>`;
+}
+
+function renderPicks(app){
+  const w=S.week,gs=weekGames(w),me=player(S.me),mine=picksFor(w,me.id);
+  const sc=weekScore(w);
+  let h='<div class="pickers" role="group" aria-label="Who is picking">';
+  players().forEach(p=>{
+    const n=Object.keys(picksFor(w,p.id)).filter(id=>gs.some(g=>g.id===id)).length;
+    h+=`<button class="pk" style="--c:${esc(p.color)}" data-picker="${esc(p.id)}" aria-pressed="${p.id===me.id}"><span class="jersey">${initial(p)}</span><span class="nm">${esc(p.name)}</span><span class="ct num">${n}/${gs.length}</span></button>`;
+  });
+  h+='</div>';
+  const open=gs.filter(g=>!locked(g)&&!mine[g.id]).length;
+  const defaults=players().every(p=>/^Player \d$/.test(p.name));
+  const status=S.results?'<b>Entering results.</b> Tap the team that won each game.'
+    :weekLocked(w)?`<b>${S.locks['w'+w].auto?`Everyone’s picks are in, so Week ${w} is locked.`:`Picks are locked for Week ${w}.`}</b> Everyone’s picks now show.`
+    :`<b>${esc(me.name)}</b> is picking · ${open?`<span class="num">${open}</span> open game${open>1?'s':''} left`:'all set for this week'}`;
+  h+=`<div class="note"><span>${status}</span>
+      <span style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">${defaults&&!S.results?'<button class="linkbtn" data-tab="family">Add your names</button>':''}${S.results?'':lockButton(w)}</span></div>`;
+
+  let lastDay='';
+  gs.forEach(g=>{
+    const d=new Date(g.t),day=g.tbd?'Week '+w+' · Date TBD':fmtDay.format(d);
+    if(day!==lastDay){if(lastDay)h+='</section>';h+=`<section class="day"><div class="dayhead"><h2>${esc(day)}</h2></div>`;lastDay=day}
+    h+=gameCard(g,w,me,mine,g===gs[gs.length-1]);
+  });
+  h+='</section>';
+  app.innerHTML=h;
+  app.classList.toggle('resultmode',S.results);
+}
+
+function teamBtn(g,side,me,mine){
+  const t=g[side],isMine=mine[g.id]===t.ab,won=g.w===t.ab,lost=g.w&&g.w!=='TIE'&&!won;
+  const live=!g.w&&g.st==='in',mineState=isMine&&!S.results?pickState(g,t.ab):'';
+  const ahead=live&&(side==='a'?g.as>g.hs:g.hs>g.as),behind=live&&(side==='a'?g.as<g.hs:g.hs<g.as);
+  const cls=['team',side==='h'?'home':'away',isMine&&!S.results?'mine':'',mineState,won?'won':'',lost&&!S.results?'lost':'',behind?'behind':'',ahead?'ahead':''].join(' ');
+  const dis=!S.results&&locked(g);
+  const tag=mineState==='up'?'Winning':mineState==='down'?'Losing':mineState==='even'?'Tied':mineState==='ok'?'Right':mineState==='no'?'Wrong':'';
+  return `<button class="${cls}" style="--tc:${esc(t.c)};--tc2:${esc(t.c2)};--tx:${textOn(t.c)};--me:${esc(me.color)}" data-game="${esc(g.id)}" data-team="${esc(t.ab)}" ${dis?'aria-disabled="true"':''} aria-pressed="${S.results?won:isMine}" aria-label="${esc(t.loc+' '+t.name)}">
+    <span class="chip">${esc(t.ab)}</span><span class="tn"><b>${esc(t.name)}</b><span>${tag?`<em class="tag">${tag}</em>`:esc(t.loc)}</span></span></button>`;
+}
+function scoreBlock(g){
+  if(g.st==='pre'&&!g.w)return '<span class="at">@</span>';
+  const live=!g.w&&g.st==='in';
+  const label=g.w?'Final':live?(g.d||'Live'):'';
+  return `<div class="score${live?' live':''}" aria-label="Score ${esc(g.a.ab)} ${g.as}, ${esc(g.h.ab)} ${g.hs}">
+    <b class="num${g.as>g.hs?' hi':''}">${g.as}</b><span class="dash">–</span><b class="num${g.hs>g.as?' hi':''}">${g.hs}</b>
+    ${label?`<small>${esc(label)}</small>`:''}</div>`;
+}
+
+function tiebreakRow(g,w,me){
+  if(!locked(g)){
+    const tb=pickDoc(w,me.id).tb;
+    return `<label class="tb"><span><b>Tiebreaker</b> · ${esc(me.name)}, how many total points will both teams score?</span><input type="number" min="0" max="150" inputmode="numeric" data-tb="${esc(g.id)}" value="${typeof tb==='number'?tb:''}" placeholder="45" aria-label="Tiebreaker guess for ${esc(me.name)}"></label>`;
+  }
+  const guesses=players().map(p=>{const tb=pickDoc(w,p.id).tb;return `<span class="dot" style="--c:${esc(p.color)}"><i>${initial(p)}</i>${esc(p.name)} ${typeof tb==='number'?tb:'–'}</span>`}).join('');
+  return `<div class="tb"><span><b>Tiebreaker guesses</b>${g.w?` · final total <b class="num">${g.as+g.hs}</b>`:''}</span><div class="dots">${guesses}</div></div>`;
+}
+
+function gameCard(g,w,me,mine,isLast){
+  const lk=locked(g),slot=slotLabel(g);
+  let status;
+  if(g.w)status=`<span class="st final">${g.w==='TIE'?'Final · Tie':'Final'}</span>`;
+  else if(Date.now()>=new Date(g.t).getTime()||g.st==='in')status=`<span class="st live">${g.st==='in'?'Live':'Kicked off'}${g.d?' · '+esc(g.d):''} · ${lk?'picks locked':'picks open until '+fmtTime.format(new Date(lockTime(g)))}</span>`;
+  else status=`<span>${g.tbd?'Time TBD':fmtTime.format(new Date(g.t))}${slot?` <span class="slot">${slot}</span>`:''}${lk?' · picks locked':''}</span>`;
+  let h=`<article class="game"><div class="gmeta">${status}<span>${esc(g.a.ab)} @ ${esc(g.h.ab)}</span></div>
+    <div class="matchup">${teamBtn(g,'a',me,mine)}${scoreBlock(g)}${teamBtn(g,'h',me,mine)}</div>`;
+  if(S.results){
+  }else{
+    const who=players().map(p=>({p,pick:picksFor(w,p.id)[g.id]})).filter(x=>x.pick);
+    if(lk){
+      const dots=(ab)=>who.filter(x=>x.pick===ab).map(x=>{const st=pickState(g,x.pick);return `<span class="dot ${st}" style="--c:${esc(x.p.color)}"><i>${initial(x.p)}</i>${esc(x.p.name)}</span>`}).join('');
+      h+=`<div class="whopicked"><div class="dots">${dots(g.a.ab)}</div><span></span><div class="dots r">${dots(g.h.ab)}</div></div>`;
+    }else{
+      h+=`<div class="whopicked"><span class="sealed">${who.length}/${players().length} picked · picks revealed when they lock</span></div>`;
+    }
+    if(isLast)h+=tiebreakRow(g,w,me);
+  }
+  return h+'</article>';
+}
+
+const fmtKick=new Intl.DateTimeFormat('en-US',{weekday:'short',hour:'numeric',minute:'2-digit'});
+function renderAllPicks(app){
+  const w=S.week,gs=weekGames(w),ps=players(),sc=weekScore(w);
+  const rec=Object.fromEntries(sc.rows.map(r=>[r.p.id,r]));
+  const anyOpen=gs.some(g=>!locked(g));
+  let h=`<div class="note"><span>${anyOpen?(S.revealAll?'<b>Showing every pick</b>, including games that haven’t locked yet.':'Picks for games that haven’t locked yet show as ✓ until they lock.'):'Every game this week is locked, so all picks show.'}</span><span style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">${lockButton(w)}${anyOpen?`<button class="toggle" id="revealToggle" aria-pressed="${!!S.revealAll}">${S.revealAll?'Hide open picks':'Show all picks'}</button>`:''}</span></div>`;
+  h+=`<section class="card"><div class="scroll" style="margin-top:-6px"><table class="allpicks"><thead><tr><th>Game</th>${ps.map(p=>`<th style="--c:${esc(p.color)}"><span class="jersey">${initial(p)}</span>${esc(p.name)}<small class="num">${rec[p.id].right}–${rec[p.id].wrong}${rec[p.id].up?` · <span class="upct">${rec[p.id].up} ▲</span>`:''}</small></th>`).join('')}</tr></thead><tbody>`;
+  gs.forEach(g=>{
+    const show=locked(g)||S.revealAll;
+    const status=g.w?(g.w==='TIE'?`Final · tie ${g.as}–${g.hs}`:`Final ${g.as}–${g.hs}`):g.st==='in'?`Live ${g.as}–${g.hs}${g.d?' · '+g.d:''}`:g.tbd?'Time TBD':fmtKick.format(new Date(g.t));
+    h+=`<tr><td class="gcell"><b>${esc(g.a.ab)} @ ${esc(g.h.ab)}</b><span class="num">${esc(status)}</span></td>`;
+    ps.forEach(p=>{
+      const pick=picksFor(w,p.id)[g.id];
+      if(!pick){h+='<td class="none" aria-label="No pick">—</td>';return}
+      if(!show){h+='<td class="sealedc" aria-label="Picked, hidden until lock">✓</td>';return}
+      const t=pick===g.a.ab?g.a:pick===g.h.ab?g.h:{c:'#555555'};
+      const res=pickState(g,pick);
+      const mark={ok:'<i class="mark" aria-label="correct">✓</i>',no:'<i class="mark" aria-label="wrong">✗</i>',up:'<i class="mark" aria-label="winning now">▲</i>',down:'<i class="mark" aria-label="losing now">▼</i>'}[res]||'';
+      h+=`<td class="${res}"><span class="pchip" style="--tc:${esc(t.c)};--tx:${textOn(t.c)}">${esc(pick)}</span>${mark}</td>`;
+    });
+    h+='</tr>';
+  });
+  const last=gs[gs.length-1],tbShow=locked(last)||S.revealAll;
+  h+=`<tr class="tbrow"><td class="gcell"><b>Tiebreaker</b><span>Total points, ${esc(last.a.ab)} @ ${esc(last.h.ab)}${last.w?' · final '+(last.as+last.hs):''}</span></td>${ps.map(p=>{const tb=pickDoc(w,p.id).tb;return `<td class="num">${typeof tb!=='number'?'—':tbShow?tb:'✓'}</td>`}).join('')}</tr>`;
+  h+='</tbody></table></div><p class="legend"><span class="lg ok">✓ Right</span><span class="lg up">▲ Winning now</span><span class="lg down">▼ Losing now</span><span class="lg no">✗ Wrong</span></p></section>';
+  app.innerHTML=h;
+}
+
+function renderStandings(app){
+  const w=S.week,sc=weekScore(w);
+  let h='';
+  if(sc.winner){
+    const r=sc.winner;
+    const how=sc.byTiebreak?` · won the tiebreaker (guessed ${r.tb===null?'nothing':r.tb}, final total ${sc.actual})`:'';
+    h+=`<div class="champ"><span class="trophy">★</span><div><p class="eyebrow" style="color:inherit;opacity:.7">Week ${w} winner · +1 point</p><h3>${esc(r.p.name)}</h3><p class="num">${r.right} of ${sc.total} correct${how}</p></div></div>`;
+  }
+  h+=`<section class="card"><p class="eyebrow">Week ${w} · ${sc.complete?'Final':`${sc.done} of ${sc.total} games final`}</p><div class="rank">`;
+  let pos=0,prev=null;
+  sc.rows.forEach((r,i)=>{
+    if(sc.complete)pos=i+1; else if(prev===null||r.right!==prev){pos=i+1;prev=r.right}
+    const pct=sc.done?Math.round(r.right/Math.max(1,sc.done)*100):0;
+    const isWinner=r===sc.winner;
+    h+=`<div class="rrow" style="--c:${esc(r.p.color)}"><span class="pos num">${pos}</span><span class="jersey">${initial(r.p)}</span>
+      <div class="who"><b>${esc(r.p.name)} ${isWinner?'<span class="crown" aria-label="Week winner">★</span>':''}</b><span class="num">${r.made}/${sc.total} picked · tiebreaker ${r.tb===null?'not set':r.tb}${r.up?` · <b class="upct">${r.up} winning now</b>`:''}${r.lead&&!sc.complete?' · leading':''}</span><div class="bar"><i style="width:${pct}%"></i></div></div>
+      <div class="rec num">${r.right}–${r.wrong}<small>W–L</small></div></div>`});
+  h+='</div></section>';
+
+  // season: one point per week won
+  const season=players().map(p=>({p,points:0,right:0,wrong:0,byWeek:{}}));
+  const byId=Object.fromEntries(season.map(s=>[s.p.id,s]));
+  let weeksDone=0;const cols=[];
+  for(let k=1;k<=18;k++){const s=weekScore(k);if(!s.done)continue;
+    cols.push(k);if(s.complete)weeksDone++;
+    s.rows.forEach(r=>{const row=byId[r.p.id];row.right+=r.right;row.wrong+=r.wrong;row.byWeek[k]={n:r.right,win:r===s.winner}; if(r===s.winner)row.points++});}
+  season.sort((a,b)=>b.points-a.points||b.right-a.right);
+  const seasonOver=weeksDone===18;
+  h+=`<section class="card"><p class="eyebrow">${seasonOver?`Season champion · ${esc(season[0].p.name)}`:`Season · ${weeksDone} of 18 weeks complete`}</p><div class="scroll"><table class="num"><thead><tr><th>Player</th><th>Points</th><th>W–L</th>${cols.map(k=>`<th>Wk ${k}</th>`).join('')}</tr></thead><tbody>`;
+  season.forEach((r,i)=>{h+=`<tr><td><b style="color:${esc(r.p.color)}">●</b> ${esc(r.p.name)}${seasonOver&&i===0?' <span class="crown">★</span>':''}</td><td class="tot">${r.points}</td><td>${r.right}–${r.wrong}</td>${cols.map(k=>{const c=r.byWeek[k];return c?`<td class="${c.win?'win':''}">${c.n}${c.win?' ★':''}</td>`:'<td>–</td>'}).join('')}</tr>`});
+  h+=`</tbody></table></div></section><p class="muted">Each week has one winner, who gets 1 point. If people tie on correct picks, the closest guess of total points in the week’s last game wins. If the guesses are equally close, the guess that didn’t go over wins, then whoever saved their guess first. Tied NFL games don’t count, and a missed pick counts as a loss. Most points after Week 18 wins the season. If points are tied, the most correct picks all season wins.</p>`;
+  app.innerHTML=h;
+}
+
+function renderFamily(app){
+  let h='<section class="card"><p class="eyebrow">The five of you</p><form id="famForm">';
+  players().forEach((p,i)=>{
+    h+=`<div class="frow" style="--c:${esc(p.color)}"><span class="jersey pkj" style="width:34px;height:34px;border-radius:9px 9px 12px 12px;background:var(--c);color:#fff;display:grid;place-items:center;font:900 17px 'Big Shoulders Display',sans-serif">${initial(p)}</span>
+      <input name="n${i}" value="${esc(p.name)}" maxlength="16" aria-label="Name for player ${i+1}" autocomplete="off">
+      <div class="sw" role="group" aria-label="Color for ${esc(p.name)}">${COLORS.map(c=>`<button type="button" style="--c:${c}" data-swatch="${i}" data-color="${c}" aria-pressed="${c===p.color}" aria-label="Color ${c}"></button>`).join('')}</div></div>`;
+  });
+  h+='<div style="margin-top:12px;display:flex;gap:12px;align-items:center"><button class="primary" type="submit">Save family</button><span class="muted">Everyone who opens this page sees these names.</span></div></form></section>';
+  h+=`<section class="card"><p class="eyebrow">How it works</p><p class="muted" style="margin:6px 0 0">Pick who you are at the top of the Picks tab, then tap the team you think will win each game. You can change a pick until kickoff; then it locks and everyone’s picks show. Each week runs Sunday through the next Thursday, so the Thursday night game counts toward the week you pick on Sunday. Scores come from ESPN and update every minute during games while the page is open. Each week has one winner, who gets 1 point: whoever has the most correct picks, with ties broken by the closest guess of total points in the last game of the week. Most points at the end of the season wins.</p></section>`;
+  app.innerHTML=h;
+  S.draft=players().map(p=>({...p}));
+}
+
+/* ---- actions ---- */
+async function writePickDoc(w,pid,doc,failMsg){
+  const key='w'+w+'-'+pid;
+  S.picks[key]=doc;render();
+  try{await S.db.doc('picks/'+key).set(doc);maybeAutoLock();return true}
+  catch(e){toast(failMsg);return false}
+}
+function savePick(g,team){
+  const w=S.week,me=player(S.me),doc=pickDoc(w,me.id);
+  const cur={...(doc.picks||{})};
+  if(cur[g.id]===team)delete cur[g.id]; else cur[g.id]=team;
+  writePickDoc(w,me.id,{...doc,week:w,player:me.id,picks:cur},'That pick didn’t save. Check your connection and tap it again.');
+}
+document.addEventListener('change',async(e)=>{
+  const input=e.target.closest('[data-tb]');if(!input)return;
+  const g=weekGames(S.week).find(x=>x.id===input.dataset.tb);if(!g)return;
+  if(locked(g)){toast('The tiebreaker is locked.');render();return}
+  const me=player(S.me),doc=pickDoc(S.week,me.id);
+  const v=input.value===''?null:Math.max(0,Math.min(150,Math.round(Number(input.value))));
+  if(await writePickDoc(S.week,me.id,{...doc,week:S.week,player:me.id,tb:v,tbAt:new Date().toISOString()},'Tiebreaker didn’t save. Try again.'))toast(v===null?'Tiebreaker cleared':'Tiebreaker saved: '+v+' points');
+});
+
+document.addEventListener('click',(e)=>{
+  const tab=e.target.closest('[data-tab]');
+  if(tab){S.tab=tab.dataset.tab;S.results=false;store.set('tab',S.tab);render();window.scrollTo(0,0);return}
+  const pk=e.target.closest('[data-picker]');
+  if(pk){S.me=pk.dataset.picker;store.set('picker',S.me);render();return}
+  if(e.target.closest('#resToggle')){S.results=!S.results;render();return}
+  if(e.target.closest('#revealToggle')){S.revealAll=!S.revealAll;render();return}
+  if(e.target.closest('#lockToggle')){
+    const w=S.week,key='w'+w,next=!weekLocked(w),prev=S.locks[key];
+    S.locks={...S.locks,[key]:{week:w,locked:next,at:new Date().toISOString()}};render();
+    S.db.doc('locks/'+key).set(S.locks[key])
+      .then(()=>toast(next?`Week ${w} picks locked`:`Week ${w} picks unlocked`))
+      .catch(()=>{S.locks={...S.locks,[key]:prev};render();toast('The lock didn’t save. Try again.')});
+    return}
+  const sw=e.target.closest('[data-swatch]');
+  if(sw){const i=+sw.dataset.swatch;S.draft[i].color=sw.dataset.color;sw.parentElement.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b===sw)));sw.closest('.frow').style.setProperty('--c',sw.dataset.color);return}
+  const tb=e.target.closest('.team[data-game]');
+  if(tb){const g=weekGames(S.week).find(x=>x.id===tb.dataset.game);if(!g)return;
+    if(locked(g)){toast('Picks for this game are locked.');return}
+    savePick(g,tb.dataset.team)}
+});
+document.addEventListener('submit',async(e)=>{
+  if(e.target.id!=='famForm')return;e.preventDefault();
+  const fd=new FormData(e.target);
+  const next={players:S.draft.map((p,i)=>({id:p.id,name:(fd.get('n'+i)||'').trim().slice(0,16)||'Player '+(i+1),color:p.color}))};
+  S.family=next;
+  try{await S.db.doc('config/family').set(next);toast('Family saved');S.tab='picks';store.set('tab','picks');render()}
+  catch{toast('Names didn’t save. Try again.')}
+});
+$('#prev').onclick=()=>{if(S.week>1){S.week--;S.results=false;render()}};
+$('#next').onclick=()=>{if(S.week<18){S.week++;S.results=false;render()}};
+
+/* ---- data ---- */
+// Firestore behind the small doc/collection surface the page was written against
+function makeDb(fs){
+  return {
+    doc:(p)=>({
+      set:(d)=>setDoc(doc(fs,p),d),
+      onSnapshot:(next,err)=>onSnapshot(doc(fs,p),s=>next({id:s.id,exists:s.exists(),data:()=>s.data(),metadata:s.metadata}),err),
+    }),
+    collection:(p)=>({
+      onSnapshot:(next,err)=>onSnapshot(collection(fs,p),s=>next({docs:s.docs.map(d=>({id:d.id,data:()=>d.data()})),metadata:s.metadata}),err),
+    }),
+  };
+}
+
+const nfl={};
+let lastFullLoad=0;
+function applySchedule(){
+  S.weeks=groupIntoPickWeeks(nfl);S.ready=true;S.updatedAt=new Date();S.scoreError=false;
+  if(!S.week)S.week=currentWeek();
+  render();maybeAutoLock();
+}
+async function loadAllWeeks(){
+  const all=await Promise.all(Array.from({length:18},(_,i)=>fetchWeek(i+1)));
+  all.forEach((games,i)=>nfl[i+1]=games);
+  lastFullLoad=Date.now();
+}
+// NFL weeks with a game about to start, live, or recently kicked off without a final
+function activeNflWeeks(){
+  const now=Date.now(),out=[];
+  for(const [w,games] of Object.entries(nfl)){
+    if(games.some(g=>{const t=new Date(g.t).getTime();return !g.w&&!g.tbd&&now>=t-10*60e3&&now<=t+6*3600e3}))out.push(+w);
+  }
+  return out;
+}
+let pollTimer=null;
+async function refresh(){
+  clearTimeout(pollTimer);
+  const active=activeNflWeeks();
+  try{
+    if(!lastFullLoad||Date.now()-lastFullLoad>30*60e3)await loadAllWeeks();
+    else for(const w of active)nfl[w]=await fetchWeek(w);
+    applySchedule();
+  }catch(e){S.ready=true;S.scoreError=true;render()}
+  pollTimer=setTimeout(refresh,activeNflWeeks().length?60e3:10*60e3);
+}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&S.updatedAt&&Date.now()-S.updatedAt>60e3)refresh()});
+
+render();
+if(!firebaseConfig||!firebaseConfig.projectId||firebaseConfig.projectId.startsWith('YOUR')){
+  S.offline=true;render();
+}else{
+  const db=makeDb(getFirestore(initializeApp(firebaseConfig)));
+  S.db=db;
+  db.doc('config/family').onSnapshot(s=>{if(s.exists){S.family=s.data();render()}},()=>{});
+  db.collection('locks').onSnapshot(s=>{
+    const next={};s.docs.forEach(d=>next[d.id]=d.data());S.locks=next;
+    if(!s.metadata.fromCache)S.locksLoaded=true;render();maybeAutoLock();
+  },()=>{});
+  db.collection('picks').onSnapshot(s=>{
+    const next={};s.docs.forEach(d=>next[d.id]=d.data());S.picks=next;
+    if(!s.metadata.fromCache)S.picksLoaded=true;render();maybeAutoLock();
+  },()=>toast('Live updates stopped. Reload the page to see new picks.'));
+  refresh();
+}
+</script>
+</body>
+</html>

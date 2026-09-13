@@ -1,0 +1,11 @@
+{
+  "name": "sunday-picks",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "migrate": "node scripts/migrate.mjs"
+  },
+  "devDependencies": {
+    "firebase": "^10.14.1"
+  }
+}

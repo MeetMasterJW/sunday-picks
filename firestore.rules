@@ -1,0 +1,31 @@
+rules_version = '2';
+
+// Sunday Picks has no sign-in: anyone with the link can read and make picks.
+// These rules keep writes to the three shapes the page uses and block deletes.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function weekId(id) { return id.matches('w([1-9]|1[0-8])'); }
+
+    match /picks/{id} {
+      allow read: if true;
+      allow create, update: if id.matches('w([1-9]|1[0-8])-p[1-5]')
+        && request.resource.data.keys().hasOnly(['week', 'player', 'picks', 'tb', 'tbAt'])
+        && request.resource.data.picks is map;
+    }
+
+    match /locks/{id} {
+      allow read: if true;
+      allow create, update: if weekId(id)
+        && request.resource.data.keys().hasOnly(['week', 'locked', 'auto', 'at'])
+        && request.resource.data.locked is bool;
+    }
+
+    match /config/family {
+      allow read: if true;
+      allow create, update: if request.resource.data.keys().hasOnly(['players'])
+        && request.resource.data.players is list
+        && request.resource.data.players.size() == 5;
+    }
+  }
+}
