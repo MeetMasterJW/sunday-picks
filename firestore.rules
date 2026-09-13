@@ -7,7 +7,7 @@ service cloud.firestore {
 
     // User UID of the parent login (Firebase console → Authentication → Users)
     function isParent() {
-      return request.auth != null && request.auth.uid == 'PARENT_UID';
+      return request.auth != null && request.auth.uid == 'xo2wudx6HNYXcsVgUdLMgEmU6nA3';
     }
 
     function weekLocked(week) {
