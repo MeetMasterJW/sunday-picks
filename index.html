@@ -194,7 +194,8 @@ td.none,td.sealedc{color:var(--ink-3)}
 .champ .eyebrow{color:var(--ink-2)!important;opacity:1!important}
 .podium{display:flex;flex-wrap:wrap;gap:2px 14px;margin:6px 0 0;font-size:14px;color:var(--ink-2)}
 .podium b{color:var(--accent)}
-.rank{display:grid;gap:6px;margin-top:10px}
+.rank{position:relative;display:grid;gap:6px;margin-top:10px}
+.rank canvas.sparks{position:absolute;inset:0;z-index:3;pointer-events:none}
 @property --p{syntax:'<percentage>';inherits:true;initial-value:0%}
 .rrow{display:grid;grid-template-columns:20px 34px minmax(0,1fr) auto auto;gap:12px;align-items:center;padding:10px 12px 10px 8px;border-radius:14px;background:var(--raised)}
 .rrow{position:relative;overflow:hidden}
@@ -205,19 +206,14 @@ td.none,td.sealedc{color:var(--ink-3)}
 @keyframes fillUp{from{--f:var(--p0)}to{--f:var(--p)}}
 /* After the fill lands, the edge keeps leaning forward: harder and more often for higher chances */
 .rrow.has-chance::after{content:"";position:absolute;top:0;bottom:0;left:calc(var(--f) - 2px);width:2px;background:color-mix(in srgb,var(--c) 70%,#fff);box-shadow:0 0 calc(6px + 14px*var(--g,0)) calc(1px + 3px*var(--g,0)) color-mix(in srgb,var(--c) 80%,transparent);opacity:var(--edge,0);pointer-events:none;animation:edgePush calc(2.8s - 1.2s*var(--g,0)) cubic-bezier(.4,0,.2,1) var(--push-delay,0s) infinite}
-.rrow.has-chance::before{content:"";position:absolute;top:0;bottom:0;left:var(--f);width:calc(12px + 30px*var(--g,0));background:linear-gradient(90deg,color-mix(in srgb,var(--c) 60%,transparent),transparent);opacity:0;pointer-events:none;animation:edgeWisp calc(2.8s - 1.2s*var(--g,0)) cubic-bezier(.4,0,.2,1) var(--push-delay,0s) infinite}
 @keyframes edgePush{
   0%,62%,100%{transform:translateX(0);box-shadow:0 0 calc(6px + 14px*var(--g,0)) calc(1px + 3px*var(--g,0)) color-mix(in srgb,var(--c) 80%,transparent)}
   28%{transform:translateX(calc(2px + 6px*var(--g,0)));box-shadow:0 0 calc(10px + 22px*var(--g,0)) calc(2px + 5px*var(--g,0)) color-mix(in srgb,var(--c) 95%,transparent)}
   40%{transform:translateX(calc(1px + 3px*var(--g,0)))}
 }
-@keyframes edgeWisp{
-  0%,62%,100%{opacity:0;transform:scaleX(.4);transform-origin:left}
-  28%{opacity:calc(var(--edge,0)*(.25 + .55*var(--g,0)));transform:scaleX(1);transform-origin:left}
-}
 .rrow.lead{box-shadow:0 0 0 1px color-mix(in srgb,var(--c) 50%,transparent),0 10px 30px -14px color-mix(in srgb,var(--c) 90%,transparent)}
 .rrow.lead .chance b{text-shadow:0 0 16px color-mix(in srgb,var(--c) 90%,transparent)}
-@media (prefers-reduced-motion:reduce){.rrow.filling,.rrow.has-chance::after{animation:none}.rrow.has-chance::before{display:none}}
+@media (prefers-reduced-motion:reduce){.rrow.filling,.rrow.has-chance::after{animation:none}.rank canvas.sparks{display:none}}
 .pos{font-weight:800;color:var(--ink-2);text-align:center}
 .who>b{display:flex;align-items:center;gap:6px;min-width:0;font-weight:700;font-size:16px}
 .who span{display:block;font-size:12.5px;color:var(--ink-3);min-height:1.4em}
@@ -916,7 +912,7 @@ function renderStandings(app){
   const w=S.week,sc=weekScore(w),chances=sc.complete?null:winChances(w),stats=seasonStats();
   let h='';
   if(sc.complete)h+=recapCard(w,sc);
-  h+=`<section class="card"><p class="eyebrow">${weekName(w)} · ${sc.complete?'Final':`${sc.done} of ${sc.total} final`}</p><div class="rank">`;
+  h+=`<section class="card"><p class="eyebrow">${weekName(w)} · ${sc.complete?'Final':`${sc.done} of ${sc.total} final`}</p><div class="rank">${chances?'<canvas class="sparks" aria-hidden="true"></canvas>':''}`;
   let pos=0,prev=null;
   sc.rows.forEach((r,i)=>{
     if(sc.complete)pos=r.place; else if(prev===null||r.right!==prev){pos=i+1;prev=r.right}
@@ -948,7 +944,53 @@ function renderStandings(app){
   h+=trophyCase(stats);
   h+=`<details class="rules"><summary>How scoring works</summary><p class="muted">Each week ends with a final order by correct picks. 1st place gets 3 points, 2nd gets 2 and 3rd gets 1; last place gets the Wooden Spoon. If people tie on correct picks, the closest guess of total points in the week’s last game goes ahead, then a guess that didn’t go over, then whoever saved their guess first. Tied NFL games don’t count, and a missed pick counts as a loss. Season standings count regular-season points only; the playoffs have their own standings. People tied on points share the spot. Win chances play out the rest of the week 20,000 times using ESPN’s live win probability (betting odds before kickoff) and everyone’s tiebreaker guesses. Badges: Weekly Champ (1st in a week), Perfect Week (every pick right), Upset Artist (picked an underdog that won), Hot Streak (5 right in a row), Tiebreak Wizard (exact tiebreaker total) and Wooden Spoon (last in a week).</p></details>`;
   app.innerHTML=h;
+  if(chances)startSparks();
 }
+
+/* ---- sparks thrown off each win-chance edge ---- */
+const sparks={parts:[],raf:0,last:0,prevF:{},emitted:{}};
+function startSparks(){
+  if(sparks.raf||document.hidden||matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  sparks.last=performance.now();
+  sparks.raf=requestAnimationFrame(sparkFrame);
+}
+function sparkFrame(t){
+  const canvas=document.querySelector('.rank canvas.sparks');
+  if(!canvas||document.hidden){sparks.raf=0;sparks.parts.length=0;sparks.prevF={};return}
+  const dt=Math.min(50,t-sparks.last)/1000;sparks.last=t;
+  const box=canvas.parentElement,br=box.getBoundingClientRect(),dpr=window.devicePixelRatio||1;
+  const W=Math.round(br.width),H=Math.round(br.height);
+  if(canvas.width!==W*dpr||canvas.height!==H*dpr){canvas.width=W*dpr;canvas.height=H*dpr;canvas.style.width=W+'px';canvas.style.height=H+'px'}
+  const ctx=canvas.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,W,H);
+  for(const row of box.querySelectorAll('.rrow.has-chance')){
+    const cs=getComputedStyle(row),f=parseFloat(cs.getPropertyValue('--f'))||0,g=parseFloat(cs.getPropertyValue('--g'))||0;
+    if(f<=0||f>=100)continue;
+    const rr=row.getBoundingClientRect(),id=row.dataset.profile,x=rr.left-br.left+rr.width*f/100;
+    const prev=sparks.prevF[id]??f;sparks.prevF[id]=f;
+    const surge=Math.max(0,f-prev)/Math.max(dt,.001);        // % per second while the fill is moving
+    let rate=2+22*g+surge*2.5;                                // steady crackle, stronger for higher chances
+    if(Math.random()<dt*(.5+2.2*g))rate+=(30+140*g)/Math.max(dt*60,1)*2; // occasional burst
+    for(let n=rate*dt;n>0;n--){
+      if(n<1&&Math.random()>n)break;
+      const speed=(70+300*g)*(.35+Math.random()),ang=(Math.random()-.35)*Math.PI*.95;
+      sparks.parts.push({x,y:rr.top-br.top+4+Math.random()*(rr.height-8),vx:Math.cos(ang)*speed,vy:Math.sin(ang)*speed-30,life:0,max:.16+Math.random()*(.22+.38*g),w:.7+Math.random()*(1+g),c:row.style.getPropertyValue('--c')||'#ffffff'});
+      sparks.emitted[id]=(sparks.emitted[id]||0)+1;
+    }
+  }
+  ctx.globalCompositeOperation='lighter';ctx.lineCap='round';
+  sparks.parts=sparks.parts.filter(p=>{
+    p.life+=dt;if(p.life>=p.max)return false;
+    p.vx*=.9;p.vy=p.vy*.9+260*dt;
+    const nx=p.x+p.vx*dt,ny=p.y+p.vy*dt,tx=nx-p.vx*.03,ty=ny-p.vy*.03,a=1-p.life/p.max;
+    ctx.strokeStyle=p.c;ctx.globalAlpha=.5*a;ctx.lineWidth=p.w*3.2;ctx.beginPath();ctx.moveTo(tx,ty);ctx.lineTo(nx,ny);ctx.stroke();
+    ctx.strokeStyle='#fff';ctx.globalAlpha=a;ctx.lineWidth=p.w;ctx.beginPath();ctx.moveTo(tx,ty);ctx.lineTo(nx,ny);ctx.stroke();
+    p.x=nx;p.y=ny;return true;
+  });
+  if(sparks.parts.length>500)sparks.parts.splice(0,sparks.parts.length-500);
+  ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';
+  sparks.raf=requestAnimationFrame(sparkFrame);
+}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&S.tab==='standings')startSparks()});
 
 /* ---- season stats, badges, recap, chart ---- */
 const BADGE={
@@ -1645,7 +1687,7 @@ if(!firebaseConfig||!firebaseConfig.projectId||firebaseConfig.projectId.startsWi
   refresh();
 }
 // Local testing only: lets a preview inspect state without touching the family's data
-if(location.hostname==='localhost')window.__sp={S,nfl,render,weekScore,seasonStats,recapCard,makeAvatar,hashPin,openProfile,openPin,applyAvatarCss,isUnlocked};
+if(location.hostname==='localhost')window.__sp={S,sparks,nfl,render,weekScore,seasonStats,recapCard,makeAvatar,hashPin,openProfile,openPin,applyAvatarCss,isUnlocked};
 </script>
 </body>
 </html>
