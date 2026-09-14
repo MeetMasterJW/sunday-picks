@@ -1,7 +1,9 @@
 rules_version = '2';
 
 // Sunday Picks: anyone with the link can read and make picks. Only the parent
-// login can unlock a week or change family names and colors. Deletes are blocked.
+// login can unlock a week or change family names. Deletes are blocked.
+// Weeks 1-18 are the regular season; 19-22 are Wild Card, Divisional, Conference and Super Bowl.
+// Player PINs are a family lock checked by the page, not by these rules.
 service cloud.firestore {
   match /databases/{database}/documents {
 
@@ -19,7 +21,7 @@ service cloud.firestore {
       allow read: if true;
       allow create, update: if request.resource.data.keys().hasOnly(['week', 'player', 'picks', 'tb', 'tbAt'])
         && request.resource.data.week is int
-        && request.resource.data.week >= 1 && request.resource.data.week <= 18
+        && request.resource.data.week >= 1 && request.resource.data.week <= 22
         && request.resource.data.player.matches('p[1-5]')
         && id == 'w' + string(request.resource.data.week) + '-' + request.resource.data.player
         && request.resource.data.picks is map
@@ -29,7 +31,7 @@ service cloud.firestore {
     // Anyone can lock a week (the lock button and auto-lock); only a parent can unlock.
     match /locks/{id} {
       allow read: if true;
-      allow create, update: if id.matches('w([1-9]|1[0-8])')
+      allow create, update: if id.matches('w([1-9]|1[0-9]|2[0-2])')
         && request.resource.data.keys().hasOnly(['week', 'locked', 'auto', 'at'])
         && request.resource.data.locked is bool
         && (request.resource.data.locked == true || isParent());
@@ -41,6 +43,22 @@ service cloud.firestore {
         && request.resource.data.keys().hasOnly(['players'])
         && request.resource.data.players is list
         && request.resource.data.players.size() == 5;
+    }
+
+    // Each person's color, photo (a small JPEG data URL) and hashed PIN
+    match /profiles/{id} {
+      allow read: if true;
+      allow create, update: if id.matches('p[1-5]')
+        && request.resource.data.keys().hasOnly(['color', 'avatar', 'pinHash', 'pinSalt', 'updatedAt'])
+        && request.resource.data.get('avatar', '') is string
+        && request.resource.data.get('avatar', '').size() < 200000;
+    }
+
+    // Pregame favorites per week, saved so upset badges work for everyone
+    match /lines/{id} {
+      allow read: if true;
+      allow create, update: if id.matches('w([1-9]|1[0-9]|2[0-2])')
+        && request.resource.data.size() <= 24;
     }
   }
 }

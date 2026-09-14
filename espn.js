@@ -4,8 +4,9 @@
 // first Sunday are left out.
 
 export const SEASON = 2026;
-const url = (week) =>
-  `https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?seasontype=2&week=${week}&dates=${SEASON}`;
+// seasonType 2 = regular season, 3 = playoffs (weeks 1 Wild Card, 2 Divisional, 3 Conference, 5 Super Bowl)
+const url = (week, seasonType = 2) =>
+  `https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?seasontype=${seasonType}&week=${week}&dates=${SEASON}`;
 
 function team(c) {
   const t = c.team;
@@ -132,8 +133,8 @@ export async function fetchWinProb(id) {
   return last ? numberOrNull(last.homeWinPercentage) : null;
 }
 
-export async function fetchWeek(week) {
-  const res = await fetch(url(week), { cache: 'no-store' });
+export async function fetchWeek(week, seasonType = 2) {
+  const res = await fetch(url(week, seasonType), { cache: 'no-store' });
   if (!res.ok) throw new Error(`ESPN week ${week}: HTTP ${res.status}`);
   return (await res.json()).events.map(game);
 }

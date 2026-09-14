@@ -24,17 +24,22 @@
 }
 *{box-sizing:border-box}
 [hidden]{display:none!important}
-body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 var(--font);-webkit-font-smoothing:antialiased;padding-bottom:calc(80px + env(safe-area-inset-bottom))}
+body{margin:0;background:radial-gradient(900px 420px at 50% -180px,color-mix(in srgb,var(--accent) 16%,transparent),transparent 70%) no-repeat,var(--bg);color:var(--ink);font:15px/1.45 var(--font);-webkit-font-smoothing:antialiased;padding-bottom:calc(80px + env(safe-area-inset-bottom))}
 button{font:inherit;color:inherit;cursor:pointer}
 button:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .num{font-variant-numeric:tabular-nums}
 
 /* top bar */
 .top{position:sticky;top:0;z-index:5;background:rgba(10,12,15,.8);-webkit-backdrop-filter:saturate(1.5) blur(18px);backdrop-filter:saturate(1.5) blur(18px);border-bottom:1px solid var(--line)}
-.top-in{max-width:760px;margin:0 auto;padding:calc(8px + env(safe-area-inset-top)) 10px 8px;display:grid;gap:0}
-.brand{font-family:var(--display);font-size:15px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;color:var(--ink);text-align:center}
-.brand b{color:var(--accent);font-weight:800}
-.top-in:has(.weeknav[hidden]) .brand{font-size:19px;padding:10px 0}
+.top-in{max-width:760px;margin:0 auto;padding:calc(8px + env(safe-area-inset-top)) 10px 6px;display:grid;gap:4px}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 6px 2px}
+.brand{display:inline-flex;align-items:center;gap:9px;font-size:17px;font-weight:800;letter-spacing:-.015em;color:var(--ink)}
+.brand .mark{width:28px;height:28px;flex:none;filter:drop-shadow(0 4px 10px rgba(255,106,43,.35))}
+.me-btn{border:0;background:none;padding:3px;border-radius:50%;display:grid;place-items:center}
+.me-btn .jersey{width:32px;height:32px;font-size:14px;box-shadow:0 0 0 2px var(--bg),0 0 0 3.5px var(--line-2)}
+.me-btn.unlocked .jersey{box-shadow:0 0 0 2px var(--bg),0 0 0 3.5px var(--good)}
+.linkbtn.sm{font-size:12.5px;padding:0 0 0 6px}
+.linkbtn.quiet{color:var(--ink-3);font-weight:600}
 .weeknav{display:grid;grid-template-columns:44px 1fr 44px;align-items:center}
 .nav{width:40px;height:40px;border-radius:50%;border:0;background:transparent;display:grid;place-items:center;color:var(--ink)}
 .nav:disabled{opacity:.25;cursor:default}
@@ -202,7 +207,7 @@ dialog.sheet[open]{display:flex;flex-direction:column}
 .box-head h3{margin:0;flex:1;font-family:var(--display);font-size:14px;font-weight:700;line-height:1.3}
 .box-close{width:34px;height:34px;flex:none;border-radius:50%;border:0;background:var(--raised);display:grid;place-items:center;color:var(--ink)}
 .box-close svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round}
-#boxBody{overflow-y:auto;overscroll-behavior:contain;padding:16px 16px calc(20px + env(safe-area-inset-bottom));display:grid;gap:18px}
+#boxBody,#profBody{overflow-y:auto;overscroll-behavior:contain;padding:16px 16px calc(20px + env(safe-area-inset-bottom));display:grid;gap:18px}
 .bx-score{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:start;gap:8px}
 .bx-team{display:grid;justify-items:center;gap:3px;text-align:center;min-width:0}
 .bx-team .logo{width:60px;height:60px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle,color-mix(in srgb,var(--tc) 75%,transparent) 0,color-mix(in srgb,var(--tc) 30%,transparent) 55%,transparent 71%)}
@@ -254,7 +259,7 @@ dialog.sheet[open]{display:flex;flex-direction:column}
 .rules p{margin:4px 0 0}
 
 /* family */
-.frow{display:grid;grid-template-columns:34px 1fr;gap:10px 12px;align-items:center;padding:12px 0;border-top:1px solid var(--line)}
+.frow{display:grid;grid-template-columns:40px minmax(0,1fr) auto;gap:10px 12px;align-items:center;padding:12px 0;border-top:1px solid var(--line)}
 .frow:first-of-type{border-top:0}
 .frow input{width:100%;font:600 16px var(--font);padding:10px 12px;border-radius:12px;border:1px solid var(--line-2);background:var(--bg);color:var(--ink)}
 .frow input:focus{outline:none;border-color:var(--accent)}
@@ -262,6 +267,98 @@ dialog.sheet[open]{display:flex;flex-direction:column}
 .sw button{width:26px;height:26px;border-radius:50%;border:0;background:var(--c)}
 .sw button[aria-pressed="true"]{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--ink)}
 .setrow{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;margin-top:10px}
+.face-btn{border:0;background:none;padding:0;border-radius:50%}
+.face-btn .jersey{width:40px;height:40px;font-size:17px}
+.rrow[data-profile],.season tr[data-profile]{cursor:pointer}
+.spoon{display:inline-flex;vertical-align:-6px;margin-left:6px}
+.spoon .badge-ico{width:22px;height:22px}
+.spoon .badge-ico svg{width:13px;height:13px}
+.jersey.mini{width:20px;height:20px;font-size:10px;vertical-align:-5px;margin-right:2px}
+
+/* badges, recap, chart, trophy case */
+.badge-ico{width:30px;height:30px;flex:none;border-radius:50%;display:inline-grid;place-items:center;background:color-mix(in srgb,var(--bc) 22%,var(--raised));color:var(--bc);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--bc) 45%,transparent)}
+.badge-ico svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.recap{background:linear-gradient(165deg,color-mix(in srgb,var(--accent) 20%,var(--surface)),var(--surface) 62%);border:1px solid var(--line);border-radius:var(--radius);padding:16px 14px}
+.podium3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:end;gap:8px;margin-top:14px}
+.pd{display:grid;justify-items:center;gap:2px;text-align:center;min-width:0}
+.pd .jersey{width:46px;height:46px;font-size:19px;box-shadow:0 0 0 3px var(--surface),0 0 0 5px var(--c)}
+.pd1 .jersey{width:62px;height:62px;font-size:26px}
+.pd b{margin-top:8px;max-width:100%;font-size:14px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pd small{font-size:12px;color:var(--ink-2)}
+.pd-step{width:100%;margin-top:8px;border-radius:12px 12px 4px 4px;display:grid;justify-items:center;align-content:center;background:color-mix(in srgb,var(--c) 28%,var(--raised))}
+.pd1 .pd-step{height:76px;background:linear-gradient(180deg,#F5B400,color-mix(in srgb,#F5B400 45%,var(--raised)))}
+.pd2 .pd-step{height:56px}
+.pd3 .pd-step{height:40px}
+.pd-step span{font-family:var(--display);font-size:12px;font-weight:700}
+.pd-step em{font-style:normal;font-family:var(--numeric);font-size:17px;font-weight:700}
+.pd1 .pd-step span,.pd1 .pd-step em{color:#1a1300}
+.hl{list-style:none;margin:16px 0 0;padding:0;display:grid;gap:12px}
+.hl li{display:grid;grid-template-columns:30px minmax(0,1fr);gap:10px;align-items:start}
+.hl li b{display:block;font-size:12.5px;font-weight:700;color:var(--ink-2)}
+.hl li span:not(.badge-ico){font-size:14px;line-height:1.35}
+.chart-legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:10px;font-size:13px;color:var(--ink-2)}
+.lgd{display:inline-flex;align-items:center;gap:6px}
+.lgd b{color:var(--ink);font-family:var(--numeric);font-size:16px}
+.chart{position:relative;margin-top:8px}
+.chart-svg{display:block;max-width:100%;height:auto;touch-action:pan-y}
+.chart-svg .grid{stroke:var(--line);stroke-width:1}
+.chart-svg .axis{fill:var(--ink-3);font:11px var(--font)}
+.chart-svg .cross{stroke:var(--ink-3);stroke-width:1;stroke-dasharray:3 3}
+.chart-svg .dot{stroke:var(--surface);stroke-width:2}
+.chart-svg .leader{stroke:var(--ink-3);stroke-width:1}
+.chart-svg .endlbl{fill:#fff;font:800 10px var(--font)}
+.chart-tip{position:absolute;top:4px;z-index:2;min-width:150px;padding:8px 10px;border-radius:12px;background:var(--raised);border:1px solid var(--line-2);box-shadow:0 12px 26px -12px rgba(0,0,0,.8);display:grid;gap:3px;font-size:12.5px;pointer-events:none}
+.chart-tip>b{margin-bottom:2px;font-size:12px;font-weight:700;color:var(--ink-2)}
+.chart-tip span{display:flex;align-items:center;gap:6px;color:var(--ink)}
+.chart-tip span i{width:8px;height:8px;border-radius:50%}
+.chart-tip span b{margin-left:auto;padding-left:14px;font-family:var(--numeric);font-size:15px}
+.plc{display:inline-grid;place-items:center;min-width:26px;height:24px;padding:0 6px;border-radius:8px;background:var(--raised);color:var(--ink-2);font-family:var(--numeric);font-size:15px;font-weight:700}
+.plc1{background:#F5B400;color:#1a1300}
+.plc2{background:#C9D1DB;color:#11161c}
+.plc3{background:#C88A57;color:#1b0f05}
+.plc.last{box-shadow:inset 0 0 0 1.5px #C08A5B;color:#E0AE82}
+.tc-row{display:grid;grid-template-columns:34px minmax(0,1fr) auto 16px;gap:12px;align-items:center;width:100%;padding:10px 0;border:0;border-top:1px solid var(--line);background:none;text-align:left;color:var(--ink)}
+.tc-row:first-of-type{border-top:0}
+.tc-row b{font-weight:700}
+.tc-row .chev{color:var(--ink-3)}
+.tc-badges{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}
+.tc-b{position:relative;display:inline-grid}
+.tc-b small{position:absolute;right:-6px;top:-6px;min-width:16px;height:16px;padding:0 3px;border-radius:8px;background:var(--ink);color:var(--bg);font-size:10px;font-weight:800;display:grid;place-items:center}
+
+/* profile sheet */
+.pf-top{display:flex;align-items:center;gap:16px}
+.pf-face{width:72px;height:72px;font-size:30px;box-shadow:0 0 0 3px var(--surface),0 0 0 5px var(--c)}
+.pf-id{display:grid;gap:2px;min-width:0}
+.pf-id b{font-family:var(--display);font-size:19px;font-weight:700}
+.pf-id span{font-size:13px;color:var(--ink-2)}
+.pf-id .pf-state{color:var(--good);font-weight:600}
+.pf-tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.pf-tiles div{display:grid;justify-items:center;gap:3px;padding:10px 4px;border-radius:14px;background:var(--raised)}
+.pf-tiles b{font-family:var(--numeric);font-size:26px;line-height:1}
+.pf-tiles span{font-size:11px;font-weight:600;color:var(--ink-3);text-align:center}
+.badges{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.badge{display:flex;align-items:center;gap:10px;padding:10px;border-radius:14px;background:var(--raised);min-width:0}
+.badge b{display:block;font-size:13.5px}
+.badge small{display:block;font-size:11.5px;line-height:1.3;color:var(--ink-3)}
+.badge.dim{opacity:.5}
+.badge.dim .badge-ico{filter:grayscale(1)}
+.pf-row{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin-top:10px}
+.pf-small{width:40px;height:40px;font-size:17px}
+.pf-sw{margin-top:12px}
+
+/* PIN pad */
+dialog.pin{max-width:320px;padding:22px 20px 16px;text-align:center}
+dialog.pin #pinFace{width:56px;height:56px;font-size:24px;display:grid;margin:0 auto 12px}
+.pin-dots{display:flex;justify-content:center;gap:16px;margin:18px 0 4px}
+.pin-dots i{width:14px;height:14px;border-radius:50%;border:2px solid var(--line-2)}
+.pin-dots i.on{background:var(--ink);border-color:var(--ink)}
+.pin-dots.shake{animation:shake .36s}
+@keyframes shake{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+.pin-pad button{height:58px;border:0;border-radius:18px;background:var(--raised);color:var(--ink);font-family:var(--numeric);font-size:28px;font-weight:600}
+.pin-pad button:active{background:var(--line-2)}
+.pin-pad .pin-alt{background:transparent;font-family:var(--font);font-size:14px;font-weight:600;color:var(--ink-2)}
+.pin-forgot{font-size:12.5px;margin-top:12px}
 
 /* alerts, dialog, toast */
 .alert{position:fixed;left:50%;top:calc(10px + env(safe-area-inset-top));transform:translateX(-50%);z-index:8;width:min(440px,calc(100% - 20px));border:0;border-radius:22px;padding:14px 16px 18px;color:#fff;cursor:pointer;overflow:hidden;text-align:left;font:inherit;background:linear-gradient(135deg,color-mix(in srgb,var(--tc) 78%,#000),color-mix(in srgb,var(--tc) 38%,#000));box-shadow:0 20px 50px -16px rgba(0,0,0,.85),inset 0 0 0 1px rgba(255,255,255,.1)}
@@ -308,14 +405,17 @@ dialog p{margin:6px 0 0}
   .pchip{min-width:0;width:100%;padding:2px 0;font-size:14px;text-align:center}
   .allpicks .mark{display:block;margin:1px 0 0;font-size:9px;text-align:center}
 }
-@media (prefers-reduced-motion:reduce){.alert.in,.alert.in::after,.sc.bump,.game.flash,.st.live::before{animation:none}}
+@media (prefers-reduced-motion:reduce){.alert.in,.alert.in::after,.sc.bump,.game.flash,.st.live::before,.pin-dots.shake{animation:none}}
 </style>
 </head>
 <body>
 
 <header class="top">
   <div class="top-in">
-    <span class="brand">Sunday <b>Picks</b></span>
+    <div class="topbar">
+      <span class="brand"><svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="markGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FF8A3D"/><stop offset="1" stop-color="#E23F17"/></linearGradient></defs><rect width="32" height="32" rx="9" fill="url(#markGrad)"/><path d="M9.5 16.5l4.3 4.3 8.7-9.3" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Sunday Picks</span></span>
+      <button type="button" class="me-btn" id="meBtn" aria-label="Open your profile"><span class="jersey" id="meFace"></span></button>
+    </div>
     <div class="weeknav">
       <button id="prev" class="nav" aria-label="Previous week"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
       <div class="wk"><b id="wkTitle">Week –</b><span id="wkDates">Loading schedule…</span></div>
@@ -334,6 +434,24 @@ dialog p{margin:6px 0 0}
 <dialog id="boxDlg" class="sheet" aria-labelledby="boxTitle">
   <div class="box-head"><h3 id="boxTitle">Box score</h3><button type="button" class="box-close" data-box-close aria-label="Close box score"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
   <div id="boxBody"></div>
+</dialog>
+<dialog id="profDlg" class="sheet" aria-labelledby="profTitle">
+  <div class="box-head"><h3 id="profTitle">Profile</h3><button type="button" class="box-close" data-prof-close aria-label="Close profile"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+  <div id="profBody"></div>
+</dialog>
+<dialog id="pinDlg" class="pin" aria-labelledby="pinTitle">
+  <span class="jersey" id="pinFace"></span>
+  <h3 id="pinTitle">PIN</h3>
+  <p class="muted" id="pinWhy"></p>
+  <div class="pin-dots" id="pinDots" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+  <p class="err" id="pinErr" role="alert" hidden></p>
+  <div class="pin-pad">
+    <button type="button" data-key="1">1</button><button type="button" data-key="2">2</button><button type="button" data-key="3">3</button>
+    <button type="button" data-key="4">4</button><button type="button" data-key="5">5</button><button type="button" data-key="6">6</button>
+    <button type="button" data-key="7">7</button><button type="button" data-key="8">8</button><button type="button" data-key="9">9</button>
+    <button type="button" class="pin-alt" data-key="cancel">Cancel</button><button type="button" data-key="0">0</button><button type="button" class="pin-alt" data-key="back" aria-label="Delete last digit">⌫</button>
+  </div>
+  <p class="muted pin-forgot" id="pinForgot">Forgot it? A parent can reset it from the profile.</p>
 </dialog>
 <div class="toast" id="toast" hidden></div>
 <dialog id="parentDlg" aria-labelledby="parentTitle">
@@ -356,7 +474,7 @@ import {getFirestore,doc,collection,setDoc,onSnapshot} from 'https://www.gstatic
 import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,signOut} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
 const COLORS=['#E8641E','#2E6FD8','#C23B6B','#1E9E8A','#7B4FC9','#D9432B','#B71C1C','#AD1457','#E0457B','#A43BB5','#5B5BD6','#1565C0','#1B8FD1','#0F8C9E','#2F8F3A','#558B2F','#8A7A12','#C9A200','#D98200','#A0522D','#6D4C41','#4A5560','#37474F','#2B2F36'];
 const DEFAULT_FAMILY={players:[1,2,3,4,5].map((i)=>({id:'p'+i,name:'Player '+i,color:COLORS[i-1]}))};
-const S={db:null,auth:null,parent:false,liveProb:{},family:DEFAULT_FAMILY,weeks:{},picks:{},locks:{},week:null,me:'p1',tab:'picks',results:false,ready:false,offline:false};
+const S={db:null,auth:null,parent:false,liveProb:{},profiles:{},lines:{},family:DEFAULT_FAMILY,weeks:{},picks:{},locks:{},week:null,me:'p1',tab:'picks',results:false,ready:false,offline:false};
 const $=(s)=>document.querySelector(s);
 const esc=(v)=>String(v??'').replace(/[&<>"']/g,(c)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const store={get(k){try{return localStorage.getItem(k)}catch{return null}},set(k,v){try{localStorage.setItem(k,v)}catch{}}};
@@ -364,7 +482,7 @@ S.me=store.get('picker')||'p1';S.tab=store.get('tab')||'picks';
 
 function toast(msg){const t=$('#toast');t.textContent=msg;t.hidden=false;clearTimeout(toast._t);toast._t=setTimeout(()=>t.hidden=true,2400)}
 function textOn(hex){const h=hex.replace('#','');const [r,g,b]=[0,2,4].map(i=>parseInt(h.substr(i,2),16)/255).map(c=>c<=.03928?c/12.92:((c+.055)/1.055)**2.4);return (.2126*r+.7152*g+.0722*b)>.45?'#111':'#fff'}
-function players(){return (S.family.players||DEFAULT_FAMILY.players).slice(0,5)}
+function players(){return (S.family.players||DEFAULT_FAMILY.players).slice(0,5).map(p=>{const pr=S.profiles[p.id]||{};return {...p,color:pr.color||p.color}})}
 function player(id){return players().find(p=>p.id===id)||players()[0]}
 function initial(p){return esc((p.name||'?').trim().charAt(0).toUpperCase())}
 // Late-pick days (Eastern date -> minutes after kickoff that picks stay open)
@@ -384,6 +502,11 @@ function locked(g,w=S.week){return weekLocked(w)||g.st==='post'||!!g.w||Date.now
 function pickDoc(week,pid){return S.picks['w'+week+'-'+pid]||{week,player:pid,picks:{}}}
 function picksFor(week,pid){return pickDoc(week,pid).picks||{}}
 function weekGames(w){return (S.weeks[w]||{}).games||[]}
+// Weeks 19-22 are the playoffs; ESPN numbers those rounds 1, 2, 3 and 5
+const MAX_WEEK=22;
+const ROUNDS={19:{name:'Wild Card',short:'WC',espn:1},20:{name:'Divisional',short:'DIV',espn:2},21:{name:'Conference',short:'CONF',espn:3},22:{name:'Super Bowl',short:'SB',espn:5}};
+function weekName(w){return ROUNDS[w]?ROUNDS[w].name:'Week '+w}
+function isTbd(g){return g.a.ab==='TBD'||g.h.ab==='TBD'}
 
 const fmtDay=new Intl.DateTimeFormat('en-US',{weekday:'long',month:'short',day:'numeric'});
 const fmtShort=new Intl.DateTimeFormat('en-US',{month:'short',day:'numeric'});
@@ -439,23 +562,27 @@ function weekScore(w){
 }
 function currentWeek(){
   const now=Date.now();
-  for(let w=1;w<=18;w++){const gs=weekGames(w);if(!gs.length)continue;
+  for(let w=1;w<=MAX_WEEK;w++){const gs=weekGames(w);if(!gs.length)continue;
     const last=Math.max(...gs.map(g=>new Date(g.t).getTime()));
     if(last+12*3600e3>now||gs.some(g=>!g.w))return w;}
-  return 18;
+  return MAX_WEEK;
 }
 
 /* ---- rendering ---- */
 function render(){
   const w=S.week;
-  $('#prev').disabled=!w||w<=1;$('#next').disabled=!w||w>=18;
+  $('#prev').disabled=!w||w<=1;$('#next').disabled=!w||w>=MAX_WEEK;
   document.querySelectorAll('.tabs button').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.tab===S.tab)));
   const gs=weekGames(w);
-  $('#wkTitle').textContent=S.tab==='family'?'Family':(S.tab==='standings'&&!w?'Standings':'Week '+(w||'–'));
+  $('#wkTitle').textContent=S.tab==='family'?'Family':(w?weekName(w):'Week –');
   if(S.tab==='family'){$('#wkDates').textContent='Names & colors'}
   else if(gs.length){const a=new Date(gs[0].t),b=new Date(gs[gs.length-1].t);$('#wkDates').textContent=fmtShort.format(a)+' – '+fmtShort.format(b)+' · '+gs.length+' games'+(S.scoreError?' · scores offline':'')}
   else $('#wkDates').textContent=S.ready?'Schedule not loaded yet':'Loading schedule…';
   $('.weeknav').hidden=S.tab==='family';
+  const meP=player(S.me),face=$('#meFace');
+  face.className='jersey av-'+meP.id;face.style.setProperty('--c',meP.color);face.textContent=(meP.name||'?').trim().charAt(0).toUpperCase();
+  $('#meBtn').classList.toggle('unlocked',isUnlocked(meP.id));
+  $('#meBtn').setAttribute('aria-label',`Open ${meP.name}’s profile`);
   const app=$('#app');
   if(S.offline){app.innerHTML='<div class="empty"><b>Sunday Picks isn’t connected to its database yet.</b><br>Add your Firebase settings to config.js.</div>';return}
   if(S.tab==='family')return renderFamily(app);
@@ -467,7 +594,7 @@ function render(){
 
 // Everyone has picked every game they still can (and set a tiebreaker while it's open)
 function allSubmitted(w){
-  const gs=weekGames(w);if(!gs.length)return false;
+  const gs=weekGames(w);if(!gs.length||gs.some(isTbd))return false;
   const now=Date.now(),last=gs[gs.length-1];
   return players().every(p=>{
     const d=pickDoc(w,p.id),pk=d.picks||{};
@@ -478,11 +605,11 @@ function allSubmitted(w){
 // (including one someone unlocked by hand) is left alone.
 function maybeAutoLock(){
   if(!S.db||!S.ready||!S.picksLoaded||!S.locksLoaded)return;
-  for(let w=1;w<=18;w++){
+  for(let w=1;w<=MAX_WEEK;w++){
     const key='w'+w;
     if(S.locks[key]||!allSubmitted(w))continue;
     S.locks={...S.locks,[key]:{week:w,locked:true,auto:true,at:new Date().toISOString()}};
-    S.db.doc('locks/'+key).set(S.locks[key]).then(()=>toast(`Everyone’s picks are in. Week ${w} is locked.`)).catch(()=>{const n={...S.locks};delete n[key];S.locks=n;render()});
+    S.db.doc('locks/'+key).set(S.locks[key]).then(()=>toast(`Everyone’s picks are in. ${weekName(w)} is locked.`)).catch(()=>{const n={...S.locks};delete n[key];S.locks=n;render()});
     render();
   }
 }
@@ -491,7 +618,7 @@ function setLock(w,locked){
   const key='w'+w,prev=S.locks[key];
   S.locks={...S.locks,[key]:{week:w,locked,at:new Date().toISOString()}};render();
   return S.db.doc('locks/'+key).set(S.locks[key])
-    .then(()=>toast(locked?`Week ${w} picks locked`:`Week ${w} picks unlocked`))
+    .then(()=>toast(locked?`${weekName(w)} picks locked`:`${weekName(w)} picks unlocked`))
     .catch(()=>{S.locks={...S.locks,[key]:prev};render();toast(locked?'The lock didn’t save. Try again.':'Only a parent can unlock picks.')});
 }
 
@@ -517,6 +644,9 @@ function signInError(code){
 $('#parentUser').value=parentEmail||'';
 $('#boxDlg').addEventListener('close',()=>{boxOpenId=null;clearTimeout(boxTimer)});
 $('#boxDlg').addEventListener('click',(e)=>{if(e.target===e.currentTarget)closeBox()});
+$('#profDlg').addEventListener('close',()=>{profOpen=null});
+$('#profDlg').addEventListener('click',(e)=>{if(e.target===e.currentTarget)closeProfile()});
+$('#pinDlg').addEventListener('cancel',(e)=>{e.preventDefault();closePin(true)});
 $('#parentCancel').addEventListener('click',()=>{afterParent=null;$('#parentDlg').close()});
 $('#parentForm').addEventListener('submit',async(e)=>{
   e.preventDefault();e.stopPropagation();
@@ -540,21 +670,25 @@ function renderPicks(app){
   const w=S.week,gs=weekGames(w),me=player(S.me),mine=picksFor(w,me.id);
   const sc=weekScore(w);
   const allLocked=gs.length>0&&gs.every(g=>locked(g));
+  // Someone's open picks stay private until they enter their PIN on this device
+  const canSee=allLocked||S.parent||isUnlocked(me.id);
+  const shown=canSee?mine:Object.fromEntries(Object.entries(mine).filter(([id])=>{const g=gs.find(x=>x.id===id);return g&&locked(g)}));
   let h='';
   const byPlayer=Object.fromEntries(sc.rows.map(r=>[r.p.id,r]));
   const meRow=byPlayer[me.id];
   const summary=sc.done?`<span class="num">${meRow.right}–${meRow.wrong}</span>${meRow.up?` · <span class="upct">${meRow.up} winning now</span>`:''}`:'';
-  h+=`<section class="viewer"><div class="viewer-head"><span>${allLocked?'Viewing as':'Picking as'} <b>${esc(me.name)}</b></span><span class="viewer-sum">${summary}</span></div><div class="pickers" role="group" aria-label="Choose whose picks to show">`;
+  h+=`<section class="viewer"><div class="viewer-head"><span>${allLocked?'Viewing as':'Picking as'} <b>${esc(me.name)}</b>${isUnlocked(me.id)?' <button type="button" class="linkbtn sm" data-pin-signout>Sign out</button>':''}</span><span class="viewer-sum">${summary}</span></div><div class="pickers" role="group" aria-label="Choose whose picks to show">`;
   players().forEach(p=>{
     const r=byPlayer[p.id];
     const n=Object.keys(picksFor(w,p.id)).filter(id=>gs.some(g=>g.id===id)).length;
-    h+=`<button class="pk" style="--c:${esc(p.color)}" data-picker="${esc(p.id)}" aria-pressed="${p.id===me.id}" aria-label="Show ${esc(p.name)}’s picks"><span class="jersey">${initial(p)}</span><span class="nm">${esc(p.name)}</span><span class="ct num">${sc.done?`${r.right}–${r.wrong}`:`${n}/${gs.length}`}</span></button>`;
+    h+=`<button class="pk" style="--c:${esc(p.color)}" data-picker="${esc(p.id)}" aria-pressed="${p.id===me.id}" aria-label="Show ${esc(p.name)}’s picks"><span class="jersey av-${p.id}">${initial(p)}</span><span class="nm">${esc(p.name)}</span><span class="ct num">${sc.done?`${r.right}–${r.wrong}`:`${n}/${gs.length}`}</span></button>`;
   });
   h+='</div></section>';
   const open=gs.filter(g=>!locked(g)&&!mine[g.id]).length;
   const defaults=players().every(p=>/^Player \d$/.test(p.name));
   const status=S.results?'<b>Entering results.</b> Tap the team that won each game.'
-    :weekLocked(w)?`<b>${S.locks['w'+w].auto?`Everyone’s picks are in, so Week ${w} is locked.`:`Picks are locked for Week ${w}.`}</b> Everyone’s picks now show.`
+    :weekLocked(w)?`<b>${S.locks['w'+w].auto?`Everyone’s picks are in, so ${weekName(w)} is locked.`:`Picks are locked for ${weekName(w)}.`}</b> Everyone’s picks now show.`
+    :!canSee?`<b>${esc(me.name)}</b> · tap a team and enter your PIN to pick`
     :`<b>${esc(me.name)}</b> is picking · ${open?`<span class="num">${open}</span> open game${open>1?'s':''} left`:'all set for this week'}`;
   if(allLocked)h+=`<div class="lockbar"><span class="pill">Locked</span><span class="lb-text">${weekLocked(w)&&S.locks['w'+w].auto?'Everyone’s picks are in.':'Picks are closed for this week.'}</span>${weekLocked(w)?lockButton(w):''}</div>`;
   else h+=`<div class="note"><span>${status}</span>
@@ -562,9 +696,9 @@ function renderPicks(app){
 
   let lastDay='';
   gs.forEach(g=>{
-    const d=new Date(g.t),day=g.tbd?'Week '+w+' · Date TBD':fmtDay.format(d);
+    const d=new Date(g.t),day=g.tbd?weekName(w)+' · Date TBD':fmtDay.format(d);
     if(day!==lastDay){if(lastDay)h+='</section>';h+=`<section class="day"><div class="dayhead"><h2>${esc(day)}</h2></div>`;lastDay=day}
-    h+=gameCard(g,w,me,mine,g===gs[gs.length-1]);
+    h+=gameCard(g,w,me,shown,g===gs[gs.length-1]);
   });
   h+='</section>';
   app.innerHTML=h;
@@ -578,7 +712,7 @@ function teamBtn(g,side,me,mine,pips){
   const cls=['team',isMine?'mine':'',mineState,won?'won':'',lost?'lost':'',behind?'behind':'',ahead?'ahead':''].join(' ');
   const tag=mineState==='up'?'Winning':mineState==='down'?'Losing':mineState==='even'?'Tied':mineState==='ok'?'Right':mineState==='no'?'Wrong':'';
   const started=g.st!=='pre'||!!g.w;
-  return `<button class="${cls}" style="--tc:${esc(t.c)};--me:${esc(me.color)}" data-game="${esc(g.id)}" data-team="${esc(t.ab)}" ${locked(g)?'aria-disabled="true"':''} aria-pressed="${isMine}" aria-label="${esc(t.loc+' '+t.name+(t.rec?', '+t.rec:''))}">
+  return `<button class="${cls}" style="--tc:${esc(t.c)};--me:${esc(me.color)}" data-game="${esc(g.id)}" data-team="${esc(t.ab)}" ${locked(g)?'aria-disabled="true"':''} ${isTbd(g)?'aria-disabled="true"':''} aria-pressed="${isMine}" aria-label="${esc(t.loc+' '+t.name+(t.rec?', '+t.rec:''))}">
     <span class="logo">${t.logo?`<img src="${esc(t.logo)}" alt="" width="30" height="30" loading="lazy">`:`<span class="ab">${esc(t.ab)}</span>`}</span>
     <span class="tn"><b>${esc(t.name)}</b><span class="sub">${tag?`<em class="tag">${tag}</em>`:`<span class="num">${esc(t.rec||t.loc)}</span>`}</span></span>
     <span class="pips">${pips||''}</span>
@@ -588,10 +722,10 @@ function teamBtn(g,side,me,mine,pips){
 
 function tiebreakRow(g,w,me){
   if(!locked(g)){
-    const tb=pickDoc(w,me.id).tb;
+    const tb=S.parent||isUnlocked(me.id)?pickDoc(w,me.id).tb:null;
     return `<label class="tb"><span><b>Tiebreaker</b> · ${esc(me.name)}, how many total points will both teams score?</span><input type="number" min="0" max="150" inputmode="numeric" data-tb="${esc(g.id)}" value="${typeof tb==='number'?tb:''}" placeholder="45" aria-label="Tiebreaker guess for ${esc(me.name)}"></label>`;
   }
-  const guesses=players().map(p=>{const tb=pickDoc(w,p.id).tb;return `<span class="guess"><span class="pip" style="--c:${esc(p.color)}" title="${esc(p.name)}" aria-label="${esc(p.name)}">${initial(p)}</span>${typeof tb==='number'?tb:'–'}</span>`}).join('');
+  const guesses=players().map(p=>{const tb=pickDoc(w,p.id).tb;return `<span class="guess"><span class="pip av-${p.id}" style="--c:${esc(p.color)}" title="${esc(p.name)}" aria-label="${esc(p.name)}">${initial(p)}</span>${typeof tb==='number'?tb:'–'}</span>`}).join('');
   return `<div class="tb"><span><b>Tiebreaker guesses</b>${g.w?` · final total <b class="num">${g.as+g.hs}</b>`:''}</span><div class="dots">${guesses}</div></div>`;
 }
 
@@ -618,10 +752,11 @@ function gameCard(g,w,me,mine,isLast){
   else if(Date.now()>=new Date(g.t).getTime())status=`<span class="st live">Kicked off${lk?'':' · picks open until '+fmtTime.format(new Date(lockTime(g)))}</span>`;
   else status=`<span class="st">${g.tbd?'Time TBD':fmtTime.format(new Date(g.t))}${slot?`<span class="slot">${slot}</span>`:''}${lk&&!weekLocked(w)?' · locked':''}</span>`;
   const who=players().map(p=>({p,pick:picksFor(w,p.id)[g.id]})).filter(x=>x.pick);
-  const pips=(ab)=>lk?who.filter(x=>x.pick===ab).map(x=>`<span class="pip ${pickState(g,x.pick)}" style="--c:${esc(x.p.color)}" title="${esc(x.p.name)}" aria-label="${esc(x.p.name)}">${initial(x.p)}</span>`).join(''):'';
+  const pips=(ab)=>lk?who.filter(x=>x.pick===ab).map(x=>`<span class="pip ${pickState(g,x.pick)} av-${x.p.id}" style="--c:${esc(x.p.color)}" title="${esc(x.p.name)}" aria-label="${esc(x.p.name)}">${initial(x.p)}</span>`).join(''):'';
   let h=`<article class="game${flashing(g)?' flash':''}"><button type="button" class="gmeta" data-box="${esc(g.id)}" aria-label="Box score, ${esc(g.a.name)} at ${esc(g.h.name)}">${status}<span class="line">${esc(spreadText(g))}<svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span></button>
     <div class="rows">${teamBtn(g,'a',me,mine,pips(g.a.ab))}${teamBtn(g,'h',me,mine,pips(g.h.ab))}</div>`;
-  if(!lk)h+=`<p class="sealed">${who.length}/${players().length} picked · revealed when picks lock</p>`;
+  if(isTbd(g))h+='<p class="sealed">Matchup is set once the previous round ends</p>';
+  else if(!lk)h+=`<p class="sealed">${who.length}/${players().length} picked · revealed when picks lock</p>`;
   if(isLast)h+=tiebreakRow(g,w,me);
   return h+'</article>';
 }
@@ -632,7 +767,7 @@ function renderAllPicks(app){
   const rec=Object.fromEntries(sc.rows.map(r=>[r.p.id,r]));
   const anyOpen=gs.some(g=>!locked(g));
   let h=`<div class="note"><span>${anyOpen?(S.revealAll?'<b>Showing every pick</b>, including games that haven’t locked yet.':'Picks for games that haven’t locked yet show as ✓ until they lock.'):'Every game this week is locked, so all picks show.'}</span><span style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">${lockButton(w)}${anyOpen?`<button class="toggle" id="revealToggle" aria-pressed="${!!S.revealAll}">${S.revealAll?'Hide open picks':'Show all picks'}</button>`:''}</span></div>`;
-  h+=`<section class="card"><div class="scroll" style="margin-top:-6px"><table class="allpicks"><thead><tr><th>Game</th>${ps.map(p=>`<th style="--c:${esc(p.color)}"><span class="jersey">${initial(p)}</span><span class="pname">${esc(p.name)}</span><small class="num">${rec[p.id].right}–${rec[p.id].wrong}${rec[p.id].up?`<span class="upct"> · ${rec[p.id].up} ▲</span>`:''}</small></th>`).join('')}</tr></thead><tbody>`;
+  h+=`<section class="card"><div class="scroll" style="margin-top:-6px"><table class="allpicks"><thead><tr><th>Game</th>${ps.map(p=>`<th style="--c:${esc(p.color)}"><span class="jersey av-${p.id}">${initial(p)}</span><span class="pname">${esc(p.name)}</span><small class="num">${rec[p.id].right}–${rec[p.id].wrong}${rec[p.id].up?`<span class="upct"> · ${rec[p.id].up} ▲</span>`:''}</small></th>`).join('')}</tr></thead><tbody>`;
   gs.forEach(g=>{
     const show=locked(g)||S.revealAll;
     const status=g.w?(g.w==='TIE'?`Final · tie ${g.as}–${g.hs}`:`Final ${g.as}–${g.hs}`):g.st==='in'?`Live ${g.as}–${g.hs}${g.d?' · '+g.d:''}`:g.tbd?'Time TBD':fmtKick.format(new Date(g.t));
@@ -747,12 +882,10 @@ function chanceHtml(ch,r){
 }
 
 function renderStandings(app){
-  const w=S.week,sc=weekScore(w),chances=sc.complete?null:winChances(w);
+  const w=S.week,sc=weekScore(w),chances=sc.complete?null:winChances(w),stats=seasonStats();
   let h='';
-  if(sc.complete){
-    h+=`<div class="champ"><span class="trophy">★</span><div><p class="eyebrow" style="color:inherit;opacity:.7">Week ${w} final</p><h3>${esc(sc.winner.p.name)} wins the week</h3><p class="podium">${sc.rows.slice(0,3).map(r=>`<span>${PLACE_LABEL[r.place-1]} ${esc(r.p.name)} <b>+${r.pts}</b></span>`).join('')}</p></div></div>`;
-  }
-  h+=`<section class="card"><p class="eyebrow">Week ${w} · ${sc.complete?'Final':`${sc.done} of ${sc.total} final`}</p><div class="rank">`;
+  if(sc.complete)h+=recapCard(w,sc);
+  h+=`<section class="card"><p class="eyebrow">${weekName(w)} · ${sc.complete?'Final':`${sc.done} of ${sc.total} final`}</p><div class="rank">`;
   let pos=0,prev=null;
   sc.rows.forEach((r,i)=>{
     if(sc.complete)pos=r.place; else if(prev===null||r.right!==prev){pos=i+1;prev=r.right}
@@ -764,31 +897,323 @@ function renderStandings(app){
     else if(!sc.complete&&r.up)notes.push(`<b class="upct">${r.up} winning now</b>`);
     else if(!sc.complete)notes.push(`${left} game${left===1?'':'s'} left`);
     else notes.push(r.tied?`Tiebreaker ${r.tb===null?'—':r.tb}`:'Final');
-    h+=`<div class="rrow" style="--c:${esc(r.p.color)}"><span class="pos num">${pos}</span><span class="jersey">${initial(r.p)}</span>
-      <div class="who"><b>${esc(r.p.name)} ${sc.complete&&r.place===1?'<span class="crown" aria-label="Week winner">★</span>':''}</b><span class="num">${notes.join(' · ')}</span></div>
+    const spoon=sc.complete&&r.place===sc.rows.length;
+    h+=`<div class="rrow" data-profile="${r.p.id}" style="--c:${esc(r.p.color)}"><span class="pos num">${pos}</span><span class="jersey av-${r.p.id}">${initial(r.p)}</span>
+      <div class="who"><b>${esc(r.p.name)} ${sc.complete&&r.place===1?'<span class="crown" aria-label="Week winner">★</span>':''}${spoon?`<span class="spoon" title="Wooden Spoon">${badgeIcon(BADGE.spoon)}</span>`:''}</b><span class="num">${notes.join(' · ')}</span></div>
       ${chanceHtml(chances,r)}<div class="rec num">${r.right}–${r.wrong}<small>${sc.complete?`<b class="ptsb">+${r.pts} pts</b>`:'W–L'}</small></div></div>`;
   });
   h+='</div></section>';
-
-  // season: total week points only
-  const season=players().map(p=>({p,points:0,byWeek:{}}));
-  const byId=Object.fromEntries(season.map(x=>[x.p.id,x]));
-  const cols=[];
-  for(let k=1;k<=18;k++){
-    const s2=weekScore(k);if(!s2.complete)continue;
-    cols.push(k);
-    s2.rows.forEach(r=>{const row=byId[r.p.id];row.points+=r.pts;row.byWeek[k]={pts:r.pts,place:r.place}});
-  }
-  season.sort((a,b)=>b.points-a.points);
-  season.forEach((r,i)=>r.rank=i>0&&r.points===season[i-1].points?season[i-1].rank:i+1);
-  const seasonOver=cols.length===18,champs=season.filter(r=>r.rank===1);
-  const eyebrow=seasonOver?`Season ${champs.length>1?'co-champions':'champion'} · ${champs.map(r=>esc(r.p.name)).join(' & ')}`:`Season points · ${cols.length} of 18 weeks final`;
-  h+=`<section class="card"><p class="eyebrow">${eyebrow}</p><div class="scroll"><table class="num"><thead><tr><th>Player</th><th>Pts</th>${cols.map(k=>`<th>Wk ${k}</th>`).join('')}</tr></thead><tbody>`;
-  season.forEach(r=>{
-    h+=`<tr><td><span class="rk">${r.rank}</span><b style="color:${esc(r.p.color)}">●</b> ${esc(r.p.name)}${seasonOver&&r.rank===1?' <span class="crown">★</span>':''}</td><td class="tot">${r.points}</td>${cols.map(k=>{const c=r.byWeek[k];return `<td class="${c.place===1?'win':''}">${c.pts}${c.place===1?' ★':''}</td>`}).join('')}</tr>`;
-  });
-  h+=`</tbody></table></div></section><details class="rules"><summary>How scoring works</summary><p class="muted">Each week ends with a final order by correct picks. 1st place gets 3 points, 2nd gets 2 and 3rd gets 1. If people tie on correct picks, the closest guess of total points in the week’s last game goes ahead, then a guess that didn’t go over, then whoever saved their guess first. Tied NFL games don’t count, and a missed pick counts as a loss. Season standings count points only; people tied on points share the spot. Win chances play out the rest of the week 20,000 times using ESPN’s live win probability (betting odds before kickoff) and everyone’s tiebreaker guesses, and update as scores come in.</p></details>`;
+  h+=seasonSection(stats,false);
+  if(Object.values(stats).some(o=>Object.keys(o.weeks).some(k=>+k>18)))h+=seasonSection(stats,true);
+  h+=trophyCase(stats);
+  h+=`<details class="rules"><summary>How scoring works</summary><p class="muted">Each week ends with a final order by correct picks. 1st place gets 3 points, 2nd gets 2 and 3rd gets 1; last place gets the Wooden Spoon. If people tie on correct picks, the closest guess of total points in the week’s last game goes ahead, then a guess that didn’t go over, then whoever saved their guess first. Tied NFL games don’t count, and a missed pick counts as a loss. Season standings count regular-season points only; the playoffs have their own standings. People tied on points share the spot. Win chances play out the rest of the week 20,000 times using ESPN’s live win probability (betting odds before kickoff) and everyone’s tiebreaker guesses. Badges: Weekly Champ (1st in a week), Perfect Week (every pick right), Upset Artist (picked an underdog that won), Hot Streak (5 right in a row), Tiebreak Wizard (exact tiebreaker total) and Wooden Spoon (last in a week).</p></details>`;
   app.innerHTML=h;
+}
+
+/* ---- season stats, badges, recap, chart ---- */
+const BADGE={
+  champ:{name:'Weekly Champ',desc:'Finish 1st in a week',color:'#F5B400',icon:'<path d="M8 20h8M12 16v4M7 4h10v5a5 5 0 01-10 0V4zM7 6H4.5a2.5 2.5 0 002.8 3.6M17 6h2.5a2.5 2.5 0 01-2.8 3.6"/>',count:o=>o.champ},
+  perfect:{name:'Perfect Week',desc:'Every pick right in a week',color:'#30D158',icon:'<circle cx="12" cy="12" r="8.5"/><path d="M8 12.5l2.7 2.7L16 9.5"/>',count:o=>o.perfect},
+  upset:{name:'Upset Artist',desc:'Pick an underdog that wins',color:'#A983FF',icon:'<path d="M13 3L6 13.5h5.5L10.5 21 18 10.5h-5.5L13 3z"/>',count:o=>o.upsets},
+  streak:{name:'Hot Streak',desc:'5 right in a row',color:'#FF7A3D',icon:'<path d="M12 3c.6 3 4.5 5.2 4.5 9.6A4.5 4.5 0 017.5 13c0-2.2 1.2-3.4 2.3-4.8.3 1.4 1.1 2.4 2.2 2.6-.7-2.4-.6-5.1 0-7.8z"/>',count:o=>o.bestStreak>=5?1:0,detail:o=>`Best: ${o.bestStreak} in a row`},
+  wizard:{name:'Tiebreak Wizard',desc:'Guess the exact tiebreaker total',color:'#4DB3FF',icon:'<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/>',count:o=>o.wizard},
+  spoon:{name:'Wooden Spoon',desc:'Finish last in a week',color:'#C08A5B',icon:'<ellipse cx="12" cy="7.5" rx="3.6" ry="4.5"/><path d="M12 12v9"/>',count:o=>o.spoon},
+};
+const BADGES=Object.values(BADGE);
+function badgeIcon(b){return `<span class="badge-ico" style="--bc:${b.color}"><svg viewBox="0 0 24 24" aria-hidden="true">${b.icon}</svg></span>`}
+
+let statsCache={key:'',value:null};
+function seasonStats(){
+  const ps=players();
+  const key=JSON.stringify([S.picks,S.lines,ps.map(p=>p.id),Object.values(S.weeks).map(wk=>wk.games.map(g=>g.id+(g.w||'')+g.as+'-'+g.hs))]);
+  if(statsCache.key===key)return statsCache.value;
+  const out=Object.fromEntries(ps.map(p=>[p.id,{p,points:0,poPoints:0,champ:0,spoon:0,perfect:0,upsets:0,wizard:0,bestStreak:0,streak:0,right:0,wrong:0,weeks:{}}]));
+  const seq=Object.fromEntries(ps.map(p=>[p.id,[]]));
+  for(let w=1;w<=MAX_WEEK;w++){
+    const games=weekGames(w);if(!games.length)continue;
+    const lines=S.lines['w'+w]||{};
+    for(const g of games){
+      if(!g.w||g.w==='TIE')continue;
+      const fav=lines[g.id];
+      for(const p of ps){
+        const pick=picksFor(w,p.id)[g.id],o=out[p.id],ok=pick===g.w;
+        if(ok)o.right++;else o.wrong++;
+        seq[p.id].push(ok);
+        if(ok&&fav&&fav.fav&&pick!==fav.fav)o.upsets++;
+      }
+    }
+    const sc=weekScore(w);if(!sc.complete)continue;
+    for(const r of sc.rows){
+      const o=out[r.p.id];
+      if(w<=18)o.points+=r.pts;else o.poPoints+=r.pts;
+      o.weeks[w]={pts:r.pts,place:r.place,right:r.right,wrong:r.wrong};
+      if(r.place===1)o.champ++;
+      if(r.place===sc.rows.length)o.spoon++;
+      if(r.wrong===0&&r.right>0)o.perfect++;
+      if(r.tb!==null&&sc.actual!==null&&r.tb===sc.actual)o.wizard++;
+    }
+  }
+  for(const p of ps){let cur=0,best=0;for(const ok of seq[p.id]){cur=ok?cur+1:0;best=Math.max(best,cur)}out[p.id].streak=cur;out[p.id].bestStreak=best}
+  statsCache={key,value:out};
+  return out;
+}
+
+function recapCard(w,sc){
+  const ps=players(),games=weekGames(w).filter(g=>g.w&&g.w!=='TIE'),lines=S.lines['w'+w]||{};
+  const names=(list)=>list.map(p=>esc(p.name)).join(list.length===2?' and ':', ');
+  const item=(b,label,text)=>`<li>${badgeIcon(b)}<div><b>${label}</b><span>${text}</span></div></li>`;
+  const top=sc.rows.slice(0,3),order=[top[1],top[0],top[2]].filter(Boolean);
+  let h=`<section class="recap"><p class="eyebrow">${weekName(w)} recap</p><div class="podium3">${order.map(r=>`<div class="pd pd${r.place}" style="--c:${esc(r.p.color)}"><span class="jersey av-${r.p.id}">${initial(r.p)}</span><b>${esc(r.p.name)}</b><small class="num">${r.right}–${r.wrong}</small><div class="pd-step"><span>${PLACE_LABEL[r.place-1]}</span><em class="num">+${r.pts}</em></div></div>`).join('')}</div><ul class="hl">`;
+  let best=null;
+  for(const g of games){
+    const right=ps.filter(p=>picksFor(w,p.id)[g.id]===g.w);
+    if(right.length&&right.length<ps.length&&(!best||right.length<best.right.length))best={g,right};
+  }
+  if(best){
+    const t=best.g.w===best.g.a.ab?best.g.a:best.g.h,o=t===best.g.a?best.g.h:best.g.a;
+    h+=item(BADGE.perfect,'Best pick',best.right.length===1?`${esc(best.right[0].name)} was the only one to take the ${esc(t.name)} over the ${esc(o.name)}`:`${names(best.right)} took the ${esc(t.name)} over the ${esc(o.name)}`);
+  }
+  let up=null;
+  for(const g of games){const f=lines[g.id];if(f&&f.fav&&f.fav!==g.w&&(!up||(f.line||0)>(up.f.line||0)))up={g,f}}
+  if(up){
+    const t=up.g.w===up.g.a.ab?up.g.a:up.g.h,o=t===up.g.a?up.g.h:up.g.a;
+    const called=ps.filter(p=>picksFor(w,p.id)[up.g.id]===up.g.w);
+    h+=item(BADGE.upset,'Biggest upset',`The ${esc(t.name)} beat the favored ${esc(o.name)}${up.f.line?` (+${up.f.line})`:''} · ${called.length?`called by ${names(called)}`:'nobody saw it coming'}`);
+  }
+  if(sc.actual!==null){
+    const guessed=sc.rows.filter(r=>r.tb!==null);
+    if(guessed.length){
+      const c=guessed.reduce((a,b)=>Math.abs(b.tb-sc.actual)<Math.abs(a.tb-sc.actual)?b:a);
+      h+=item(BADGE.wizard,'Closest tiebreaker',`${esc(c.p.name)} guessed ${c.tb}; the final total was ${sc.actual}`);
+    }
+  }
+  const last=sc.rows[sc.rows.length-1];
+  h+=item(BADGE.spoon,'Wooden Spoon',`${esc(last.p.name)} takes home the spoon at ${last.right}–${last.wrong}. There’s always next week.`);
+  return h+'</ul></section>';
+}
+
+let chartModel=null;
+function seasonChart(stats,done){
+  const ps=players(),W=Math.round(Math.max(260,Math.min(720,((document.getElementById('app')||{}).clientWidth||360)-30))),H=210,m={l:30,r:40,t:14,b:26};
+  const series=ps.map(p=>{let t=0;return {p,vals:[0,...done.map(k=>t+=((stats[p.id].weeks[k]||{}).pts||0))]}});
+  const maxV=Math.max(3,...series.flatMap(x=>x.vals)),step=maxV<=6?1:maxV<=15?3:maxV<=30?5:10,top=Math.ceil(maxV/step)*step;
+  const n=done.length,px=(i)=>m.l+i*(W-m.l-m.r)/n,py=(v)=>m.t+(1-v/top)*(H-m.t-m.b);
+  let svg=`<svg class="chart-svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="Season points after each week">`;
+  for(let v=0;v<=top;v+=step)svg+=`<line class="grid" x1="${m.l}" x2="${W-m.r}" y1="${py(v)}" y2="${py(v)}"/><text class="axis" x="${m.l-8}" y="${py(v)+4}" text-anchor="end">${v}</text>`;
+  const every=n>12?3:n>6?2:1;
+  for(let i=0;i<=n;i++)if(i===0||i===n||i%every===0)svg+=`<text class="axis" x="${px(i)}" y="${H-8}" text-anchor="${i===0?'start':i===n?'end':'middle'}">${i===0?'Start':'Wk '+done[i-1]}</text>`;
+  svg+=`<line class="cross" x1="0" x2="0" y1="${m.t}" y2="${H-m.b}" visibility="hidden"/>`;
+  [...series].sort((a,b)=>a.vals[n]-b.vals[n]).forEach(x=>{
+    svg+=`<path d="${x.vals.map((v,i)=>`${i?'L':'M'}${px(i).toFixed(1)} ${py(v).toFixed(1)}`).join(' ')}" fill="none" stroke="${esc(x.p.color)}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+    x.vals.forEach((v,i)=>{if(i)svg+=`<circle class="dot" cx="${px(i).toFixed(1)}" cy="${py(v).toFixed(1)}" r="4" fill="${esc(x.p.color)}"/>`});
+  });
+  // Initials at the line ends, nudged apart so tied lines stay identifiable without relying on color
+  const ends=[...series].sort((a,b)=>b.vals[n]-a.vals[n]).map(x=>({x,y:py(x.vals[n])}));
+  for(let i=1;i<ends.length;i++)if(ends[i].y-ends[i-1].y<17)ends[i].y=ends[i-1].y+17;
+  const overflow=ends.length?ends[ends.length-1].y-(H-m.b):0;
+  if(overflow>0)ends.forEach(e=>e.y-=overflow);
+  ends.forEach(({x,y})=>{
+    const ex=px(n)+18;
+    svg+=`<line class="leader" x1="${(px(n)+5).toFixed(1)}" y1="${py(x.vals[n]).toFixed(1)}" x2="${(ex-8).toFixed(1)}" y2="${y.toFixed(1)}"/><circle cx="${ex}" cy="${y.toFixed(1)}" r="8" fill="${esc(x.p.color)}" class="dot"/><text class="endlbl" x="${ex}" y="${(y+3.5).toFixed(1)}" text-anchor="middle">${initial(x.p)}</text>`;
+  });
+  svg+='</svg>';
+  chartModel={px:Array.from({length:n+1},(_,i)=>px(i)),labels:['Start',...done.map(k=>weekName(k))],series:series.map(x=>({name:x.p.name,color:x.p.color,vals:x.vals}))};
+  const legend=[...series].sort((a,b)=>b.vals[n]-a.vals[n]).map(x=>`<span class="lgd"><span class="jersey mini av-${x.p.id}" style="--c:${esc(x.p.color)}">${initial(x.p)}</span>${esc(x.p.name)} <b class="num">${x.vals[n]}</b></span>`).join('');
+  return `<div class="chart-legend">${legend}</div><div class="chart" data-chart>${svg}<div class="chart-tip" hidden></div></div>`;
+}
+function chartHover(e){
+  const box=e.target.closest('[data-chart]');if(!box||!chartModel)return;
+  const svg=box.querySelector('svg'),r=svg.getBoundingClientRect(),vw=svg.viewBox.baseVal.width;
+  const x=(e.clientX-r.left)*vw/r.width;
+  let i=0,best=Infinity;chartModel.px.forEach((p,k)=>{const d=Math.abs(p-x);if(d<best){best=d;i=k}});
+  const cross=svg.querySelector('.cross');cross.setAttribute('x1',chartModel.px[i]);cross.setAttribute('x2',chartModel.px[i]);cross.setAttribute('visibility','visible');
+  const tip=box.querySelector('.chart-tip');
+  tip.innerHTML=`<b>${i?'After '+esc(chartModel.labels[i]):'Start of the season'}</b>`+[...chartModel.series].sort((a,b)=>b.vals[i]-a.vals[i]).map(x=>`<span><i style="background:${esc(x.color)}"></i>${esc(x.name)}<b class="num">${x.vals[i]}</b></span>`).join('');
+  tip.hidden=false;
+  const at=chartModel.px[i]*r.width/vw;
+  tip.style.left=Math.max(0,Math.min(at>box.clientWidth/2?at-tip.offsetWidth-12:at+12,box.clientWidth-tip.offsetWidth))+'px';
+}
+function hideChartTip(){
+  const tip=document.querySelector('[data-chart] .chart-tip');
+  if(tip&&!tip.hidden){tip.hidden=true;const c=document.querySelector('[data-chart] .cross');if(c)c.setAttribute('visibility','hidden')}
+}
+document.addEventListener('pointermove',(e)=>{if(e.target.closest&&e.target.closest('[data-chart]'))chartHover(e);else hideChartTip()});
+document.addEventListener('pointerdown',(e)=>{if(e.target.closest&&e.target.closest('[data-chart]'))chartHover(e)});
+let resizeTimer=null;
+window.addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>{if(S.tab==='standings')render()},200)});
+
+function seasonSection(stats,po){
+  const ps=players(),range=po?[19,20,21,22]:Array.from({length:18},(_,i)=>i+1);
+  const done=range.filter(k=>weekScore(k).complete);
+  const total=(o)=>po?o.poPoints:o.points;
+  const rows=ps.map(p=>stats[p.id]).sort((a,b)=>total(b)-total(a));
+  rows.forEach((r,i)=>r.rank=i>0&&total(r)===total(rows[i-1])?rows[i-1].rank:i+1);
+  const over=done.length===range.length,champs=rows.filter(r=>r.rank===1),champNames=champs.map(r=>esc(r.p.name)).join(' & ');
+  const title=po?(over?`Playoff ${champs.length>1?'co-champions':'champion'} · ${champNames}`:`Playoff points · ${done.length} of 4 rounds final`)
+    :(over?`Season ${champs.length>1?'co-champions':'champion'} · ${champNames}`:`Season points · ${done.length} of 18 weeks final`);
+  let h=`<section class="card"><p class="eyebrow">${title}</p>`;
+  if(!po)h+=done.length?seasonChart(stats,done):'<p class="muted">The points chart starts once Week 1 is final.</p>';
+  h+=`<div class="scroll"><table class="num season"><thead><tr><th>Player</th><th>Pts</th>${done.map(k=>`<th>${po?ROUNDS[k].short:'Wk '+k}</th>`).join('')}</tr></thead><tbody>`;
+  rows.forEach(r=>{
+    h+=`<tr data-profile="${r.p.id}"><td><span class="rk">${r.rank}</span><span class="jersey mini av-${r.p.id}" style="--c:${esc(r.p.color)}">${initial(r.p)}</span> ${esc(r.p.name)}${over&&r.rank===1?' <span class="crown">★</span>':''}</td><td class="tot">${total(r)}</td>${done.map(k=>{const c=r.weeks[k];return `<td>${c?`<span class="plc plc${c.place}${c.place===ps.length?' last':''}" title="${PLACE_LABEL[c.place-1]}">${c.pts}</span>`:'–'}</td>`}).join('')}</tr>`;
+  });
+  return h+'</tbody></table></div></section>';
+}
+
+function trophyCase(stats){
+  const rows=players().map(p=>stats[p.id]).sort((a,b)=>b.points-a.points||b.champ-a.champ);
+  let h='<section class="card"><p class="eyebrow">Trophy case</p>';
+  rows.forEach(o=>{
+    const earned=BADGES.filter(b=>b.count(o));
+    h+=`<button type="button" class="tc-row" data-profile="${o.p.id}" style="--c:${esc(o.p.color)}"><span class="jersey av-${o.p.id}">${initial(o.p)}</span><b>${esc(o.p.name)}</b><span class="tc-badges">${earned.length?earned.map(b=>`<span class="tc-b" title="${b.name}">${badgeIcon(b)}${b.count(o)>1?`<small>${b.count(o)}</small>`:''}</span>`).join(''):'<small class="muted">No badges yet</small>'}</span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>`;
+  });
+  return h+'</section>';
+}
+
+/* ---- profiles, avatars and PINs (a family lock, not real security) ---- */
+function applyAvatarCss(){
+  let el=document.getElementById('avatarCss');
+  if(!el){el=document.createElement('style');el.id='avatarCss';document.head.appendChild(el)}
+  const css=Object.entries(S.profiles)
+    .filter(([id,pr])=>/^p[1-5]$/.test(id)&&typeof pr.avatar==='string'&&/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(pr.avatar))
+    .map(([id,pr])=>`.av-${id}{background-image:url("${pr.avatar}");background-size:cover;background-position:center;color:transparent!important}`).join('\n');
+  if(el.textContent!==css)el.textContent=css;
+}
+async function makeAvatar(file){
+  const src=URL.createObjectURL(file);
+  try{
+    const img=await new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=src});
+    const size=192,c=document.createElement('canvas');c.width=c.height=size;
+    const side=Math.min(img.naturalWidth,img.naturalHeight);
+    c.getContext('2d').drawImage(img,(img.naturalWidth-side)/2,(img.naturalHeight-side)/2,side,side,0,0,size,size);
+    return c.toDataURL('image/jpeg',.82);
+  }finally{URL.revokeObjectURL(src)}
+}
+async function saveProfile(pid,changes,okMsg){
+  const cur=S.profiles[pid]||{};
+  const next={color:cur.color||'',avatar:cur.avatar||'',pinHash:cur.pinHash||'',pinSalt:cur.pinSalt||'',...changes,updatedAt:new Date().toISOString()};
+  S.profiles={...S.profiles,[pid]:next};applyAvatarCss();render();renderProfile();
+  try{await S.db.doc('profiles/'+pid).set(next);if(okMsg)toast(okMsg);return true}
+  catch{S.profiles={...S.profiles,[pid]:cur};applyAvatarCss();render();renderProfile();toast('That didn’t save. Check your connection and try again.');return false}
+}
+
+const UNLOCK_MS=10*60e3;
+let pin={pid:null,mode:'enter',entry:'',first:'',why:'',action:null,fails:0,blockedUntil:0,busy:false};
+function unlockInfo(){try{return JSON.parse(store.get('unlock')||'null')}catch{return null}}
+function isUnlocked(pid){const u=unlockInfo();return !!u&&u.pid===pid&&u.until>Date.now()}
+function setUnlocked(pid){store.set('unlock',JSON.stringify({pid,until:Date.now()+UNLOCK_MS}))}
+function signOutPin(){store.set('unlock','null');render();renderProfile();toast('Signed out on this device')}
+async function hashPin(code,salt){
+  const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(salt+':'+code));
+  return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+function newSalt(){const a=new Uint8Array(8);crypto.getRandomValues(a);return [...a].map(b=>b.toString(16).padStart(2,'0')).join('')}
+function requirePin(pid,why,action){
+  if(!S.db){toast('Changes can’t be saved right now.');return}
+  if(S.parent){action();return}
+  if(isUnlocked(pid)){setUnlocked(pid);action();return}
+  openPin(pid,(S.profiles[pid]||{}).pinHash?'enter':'create',why,action);
+}
+function changePin(pid){
+  if(!(S.profiles[pid]||{}).pinHash){openPin(pid,'create','',null);return}
+  requirePin(pid,`Enter ${player(pid).name}’s current PIN first.`,()=>openPin(pid,'create','',null));
+}
+function openPin(pid,mode,why,action){
+  const p=player(pid);
+  pin={...pin,pid,mode,entry:'',first:'',why,action,busy:false};
+  const face=$('#pinFace');face.className='jersey av-'+pid;face.style.setProperty('--c',p.color);face.textContent=(p.name||'?').trim().charAt(0).toUpperCase();
+  drawPin();
+  const d=$('#pinDlg');if(!d.open)d.showModal();
+}
+function drawPin(msg){
+  const p=player(pin.pid);
+  $('#pinTitle').textContent=pin.mode==='enter'?`${p.name}’s PIN`:pin.mode==='create'?`Create a PIN for ${p.name}`:'Enter it once more';
+  $('#pinWhy').textContent=pin.mode==='enter'?pin.why:pin.mode==='create'?'4 digits. Keep it secret from everyone else.':'Just to be sure.';
+  $('#pinDots').querySelectorAll('i').forEach((dot,i)=>dot.classList.toggle('on',i<pin.entry.length));
+  $('#pinErr').hidden=!msg;$('#pinErr').textContent=msg||'';
+  $('#pinForgot').hidden=pin.mode!=='enter';
+}
+function shakePin(){const d=$('#pinDots');d.classList.remove('shake');void d.offsetWidth;d.classList.add('shake')}
+function closePin(cancelled){
+  const d=$('#pinDlg');if(d.open)d.close();
+  pin.entry='';pin.first='';
+  if(cancelled){pin.action=null;render()}
+}
+async function pinKey(k){
+  if(k==='cancel'){closePin(true);return}
+  if(pin.busy)return;
+  if(Date.now()<pin.blockedUntil){drawPin(`Too many tries. Wait ${Math.ceil((pin.blockedUntil-Date.now())/1000)} seconds.`);return}
+  if(k==='back'){pin.entry=pin.entry.slice(0,-1);drawPin();return}
+  if(!/^\d$/.test(k)||pin.entry.length>=4)return;
+  pin.entry+=k;drawPin();
+  if(pin.entry.length<4)return;
+  pin.busy=true;
+  try{
+    const pid=pin.pid,code=pin.entry;
+    if(pin.mode==='enter'){
+      const pr=S.profiles[pid]||{};
+      if(pr.pinHash&&await hashPin(code,pr.pinSalt||'')===pr.pinHash){pin.fails=0;setUnlocked(pid);finishPin();return}
+      pin.fails++;pin.entry='';
+      if(pin.fails>=5){pin.fails=0;pin.blockedUntil=Date.now()+30e3}
+      shakePin();drawPin(Date.now()<pin.blockedUntil?'Too many tries. Wait 30 seconds.':'That PIN didn’t match. Try again.');
+    }else if(pin.mode==='create'){
+      pin.first=code;pin.entry='';pin.mode='confirm';drawPin();
+    }else{
+      if(code!==pin.first){pin.mode='create';pin.entry='';pin.first='';shakePin();drawPin('Those didn’t match. Start again.');return}
+      const salt=newSalt(),hash=await hashPin(code,salt);
+      if(!await saveProfile(pid,{pinHash:hash,pinSalt:salt},'PIN saved')){pin.mode='create';pin.entry='';pin.first='';drawPin('The PIN didn’t save. Check your connection and try again.');return}
+      setUnlocked(pid);finishPin();
+    }
+  }finally{pin.busy=false}
+}
+function finishPin(){
+  const action=pin.action;pin.action=null;
+  closePin(false);render();renderProfile();
+  if(action)action();
+}
+document.addEventListener('keydown',(e)=>{
+  if(!$('#pinDlg').open)return;
+  if(/^\d$/.test(e.key)){e.preventDefault();pinKey(e.key)}
+  else if(e.key==='Backspace'){e.preventDefault();pinKey('back')}
+});
+
+let profOpen=null;
+function openProfile(pid){profOpen=pid;renderProfile();const d=$('#profDlg');if(!d.open)d.showModal();$('#profBody').scrollTop=0}
+function closeProfile(){profOpen=null;const d=$('#profDlg');if(d.open)d.close()}
+function renderProfile(){
+  if(!profOpen)return;
+  const p=player(profOpen),o=seasonStats()[p.id],pr=S.profiles[p.id]||{},un=isUnlocked(p.id);
+  const tiles=[['Season pts',o.points],['Weekly wins',o.champ],['Best streak',o.bestStreak],['Upsets',o.upsets]];
+  let h=`<div class="pf-top" style="--c:${esc(p.color)}"><span class="jersey pf-face av-${p.id}">${initial(p)}</span><div class="pf-id"><b>${esc(p.name)}</b><span class="num">${o.right}–${o.wrong} all season${o.poPoints?` · ${o.poPoints} playoff pts`:''}</span>${un?'<span class="pf-state">Signed in on this device</span>':''}</div></div>`;
+  h+=`<div class="pf-tiles">${tiles.map(([label,v])=>`<div><b class="num">${v}</b><span>${label}</span></div>`).join('')}</div>`;
+  h+=`<section class="bx-sec"><h4>Badges</h4><div class="badges">${BADGES.map(b=>{const n=b.count(o);return `<div class="badge${n?'':' dim'}">${badgeIcon(b)}<div><b>${b.name}${n>1?` <span class="num">×${n}</span>`:''}</b><small>${n&&b.detail?b.detail(o):b.desc}</small></div></div>`}).join('')}</div></section>`;
+  h+=`<section class="bx-sec"><h4>Make it yours</h4>${un||S.parent?'':`<p class="muted">Changes ask for ${esc(p.name)}’s PIN.</p>`}
+    <div class="pf-row"><span class="jersey pf-small av-${p.id}" style="--c:${esc(p.color)}">${initial(p)}</span><label class="toggle">${pr.avatar?'Change photo':'Add a photo'}<input type="file" accept="image/*" data-avatar-input="${p.id}" hidden></label>${pr.avatar?`<button type="button" class="linkbtn" data-avatar-remove="${p.id}">Remove photo</button>`:''}</div>
+    <div class="sw pf-sw" role="group" aria-label="Color for ${esc(p.name)}">${COLORS.map(c=>`<button type="button" style="--c:${c}" data-pcolor="${c}" data-pid="${p.id}" aria-pressed="${c===p.color}" aria-label="Color ${c}"></button>`).join('')}</div>
+    <div class="pf-row"><button type="button" class="toggle" data-pin-change="${p.id}">${pr.pinHash?'Change PIN':'Set a PIN'}</button>${un?'<button type="button" class="linkbtn" data-pin-signout>Sign out</button>':''}${pr.pinHash?`<button type="button" class="linkbtn quiet" data-pin-reset="${p.id}">Forgot PIN?</button>`:''}</div></section>`;
+  $('#profTitle').textContent=p.name;
+  $('#profBody').innerHTML=h;
+}
+
+// Pregame favorites, saved once per game so upset badges work on every device
+function favoriteOf(g){
+  if(isTbd(g))return null;
+  const c=spreads[g.id]||{},ml=g.ml&&g.ml.h!=null&&g.ml.a!=null?g.ml:c.ml,hl=g.hl!=null?g.hl:c.hl;
+  const line=hl!=null?Math.abs(hl):null;
+  if(ml&&ml.h!=null&&ml.a!=null){const ih=impliedProb(ml.h),ia=impliedProb(ml.a);if(ih!==ia)return {fav:ih>ia?g.h.ab:g.a.ab,line}}
+  if(hl)return {fav:hl<0?g.h.ab:g.a.ab,line};
+  return null;
+}
+function syncLines(){
+  if(!S.db||!S.linesLoaded)return;
+  for(const [w,wk] of Object.entries(S.weeks)){
+    const have=S.lines['w'+w]||{},add={};
+    for(const g of wk.games){if(have[g.id])continue;const f=favoriteOf(g);if(f)add[g.id]=f}
+    if(!Object.keys(add).length)continue;
+    const next={...have,...add};
+    S.lines={...S.lines,['w'+w]:next};
+    S.db.doc('lines/w'+w).set(next).catch(()=>{});
+  }
 }
 
 function alertsCard(){
@@ -805,18 +1230,18 @@ function alertsCard(){
 }
 
 function renderFamily(app){
-  let h='<section class="card"><p class="eyebrow">The five of you</p><form id="famForm">';
+  let h='<section class="card"><p class="eyebrow">The five of you</p><p class="muted">Tap a face to set a PIN, photo or color. Changing names needs the parent password.</p><form id="famForm">';
   players().forEach((p,i)=>{
-    h+=`<div class="frow" style="--c:${esc(p.color)}"><span class="jersey pkj">${initial(p)}</span>
+    const pr=S.profiles[p.id]||{};
+    h+=`<div class="frow" style="--c:${esc(p.color)}"><button type="button" class="face-btn" data-profile="${p.id}" aria-label="Open ${esc(p.name)}’s profile"><span class="jersey av-${p.id}">${initial(p)}</span></button>
       <input name="n${i}" value="${esc(p.name)}" maxlength="16" aria-label="Name for player ${i+1}" autocomplete="off">
-      <div class="sw" role="group" aria-label="Color for ${esc(p.name)}">${COLORS.map(c=>`<button type="button" style="--c:${c}" data-swatch="${i}" data-color="${c}" aria-pressed="${c===p.color}" aria-label="Color ${c}"></button>`).join('')}</div></div>`;
+      <button type="button" class="toggle" data-profile="${p.id}">${pr.pinHash?'Profile':'Set up'}</button></div>`;
   });
-  h+='<div style="margin-top:12px;display:flex;gap:12px;align-items:center"><button class="primary" type="submit">Save family</button><span class="muted">Needs the parent password. Everyone sees these names.</span></div></form></section>';
+  h+='<div class="setrow"><button class="primary" type="submit">Save names</button><span class="muted">Everyone sees these names.</span></div></form></section>';
   h+=alertsCard();
   if(S.parent)h+=`<section class="card"><p class="eyebrow">Parent controls</p><p class="muted">A parent is signed in on this device. <button type="button" class="linkbtn" id="parentSignOut">Sign out</button></p></section>`;
-  h+=`<details class="rules"><summary>How Sunday Picks works</summary><p class="muted">Pick who you are at the top of the Picks tab, then tap the team you think will win each game. You can change a pick until kickoff; then it locks and everyone’s picks show. Each week runs Sunday through the next Thursday, so the Thursday night game counts toward the week you pick on Sunday. Scores come from ESPN and update every minute during games while the page is open. When a week ends, 1st place (most correct picks) gets 3 points, 2nd gets 2 and 3rd gets 1. Ties on correct picks are broken by the closest guess of total points in the week’s last game. Most points at the end of the season wins.</p></details>`;
+  h+=`<details class="rules"><summary>How Sunday Picks works</summary><p class="muted">Tap your face at the top of the Picks tab, then tap the team you think will win each game. The first time, you’ll create a 4-digit PIN; after that the PIN keeps others from picking for you or seeing your picks before they lock, and it stays signed in on that device for 10 minutes. You can change a pick until kickoff; then it locks and everyone’s picks show. Each week runs Sunday through the next Thursday. When a week ends, 1st place (most correct picks) gets 3 points, 2nd gets 2 and 3rd gets 1, and last place takes home the Wooden Spoon. After Week 18 the playoffs keep going round by round with their own standings.</p></details>`;
   app.innerHTML=h;
-  S.draft=players().map(p=>({...p}));
 }
 
 /* ---- actions ---- */
@@ -833,12 +1258,23 @@ function savePick(g,team){
   writePickDoc(w,me.id,{...doc,week:w,player:me.id,picks:cur},'That pick didn’t save. Check your connection and tap it again.');
 }
 document.addEventListener('change',async(e)=>{
+  const av=e.target.closest('[data-avatar-input]');
+  if(av){
+    const pid=av.dataset.avatarInput,file=av.files&&av.files[0];av.value='';
+    if(!file)return;
+    let data;
+    try{data=await makeAvatar(file)}catch{toast('That photo couldn’t be read. Try a JPG or PNG.');return}
+    requirePin(pid,`Enter ${player(pid).name}’s PIN to change their photo.`,()=>saveProfile(pid,{avatar:data},'Photo saved'));
+    return;
+  }
   const input=e.target.closest('[data-tb]');if(!input)return;
   const g=weekGames(S.week).find(x=>x.id===input.dataset.tb);if(!g)return;
   if(locked(g)){toast('The tiebreaker is locked.');render();return}
   const me=player(S.me),doc=pickDoc(S.week,me.id);
   const v=input.value===''?null:Math.max(0,Math.min(150,Math.round(Number(input.value))));
-  if(await writePickDoc(S.week,me.id,{...doc,week:S.week,player:me.id,tb:v,tbAt:new Date().toISOString()},'Tiebreaker didn’t save. Try again.'))toast(v===null?'Tiebreaker cleared':'Tiebreaker saved: '+v+' points');
+  requirePin(me.id,`Enter ${me.name}’s PIN to save a tiebreaker.`,async()=>{
+    if(await writePickDoc(S.week,me.id,{...pickDoc(S.week,me.id),week:S.week,player:me.id,tb:v,tbAt:new Date().toISOString()},'Tiebreaker didn’t save. Try again.'))toast(v===null?'Tiebreaker cleared':'Tiebreaker saved: '+v+' points');
+  });
 });
 
 document.addEventListener('click',(e)=>{
@@ -846,6 +1282,21 @@ document.addEventListener('click',(e)=>{
   if(bx){openBox(bx.dataset.box);return}
   if(e.target.closest('[data-box-close]')){closeBox();return}
   if(e.target.closest('[data-box-retry]')){loadBox(boxOpenId,true);return}
+  const key=e.target.closest('[data-key]');
+  if(key){pinKey(key.dataset.key);return}
+  if(e.target.closest('#meBtn')){openProfile(S.me);return}
+  if(e.target.closest('[data-prof-close]')){closeProfile();return}
+  const pc=e.target.closest('[data-pcolor]');
+  if(pc){const pid=pc.dataset.pid,c=pc.dataset.pcolor;requirePin(pid,`Enter ${player(pid).name}’s PIN to change their color.`,()=>saveProfile(pid,{color:c},'Color saved'));return}
+  const ar=e.target.closest('[data-avatar-remove]');
+  if(ar){const pid=ar.dataset.avatarRemove;requirePin(pid,`Enter ${player(pid).name}’s PIN to remove their photo.`,()=>saveProfile(pid,{avatar:''},'Photo removed'));return}
+  const chg=e.target.closest('[data-pin-change]');
+  if(chg){changePin(chg.dataset.pinChange);return}
+  if(e.target.closest('[data-pin-signout]')){signOutPin();return}
+  const rs=e.target.closest('[data-pin-reset]');
+  if(rs){const pid=rs.dataset.pinReset;requireParent(`Enter the parent password to reset ${player(pid).name}’s PIN.`,()=>saveProfile(pid,{pinHash:'',pinSalt:''},`PIN reset. ${player(pid).name} can set a new one next time.`));return}
+  const prof=e.target.closest('[data-profile]');
+  if(prof&&!e.target.closest('input')){openProfile(prof.dataset.profile);return}
   const tab=e.target.closest('[data-tab]');
   if(tab){S.tab=tab.dataset.tab;S.results=false;store.set('tab',S.tab);render();window.scrollTo(0,0);return}
   const pk=e.target.closest('[data-picker]');
@@ -855,7 +1306,7 @@ document.addEventListener('click',(e)=>{
   if(e.target.closest('#lockToggle')){
     const w=S.week;
     if(!weekLocked(w))setLock(w,true);
-    else requireParent(`Enter the parent password to unlock Week ${w} picks.`,()=>setLock(w,false));
+    else requireParent(`Enter the parent password to unlock ${weekName(w)} picks.`,()=>setLock(w,false));
     return}
   if(e.target.closest('#alertsToggle')){store.set('alerts',alertsOn()?'off':'on');render();return}
   if(e.target.closest('#notifyBtn')){Notification.requestPermission().then(()=>render());return}
@@ -864,25 +1315,26 @@ document.addEventListener('click',(e)=>{
   const al=e.target.closest('#alert');
   if(al){const id=al.dataset.game;nextAlert();if(id)openBox(id);return}
   if(e.target.closest('#parentSignOut')){signOut(S.auth).then(()=>toast('Parent signed out on this device'));return}
-  const sw=e.target.closest('[data-swatch]');
-  if(sw){const i=+sw.dataset.swatch;S.draft[i].color=sw.dataset.color;sw.parentElement.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b===sw)));sw.closest('.frow').style.setProperty('--c',sw.dataset.color);return}
   const tb=e.target.closest('.team[data-game]');
   if(tb){const g=weekGames(S.week).find(x=>x.id===tb.dataset.game);if(!g)return;
     if(locked(g)){openBox(g.id);return}
-    savePick(g,tb.dataset.team)}
+    if(isTbd(g)){toast('This matchup isn’t set yet.');return}
+    const who=player(S.me);
+    requirePin(who.id,`Enter ${who.name}’s PIN to make picks.`,()=>savePick(g,tb.dataset.team))}
 });
 document.addEventListener('submit',async(e)=>{
   if(e.target.id!=='famForm')return;e.preventDefault();
   const fd=new FormData(e.target);
-  const next={players:S.draft.map((p,i)=>({id:p.id,name:(fd.get('n'+i)||'').trim().slice(0,16)||'Player '+(i+1),color:p.color}))};
-  requireParent('Enter the parent password to change names and colors.',async()=>{
+  const base=(S.family.players||DEFAULT_FAMILY.players).slice(0,5);
+  const next={players:base.map((p,i)=>({id:p.id,name:(fd.get('n'+i)||'').trim().slice(0,16)||'Player '+(i+1),color:p.color||COLORS[i]}))};
+  requireParent('Enter the parent password to change names.',async()=>{
     const prev=S.family;S.family=next;
     try{await S.db.doc('config/family').set(next);toast('Family saved');S.tab='picks';store.set('tab','picks');render()}
-    catch{S.family=prev;render();toast('Only a parent can change names and colors.')}
+    catch{S.family=prev;render();toast('Only a parent can change names.')}
   });
 });
 $('#prev').onclick=()=>{if(S.week>1){S.week--;S.results=false;render()}};
-$('#next').onclick=()=>{if(S.week<18){S.week++;S.results=false;render()}};
+$('#next').onclick=()=>{if(S.week<MAX_WEEK){S.week++;S.results=false;render()}};
 
 /* ---- data ---- */
 // Firestore behind the small doc/collection surface the page was written against
@@ -901,14 +1353,21 @@ function makeDb(fs){
 const nfl={};
 let lastFullLoad=0;
 function applySchedule(){
-  S.weeks=groupIntoPickWeeks(nfl);rememberAllLines();S.ready=true;S.updatedAt=new Date();S.scoreError=false;
+  const regular={};for(let w=1;w<=18;w++)if(nfl[w])regular[w]=nfl[w];
+  S.weeks=groupIntoPickWeeks(regular);
+  for(const [w,r] of Object.entries(ROUNDS))S.weeks[w]={week:+w,games:(nfl[100+r.espn]||[]).slice().sort((x,y)=>x.t.localeCompare(y.t)||x.id.localeCompare(y.id))};
+  rememberAllLines();syncLines();S.ready=true;S.updatedAt=new Date();S.scoreError=false;
   if(!S.week)S.week=currentWeek();
   render();maybeAutoLock();
   if(boxOpenId)renderBox();
 }
+// nfl keys: 1-18 regular season weeks, 101/102/103/105 ESPN playoff rounds
+const PLAYOFF_KEYS=[101,102,103,105];
+function fetchNfl(k){return k>100?fetchWeek(k-100,3):fetchWeek(k)}
 async function loadAllWeeks(){
-  const all=await Promise.all(Array.from({length:18},(_,i)=>fetchWeek(i+1)));
-  all.forEach((games,i)=>nfl[i+1]=games);
+  const keys=[...Array.from({length:18},(_,i)=>i+1),...PLAYOFF_KEYS];
+  const all=await Promise.all(keys.map(k=>fetchNfl(k).catch(e=>{if(k>100)return nfl[k]||[];throw e})));
+  all.forEach((games,i)=>nfl[keys[i]]=games);
   lastFullLoad=Date.now();
 }
 // NFL weeks with a game about to start, live, or recently kicked off without a final
@@ -968,9 +1427,9 @@ function queueAlert(ev){
 function alertView(ev){
   if(ev.kind==='week'){
     const r=ev.sc.winner;
-    return {tc:r.p.color,tc2:'rgba(0,0,0,.25)',tx:'#fff',title:`Week ${ev.w} winner`,meta:'+3 points',
+    return {tc:r.p.color,tc2:'rgba(0,0,0,.25)',tx:'#fff',title:`${weekName(ev.w)} winner`,meta:'+3 points',
       score:`<span>${esc(r.p.name)}</span>`,people:ev.sc.rows.slice(0,3).map(x=>`<span>${PLACE_LABEL[x.place-1]} <b>${esc(x.p.name)}</b> +${x.pts}</span>`).join(''),
-      plain:`${r.p.name} wins Week ${ev.w} with ${r.right} correct`};
+      plain:`${r.p.name} wins ${weekName(ev.w)} with ${r.right} correct`};
   }
   const g=ev.g,w=pickWeekOf(g.id);
   const team=ev.kind==='score'?g[ev.side]:ev.kind==='final'&&g.w&&g.w!=='TIE'?(g.w===g.a.ab?g.a:g.h):g.h;
@@ -1061,7 +1520,7 @@ async function loadBox(id,force){
 function boxTeam(g,side,w,lk){
   const t=g[side];
   const who=lk?players().filter(p=>picksFor(w,p.id)[g.id]===t.ab):[];
-  return `<div class="bx-team"><span class="logo" style="--tc:${esc(t.c)}">${t.logo?`<img src="${esc(t.logo)}" alt="" width="42" height="42">`:`<span class="ab">${esc(t.ab)}</span>`}</span><b>${esc(t.name)}</b><small class="num">${esc(t.rec||t.loc)}</small><div class="pips">${who.map(p=>`<span class="pip ${pickState(g,t.ab)}" style="--c:${esc(p.color)}" title="${esc(p.name)}" aria-label="${esc(p.name)}">${initial(p)}</span>`).join('')}</div></div>`;
+  return `<div class="bx-team"><span class="logo" style="--tc:${esc(t.c)}">${t.logo?`<img src="${esc(t.logo)}" alt="" width="42" height="42">`:`<span class="ab">${esc(t.ab)}</span>`}</span><b>${esc(t.name)}</b><small class="num">${esc(t.rec||t.loc)}</small><div class="pips">${who.map(p=>`<span class="pip ${pickState(g,t.ab)} av-${p.id}" style="--c:${esc(p.color)}" title="${esc(p.name)}" aria-label="${esc(p.name)}">${initial(p)}</span>`).join('')}</div></div>`;
 }
 function statBetter(key,a,b){if(key==='turnovers'||key==='totalPenaltiesYards')return a<b;return a>b}
 function renderBox(){
@@ -1108,7 +1567,7 @@ async function refresh(){
   const active=activeNflWeeks();
   try{
     if(!lastFullLoad||Date.now()-lastFullLoad>30*60e3)await loadAllWeeks();
-    else for(const w of active)nfl[w]=await fetchWeek(w);
+    else for(const w of active)nfl[w]=await fetchNfl(w);
     await refreshLiveProbs();
     applySchedule();
     detectEvents();
@@ -1127,6 +1586,14 @@ if(!firebaseConfig||!firebaseConfig.projectId||firebaseConfig.projectId.startsWi
   const db=makeDb(getFirestore(app));
   S.db=db;
   db.doc('config/family').onSnapshot(s=>{if(s.exists){S.family=s.data();render()}},()=>{});
+  db.collection('profiles').onSnapshot(s=>{
+    const next={};s.docs.forEach(d=>next[d.id]=d.data());S.profiles=next;applyAvatarCss();render();renderProfile();
+  },()=>{});
+  db.collection('lines').onSnapshot(s=>{
+    const next={};s.docs.forEach(d=>next[d.id]=d.data());S.lines=next;
+    if(!s.metadata.fromCache&&!S.linesLoaded){S.linesLoaded=true;syncLines()}
+    render();
+  },()=>{});
   db.collection('locks').onSnapshot(s=>{
     const next={};s.docs.forEach(d=>next[d.id]=d.data());S.locks=next;
     if(!s.metadata.fromCache)S.locksLoaded=true;render();maybeAutoLock();
@@ -1137,6 +1604,8 @@ if(!firebaseConfig||!firebaseConfig.projectId||firebaseConfig.projectId.startsWi
   },()=>toast('Live updates stopped. Reload the page to see new picks.'));
   refresh();
 }
+// Local testing only: lets a preview inspect state without touching the family's data
+if(location.hostname==='localhost')window.__sp={S,nfl,render,weekScore,seasonStats,recapCard,makeAvatar,hashPin,openProfile,openPin,applyAvatarCss,isUnlocked};
 </script>
 </body>
 </html>
