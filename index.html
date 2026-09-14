@@ -199,11 +199,16 @@ td.none,td.sealedc{color:var(--ink-3)}
 .rrow{display:grid;grid-template-columns:20px 34px minmax(0,1fr) auto auto;gap:12px;align-items:center;padding:10px 12px 10px 8px;border-radius:14px;background:var(--raised)}
 .rrow{position:relative;overflow:hidden}
 .rrow>*{position:relative;z-index:1}
-.rrow.has-chance{background:linear-gradient(90deg,color-mix(in srgb,var(--c) 16%,var(--raised)) 0,color-mix(in srgb,var(--c) 44%,var(--raised)) var(--p),var(--raised) var(--p))}
-.rrow.has-chance::after{content:"";position:absolute;top:0;bottom:0;left:calc(var(--p) - 2px);width:2px;background:color-mix(in srgb,var(--c) 70%,#fff);box-shadow:0 0 12px 3px color-mix(in srgb,var(--c) 75%,transparent);opacity:var(--edge,0);pointer-events:none}
+@property --f{syntax:'<percentage>';inherits:true;initial-value:0%}
+.rrow.has-chance{--f:var(--p);background:linear-gradient(90deg,color-mix(in srgb,var(--c) 16%,var(--raised)) 0,color-mix(in srgb,var(--c) 44%,var(--raised)) var(--f),var(--raised) var(--f))}
+.rrow.filling{animation:fillUp var(--dur,1s) cubic-bezier(.2,.8,.2,1) var(--delay,0s) both}
+@keyframes fillUp{from{--f:var(--p0)}to{--f:var(--p)}}
+.rrow.has-chance::after{content:"";position:absolute;top:0;bottom:0;left:calc(var(--f) - 2px);width:2px;background:color-mix(in srgb,var(--c) 70%,#fff);box-shadow:0 0 calc(6px + 14px*var(--g,0)) calc(1px + 3px*var(--g,0)) color-mix(in srgb,var(--c) 80%,transparent);opacity:var(--edge,0);pointer-events:none}
+.rrow.has-chance::before{content:"";position:absolute;top:0;bottom:0;left:0;width:var(--f);background:linear-gradient(100deg,transparent 35%,rgba(255,255,255,.26) 50%,transparent 65%) 0 0/250% 100% no-repeat;opacity:calc(.15 + .85*var(--g,0));animation:shimmer calc(3.6s - 1.8s*var(--g,0)) linear infinite;pointer-events:none}
+@keyframes shimmer{from{background-position:160% 0}to{background-position:-60% 0}}
 .rrow.lead{box-shadow:0 0 0 1px color-mix(in srgb,var(--c) 50%,transparent),0 10px 30px -14px color-mix(in srgb,var(--c) 90%,transparent)}
 .rrow.lead .chance b{text-shadow:0 0 16px color-mix(in srgb,var(--c) 90%,transparent)}
-@media (prefers-reduced-motion:no-preference){.rrow.has-chance{transition:--p .7s ease}}
+@media (prefers-reduced-motion:reduce){.rrow.filling{animation:none}.rrow.has-chance::before{display:none}}
 .pos{font-weight:800;color:var(--ink-2);text-align:center}
 .who>b{display:flex;align-items:center;gap:6px;min-width:0;font-weight:700;font-size:16px}
 .who span{display:block;font-size:12.5px;color:var(--ink-3);min-height:1.4em}
@@ -491,7 +496,7 @@ import {getFirestore,doc,collection,setDoc,onSnapshot} from 'https://www.gstatic
 import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,signOut} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
 const COLORS=['#E8641E','#2E6FD8','#C23B6B','#1E9E8A','#7B4FC9','#D9432B','#B71C1C','#AD1457','#E0457B','#A43BB5','#5B5BD6','#1565C0','#1B8FD1','#0F8C9E','#2F8F3A','#558B2F','#8A7A12','#C9A200','#D98200','#A0522D','#6D4C41','#4A5560','#37474F','#2B2F36'];
 const DEFAULT_FAMILY={players:[1,2,3,4,5].map((i)=>({id:'p'+i,name:'Player '+i,color:COLORS[i-1]}))};
-const S={db:null,auth:null,parent:false,liveProb:{},profiles:{},lines:{},family:DEFAULT_FAMILY,weeks:{},picks:{},locks:{},week:null,me:'p1',tab:'picks',results:false,ready:false,offline:false};
+const S={db:null,auth:null,parent:false,liveProb:{},profiles:{},lines:{},fillShown:{},family:DEFAULT_FAMILY,weeks:{},picks:{},locks:{},week:null,me:'p1',tab:'picks',results:false,ready:false,offline:false};
 const $=(s)=>document.querySelector(s);
 const esc=(v)=>String(v??'').replace(/[&<>"']/g,(c)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const store={get(k){try{return localStorage.getItem(k)}catch{return null}},set(k,v){try{localStorage.setItem(k,v)}catch{}}};
@@ -918,7 +923,13 @@ function renderStandings(app){
     // Win chance fills the row from the left in the person's color
     const fill=chances?(chances.out.has(r.p.id)?0:Math.round((chances.p[r.p.id]||0)*100)):0;
     const leadChance=chances&&fill>0&&fill===Math.max(...sc.rows.map(x=>chances.out.has(x.p.id)?0:Math.round((chances.p[x.p.id]||0)*100)));
-    h+=`<div class="rrow${chances?' has-chance':''}${leadChance?' lead':''}" data-profile="${r.p.id}" style="--c:${esc(r.p.color)};--p:${fill}%;--edge:${fill>0&&fill<100?1:0}"><span class="pos num">${pos}</span><span class="jersey av-${r.p.id}">${initial(r.p)}</span>
+    // Fill animates from the last value shown; a redraw mid-animation picks up where it left off
+    const fkey=w+':'+r.p.id,prevFill=S.fillShown[fkey],now=Date.now();
+    let from=0,start=now;
+    if(prevFill){if(prevFill.to===fill){from=prevFill.from;start=prevFill.start}else{from=prevFill.to}}
+    if(chances)S.fillShown[fkey]={from,to:fill,start};
+    const dur=600+Math.round(1200*fill/100),elapsed=now-start,filling=chances&&from!==fill&&elapsed<dur;
+    h+=`<div class="rrow${chances?' has-chance':''}${leadChance?' lead':''}${filling?' filling':''}" data-profile="${r.p.id}" style="--c:${esc(r.p.color)};--p:${fill}%;--p0:${from}%;--g:${(fill/100).toFixed(2)};--dur:${dur}ms;--delay:-${filling?elapsed:0}ms;--edge:${fill>0&&fill<100?1:0}"><span class="pos num">${pos}</span><span class="jersey av-${r.p.id}">${initial(r.p)}</span>
       <div class="who"><b>${esc(r.p.name)} ${sc.complete&&r.place===1?'<span class="crown" aria-label="Week winner">★</span>':''}${spoon?`<span class="spoon" title="Wooden Spoon">${badgeIcon(BADGE.spoon)}</span>`:''}</b><span class="num">${notes.join(' · ')}</span></div>
       ${chanceHtml(chances,r)}<div class="rec num">${r.right}–${r.wrong}<small>${sc.complete?`<b class="ptsb">+${r.pts} pts</b>`:'W–L'}</small></div></div>`;
   });
@@ -1318,7 +1329,7 @@ document.addEventListener('click',(e)=>{
   const prof=e.target.closest('[data-profile]');
   if(prof&&!e.target.closest('input')){openProfile(prof.dataset.profile);return}
   const tab=e.target.closest('[data-tab]');
-  if(tab){S.tab=tab.dataset.tab;S.results=false;store.set('tab',S.tab);render();window.scrollTo(0,0);return}
+  if(tab){S.fillShown={};S.tab=tab.dataset.tab;S.results=false;store.set('tab',S.tab);render();window.scrollTo(0,0);return}
   const pk=e.target.closest('[data-picker]');
   if(pk){S.me=pk.dataset.picker;store.set('picker',S.me);render();return}
   if(e.target.closest('#resToggle')){S.results=!S.results;render();return}
