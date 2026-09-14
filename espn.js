@@ -24,7 +24,7 @@ function game(e) {
   const comp = e.competitions[0];
   const side = Object.fromEntries(comp.competitors.map((x) => [x.homeAway, x]));
   const st = e.status.type;
-  // Sportsbook line is only published before kickoff; shown for reference, never used for scoring
+  // Sportsbook line is only published before kickoff; used for display and win chances, never for scoring
   const odds = (comp.odds || [])[0] || {};
   let w = null;
   if (st.completed) w = (comp.competitors.find((x) => x.winner) || { team: { abbreviation: 'TIE' } }).team.abbreviation;
@@ -41,7 +41,46 @@ function game(e) {
     hs: Number(side.home.score || 0),
     spread: odds.details || '',
     ou: odds.overUnder ?? null,
+    hl: homeLine(odds.details, side.home.team.abbreviation, side.away.team.abbreviation),
+    ml: { h: moneyline(odds, 'home'), a: moneyline(odds, 'away') },
+    period: Number(e.status.period || 0),
+    clock: Number(e.status.clock || 0),
+    liveProb: numberOrNull(((comp.situation || {}).lastPlay || {}).probability?.homeWinPercentage),
   };
+}
+
+function numberOrNull(v) {
+  const n = Number(v);
+  return v == null || !Number.isFinite(n) ? null : n;
+}
+
+// "KC -2.5" -> home team's line (negative when the home team is favored)
+function homeLine(details, home, away) {
+  if (!details) return null;
+  if (/^(EVEN|PK|PICK)/i.test(details)) return 0;
+  const m = details.match(/^([A-Z]{2,4})\s*([+-]?\d+(?:\.\d+)?)/);
+  if (!m) return null;
+  const n = Math.abs(parseFloat(m[2]));
+  return m[1] === home ? -n : m[1] === away ? n : null;
+}
+
+// American moneyline for one side ("-130", "+110", "EVEN"), closing line first
+function moneyline(odds, sideKey) {
+  const s = (odds.moneyline || {})[sideKey] || {};
+  const raw = (s.close || {}).odds ?? (s.open || {}).odds;
+  if (raw == null) return null;
+  if (/^even$/i.test(String(raw))) return 100;
+  const n = parseInt(String(raw).replace('+', ''), 10);
+  return Number.isFinite(n) ? n : null;
+}
+
+// Latest home win probability from ESPN's game detail feed (large payload; call sparingly)
+export async function fetchWinProb(id) {
+  const res = await fetch(`https://site.api.espn.com/apis/site/v2/sports/football/nfl/summary?event=${id}`, { cache: 'no-store' });
+  if (!res.ok) throw new Error(`ESPN summary ${id}: HTTP ${res.status}`);
+  const wp = (await res.json()).winprobability || [];
+  const last = wp[wp.length - 1];
+  return last ? numberOrNull(last.homeWinPercentage) : null;
 }
 
 export async function fetchWeek(week) {

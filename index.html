@@ -181,7 +181,7 @@ td.none,td.sealedc{color:var(--ink-3)}
 .podium{display:flex;flex-wrap:wrap;gap:2px 14px;margin:6px 0 0;font-size:14px;color:var(--ink-2)}
 .podium b{color:var(--accent)}
 .rank{display:grid;margin-top:4px}
-.rrow{display:grid;grid-template-columns:20px 34px 1fr auto;gap:12px;align-items:center;padding:11px 0;border-top:1px solid var(--line)}
+.rrow{display:grid;grid-template-columns:20px 34px minmax(0,1fr) auto auto;gap:12px;align-items:center;padding:11px 0;border-top:1px solid var(--line)}
 .rrow:first-child{border-top:0}
 .pos{font-weight:800;color:var(--ink-3);text-align:center}
 .who>b{display:block;font-weight:700;font-size:16px}
@@ -189,6 +189,12 @@ td.none,td.sealedc{color:var(--ink-3)}
 .rec{font-family:var(--numeric);font-size:32px;font-weight:700;text-align:right;line-height:1}
 .rec small{display:block;font-family:var(--font);font-size:11px;font-weight:600;color:var(--ink-3);margin-top:3px}
 .ptsb{color:var(--accent);font-weight:800;font-size:12px}
+.chance{display:grid;justify-items:end;gap:4px;min-width:54px}
+.chance b{font-family:var(--numeric);font-size:22px;font-weight:700;line-height:1;color:var(--ink)}
+.chance i{display:block;width:50px;height:4px;border-radius:2px;background:linear-gradient(90deg,var(--c) var(--p),var(--line) var(--p))}
+.chance small{font-size:10.5px;font-weight:600;color:var(--ink-3);line-height:1}
+.chance.out b{color:var(--ink-3)}
+.mychance{font-family:var(--numeric);font-size:20px;font-weight:700;color:var(--ink)}
 .crown{color:var(--accent)}
 .rules{padding:0 4px}
 .rules summary{cursor:pointer;font-size:14px;font-weight:600;color:var(--ink-2);padding:6px 0}
@@ -286,13 +292,13 @@ dialog p{margin:6px 0 0}
 
 <script type="module">
 import {firebaseConfig,parentEmail} from './config.js';
-import {fetchWeek,groupIntoPickWeeks} from './espn.js';
+import {fetchWeek,fetchWinProb,groupIntoPickWeeks} from './espn.js';
 import {initializeApp} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
 import {getFirestore,doc,collection,setDoc,onSnapshot} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
 import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,signOut} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
 const COLORS=['#E8641E','#2E6FD8','#C23B6B','#1E9E8A','#7B4FC9','#D9432B','#B71C1C','#AD1457','#E0457B','#A43BB5','#5B5BD6','#1565C0','#1B8FD1','#0F8C9E','#2F8F3A','#558B2F','#8A7A12','#C9A200','#D98200','#A0522D','#6D4C41','#4A5560','#37474F','#2B2F36'];
 const DEFAULT_FAMILY={players:[1,2,3,4,5].map((i)=>({id:'p'+i,name:'Player '+i,color:COLORS[i-1]}))};
-const S={db:null,auth:null,parent:false,family:DEFAULT_FAMILY,weeks:{},picks:{},locks:{},week:null,me:'p1',tab:'picks',results:false,ready:false,offline:false};
+const S={db:null,auth:null,parent:false,liveProb:{},family:DEFAULT_FAMILY,weeks:{},picks:{},locks:{},week:null,me:'p1',tab:'picks',results:false,ready:false,offline:false};
 const $=(s)=>document.querySelector(s);
 const esc=(v)=>String(v??'').replace(/[&<>"']/g,(c)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const store={get(k){try{return localStorage.getItem(k)}catch{return null}},set(k,v){try{localStorage.setItem(k,v)}catch{}}};
@@ -477,7 +483,8 @@ function renderPicks(app){
   let h='';
   const byPlayer=Object.fromEntries(sc.rows.map(r=>[r.p.id,r]));
   const meRow=byPlayer[me.id];
-  const summary=sc.done?`<span class="num">${meRow.right}–${meRow.wrong}</span>${meRow.up?` · <span class="upct">${meRow.up} winning now</span>`:''}`:'';
+  const myChances=sc.complete?null:winChances(w);
+  const summary=(sc.done?`<span class="num">${meRow.right}–${meRow.wrong}</span>${meRow.up?` · <span class="upct">${meRow.up} winning now</span>`:''}`:'')+(myChances?`${sc.done?' · ':''}<b class="mychance">${chanceLabel(myChances,me.id)}</b> to win`:'');
   h+=`<section class="viewer"><div class="viewer-head"><span>${allLocked?'Viewing as':'Picking as'} <b>${esc(me.name)}</b></span><span class="viewer-sum">${summary}</span></div><div class="pickers" role="group" aria-label="Choose whose picks to show">`;
   players().forEach(p=>{
     const r=byPlayer[p.id];
@@ -531,10 +538,15 @@ function tiebreakRow(g,w,me){
 
 // Spreads disappear from the feed at kickoff, so remember the last one seen on this device
 const spreads=(()=>{try{return JSON.parse(store.get('spreads')||'{}')}catch{return {}}})();
+function rememberLine(g){
+  if(!g.spread)return false;
+  const prev=spreads[g.id]||{};
+  const next={s:g.spread,ou:g.ou,hl:g.hl,ml:g.ml&&g.ml.h!=null&&g.ml.a!=null?g.ml:prev.ml};
+  if(JSON.stringify(prev)===JSON.stringify(next))return false;
+  spreads[g.id]=next;return true;
+}
 function spreadText(g){
-  if(g.spread&&(!spreads[g.id]||spreads[g.id].s!==g.spread||spreads[g.id].ou!==g.ou)){
-    spreads[g.id]={s:g.spread,ou:g.ou};store.set('spreads',JSON.stringify(spreads));
-  }
+  rememberLine(g);
   const sp=g.spread?{s:g.spread,ou:g.ou}:spreads[g.id];
   return sp?`${sp.s}${sp.ou!=null?' · O/U '+sp.ou:''}`:`${g.a.ab} @ ${g.h.ab}`;
 }
@@ -583,8 +595,100 @@ function renderAllPicks(app){
   app.innerHTML=h;
 }
 
+/* ---- weekly win chances ---- */
+// Standard normal CDF (Abramowitz-Stegun 7.1.26)
+function phi(z){const t=1/(1+.3275911*Math.abs(z)/Math.SQRT2),y=1-(((((1.061405429*t-1.453152027)*t)+1.421413741)*t-.284496736)*t+.254829592)*t*Math.exp(-z*z/2);return z>=0?(1+y)/2:(1-y)/2}
+function gauss(){let u=0;while(!u)u=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*Math.random())}
+function impliedProb(o){return o<0?-o/(-o+100):100/(o+100)}
+// Share of regulation still to play (overtime counts as a sliver)
+function timeLeft(g){
+  if(g.st!=='in'||!g.period)return 1;
+  if(g.period>4)return Math.max(0,Math.min(1,g.clock/3600));
+  return Math.max(0,Math.min(1,((4-g.period)*900+g.clock)/3600));
+}
+function homeWinProb(g){
+  if(g.w)return g.w===g.h.ab?1:g.w==='TIE'?.5:0;
+  const c=spreads[g.id]||{},ml=g.ml&&g.ml.h!=null&&g.ml.a!=null?g.ml:c.ml,hl=g.hl!=null?g.hl:c.hl;
+  let pre=.5;
+  if(ml&&ml.h!=null&&ml.a!=null){const ih=impliedProb(ml.h),ia=impliedProb(ml.a);pre=ih/(ih+ia)}
+  else if(hl!=null)pre=phi(-hl/13.5);
+  if(g.st!=='in')return pre;
+  if(g.liveProb!=null)return g.liveProb;
+  if(S.liveProb[g.id])return S.liveProb[g.id].p;
+  // Fallback: current margin plus the pregame line scaled to the time left
+  const f=timeLeft(g),line=hl!=null?hl:-13.5*(pre-.5)*2.5;
+  return phi(((g.hs-g.as)-line*f)/(13.5*Math.sqrt(Math.max(f,.003))));
+}
+function totalSampler(g){
+  if(g.w)return ()=>g.as+g.hs;
+  const c=spreads[g.id]||{},ou=g.ou??c.ou??44,cur=g.as+g.hs,f=timeLeft(g);
+  const mean=cur+ou*f,sd=Math.max(1,13*Math.sqrt(f));
+  return ()=>Math.max(cur,Math.round(mean+sd*gauss()));
+}
+const SIMS=20000;
+let chanceCache={key:'',value:null};
+function winChances(w){
+  const games=weekGames(w);
+  if(!games.length)return null;
+  const ps=players(),last=games[games.length-1];
+  const pending=games.filter(g=>!g.w).map(g=>({g,ph:homeWinProb(g)}));
+  if(!pending.length)return null;
+  const docs=ps.map(p=>pickDoc(w,p.id));
+  const key=JSON.stringify([w,pending.map(x=>[x.g.id,Math.round(x.ph*1000)]),games.filter(g=>g.w).map(g=>g.id+g.w),last.as,last.hs,last.period,last.clock,docs.map(d=>[d.picks,d.tb,d.tbAt])]);
+  if(chanceCache.key===key)return chanceCache.value;
+  const picks=docs.map(d=>d.picks||{});
+  const base=ps.map((p,i)=>games.filter(g=>g.w&&g.w!=='TIE'&&picks[i][g.id]===g.w).length);
+  const pickIdx=pending.map(({g})=>picks.map(pk=>pk[g.id]===g.h.ab?1:pk[g.id]===g.a.ab?0:-1));
+  const tb=docs.map(d=>typeof d.tb==='number'?d.tb:null),tbAt=docs.map(d=>d.tbAt||'9999');
+  const sampleTotal=totalSampler(last);
+  const wins=new Array(ps.length).fill(0),score=new Array(ps.length);
+  for(let n=0;n<SIMS;n++){
+    for(let i=0;i<ps.length;i++)score[i]=base[i];
+    for(let k=0;k<pending.length;k++){
+      const homeWon=Math.random()<pending[k].ph?1:0,row=pickIdx[k];
+      for(let i=0;i<ps.length;i++)if(row[i]===homeWon)score[i]++;
+    }
+    const total=sampleTotal();
+    let best=0;
+    for(let i=1;i<ps.length;i++){
+      let d=score[i]-score[best];
+      if(!d){
+        const ti=tb[i],tj=tb[best];
+        if((ti===null)!==(tj===null))d=ti===null?-1:1;
+        else if(ti!==null){
+          d=Math.abs(tj-total)-Math.abs(ti-total);
+          if(!d){const oi=ti>total,oj=tj>total;if(oi!==oj)d=oi?-1:1}
+        }
+        if(!d)d=tbAt[i]<tbAt[best]?1:tbAt[i]>tbAt[best]?-1:0;
+      }
+      if(d>0)best=i;
+    }
+    wins[best]++;
+  }
+  // Out: can't even catch the current leader by winning every remaining pick
+  const lead=Math.max(...base);
+  const value={out:new Set(),p:{}};
+  ps.forEach((p,i)=>{
+    value.p[p.id]=wins[i]/SIMS;
+    const canGain=pickIdx.filter(row=>row[i]!==-1).length;
+    if(base[i]+canGain<lead)value.out.add(p.id);
+  });
+  chanceCache={key,value};
+  return value;
+}
+function chanceLabel(ch,id){
+  if(ch.out.has(id))return 'Out';
+  const v=ch.p[id];
+  return v>=1?'100%':v>.99?'>99%':v>0&&v<.01?'<1%':Math.round(v*100)+'%';
+}
+function chanceHtml(ch,r){
+  if(!ch)return '<span></span>';
+  const v=ch.p[r.p.id],out=ch.out.has(r.p.id);
+  return `<div class="chance${out?' out':''}" style="--p:${out?0:Math.round(v*100)}%;--c:${esc(r.p.color)}" aria-label="${esc(r.p.name)} win chance ${chanceLabel(ch,r.p.id)}"><b class="num">${chanceLabel(ch,r.p.id)}</b><i aria-hidden="true"></i><small>to win</small></div>`;
+}
+
 function renderStandings(app){
-  const w=S.week,sc=weekScore(w);
+  const w=S.week,sc=weekScore(w),chances=sc.complete?null:winChances(w);
   let h='';
   if(sc.complete){
     h+=`<div class="champ"><span class="trophy">★</span><div><p class="eyebrow" style="color:inherit;opacity:.7">Week ${w} final</p><h3>${esc(sc.winner.p.name)} wins the week</h3><p class="podium">${sc.rows.slice(0,3).map(r=>`<span>${PLACE_LABEL[r.place-1]} ${esc(r.p.name)} <b>+${r.pts}</b></span>`).join('')}</p></div></div>`;
@@ -603,7 +707,7 @@ function renderStandings(app){
     else notes.push(r.tied?`Tiebreaker ${r.tb===null?'—':r.tb}`:'Final');
     h+=`<div class="rrow" style="--c:${esc(r.p.color)}"><span class="pos num">${pos}</span><span class="jersey">${initial(r.p)}</span>
       <div class="who"><b>${esc(r.p.name)} ${sc.complete&&r.place===1?'<span class="crown" aria-label="Week winner">★</span>':''}</b><span class="num">${notes.join(' · ')}</span></div>
-      <div class="rec num">${r.right}–${r.wrong}<small>${sc.complete?`<b class="ptsb">+${r.pts} pts</b>`:'W–L'}</small></div></div>`;
+      ${chanceHtml(chances,r)}<div class="rec num">${r.right}–${r.wrong}<small>${sc.complete?`<b class="ptsb">+${r.pts} pts</b>`:'W–L'}</small></div></div>`;
   });
   h+='</div></section>';
 
@@ -624,7 +728,7 @@ function renderStandings(app){
   season.forEach(r=>{
     h+=`<tr><td><span class="rk">${r.rank}</span><b style="color:${esc(r.p.color)}">●</b> ${esc(r.p.name)}${seasonOver&&r.rank===1?' <span class="crown">★</span>':''}</td><td class="tot">${r.points}</td>${cols.map(k=>{const c=r.byWeek[k];return `<td class="${c.place===1?'win':''}">${c.pts}${c.place===1?' ★':''}</td>`}).join('')}</tr>`;
   });
-  h+=`</tbody></table></div></section><details class="rules"><summary>How scoring works</summary><p class="muted">Each week ends with a final order by correct picks. 1st place gets 3 points, 2nd gets 2 and 3rd gets 1. If people tie on correct picks, the closest guess of total points in the week’s last game goes ahead, then a guess that didn’t go over, then whoever saved their guess first. Tied NFL games don’t count, and a missed pick counts as a loss. Season standings count points only; people tied on points share the spot.</p></details>`;
+  h+=`</tbody></table></div></section><details class="rules"><summary>How scoring works</summary><p class="muted">Each week ends with a final order by correct picks. 1st place gets 3 points, 2nd gets 2 and 3rd gets 1. If people tie on correct picks, the closest guess of total points in the week’s last game goes ahead, then a guess that didn’t go over, then whoever saved their guess first. Tied NFL games don’t count, and a missed pick counts as a loss. Season standings count points only; people tied on points share the spot. Win chances play out the rest of the week 20,000 times using ESPN’s live win probability (betting odds before kickoff) and everyone’s tiebreaker guesses, and update as scores come in.</p></details>`;
   app.innerHTML=h;
 }
 
@@ -733,7 +837,7 @@ function makeDb(fs){
 const nfl={};
 let lastFullLoad=0;
 function applySchedule(){
-  S.weeks=groupIntoPickWeeks(nfl);S.ready=true;S.updatedAt=new Date();S.scoreError=false;
+  S.weeks=groupIntoPickWeeks(nfl);rememberAllLines();S.ready=true;S.updatedAt=new Date();S.scoreError=false;
   if(!S.week)S.week=currentWeek();
   render();maybeAutoLock();
 }
@@ -856,6 +960,19 @@ function sampleAlert(){
   if(!was)store.set('alerts','off');
 }
 
+async function refreshLiveProbs(){
+  const now=Date.now(),live=[];
+  for(const games of Object.values(nfl))for(const g of games)if(g.st==='in'&&g.liveProb==null)live.push(g);
+  await Promise.all(live.filter(g=>!S.liveProb[g.id]||now-S.liveProb[g.id].at>120e3).map(async g=>{
+    try{const p=await fetchWinProb(g.id);if(p!=null)S.liveProb[g.id]={p,at:now}}catch{}
+  }));
+}
+function rememberAllLines(){
+  let changed=false;
+  for(const games of Object.values(nfl))for(const g of games)changed=rememberLine(g)||changed;
+  if(changed)store.set('spreads',JSON.stringify(spreads));
+}
+
 let pollTimer=null;
 async function refresh(){
   clearTimeout(pollTimer);
@@ -863,6 +980,7 @@ async function refresh(){
   try{
     if(!lastFullLoad||Date.now()-lastFullLoad>30*60e3)await loadAllWeeks();
     else for(const w of active)nfl[w]=await fetchWeek(w);
+    await refreshLiveProbs();
     applySchedule();
     detectEvents();
   }catch(e){S.ready=true;S.scoreError=true;render()}
