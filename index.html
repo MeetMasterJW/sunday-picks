@@ -216,9 +216,6 @@ dialog.sheet[open]{display:flex;flex-direction:column}
 .bx-nums .dash{font-size:26px}
 .bx-at{font-family:var(--numeric);font-size:30px;color:var(--ink-3);padding:6px 0}
 .bx-mid .st{font-size:12.5px;text-align:center;white-space:nowrap}
-.bx-prob-bar{height:8px;border-radius:4px;background:linear-gradient(90deg,var(--ca) var(--pa),var(--ch) var(--pa))}
-.bx-prob-labels{display:flex;justify-content:space-between;gap:8px;margin-top:6px;font-size:12.5px;font-weight:600;color:var(--ink)}
-.bx-prob-labels span:nth-child(2){color:var(--ink-3);font-weight:500}
 .bx-sec h4{margin:0 0 8px;font-size:13px;font-weight:700;color:var(--ink-2)}
 .bx-lines{width:100%;font-size:15px}
 .bx-lines th,.bx-lines td{padding:7px 4px;text-align:center}
@@ -251,7 +248,6 @@ dialog.sheet[open]{display:flex;flex-direction:column}
 .chance i{display:block;width:50px;height:4px;border-radius:2px;background:linear-gradient(90deg,var(--c) var(--p),var(--line) var(--p))}
 .chance small{font-size:10.5px;font-weight:600;color:var(--ink-3);line-height:1}
 .chance.out b{color:var(--ink-3)}
-.mychance{font-family:var(--numeric);font-size:20px;font-weight:700;color:var(--ink)}
 .crown{color:var(--accent)}
 .rules{padding:0 4px}
 .rules summary{cursor:pointer;font-size:14px;font-weight:600;color:var(--ink-2);padding:6px 0}
@@ -282,7 +278,8 @@ dialog.sheet[open]{display:flex;flex-direction:column}
 .al-score .lo{opacity:.5}
 .al-people{margin-top:8px;font-size:13px;display:flex;flex-wrap:wrap;gap:2px 12px}
 .al-people b{font-weight:800}
-.confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:9}
+.al-close{flex:none;width:30px;height:30px;margin:-4px -6px -4px 0;border:0;border-radius:50%;background:rgba(255,255,255,.16);color:#fff;display:grid;place-items:center}
+.al-close svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round}
 dialog{border:1px solid var(--line-2);border-radius:22px;padding:20px;width:calc(100% - 32px);max-width:360px;background:var(--surface);color:var(--ink)}
 dialog::backdrop{background:rgba(0,0,0,.6);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
 dialog h3{margin:0;font-family:var(--display);font-size:17px;font-weight:700}
@@ -546,8 +543,7 @@ function renderPicks(app){
   let h='';
   const byPlayer=Object.fromEntries(sc.rows.map(r=>[r.p.id,r]));
   const meRow=byPlayer[me.id];
-  const myChances=sc.complete?null:winChances(w);
-  const summary=(sc.done?`<span class="num">${meRow.right}–${meRow.wrong}</span>${meRow.up?` · <span class="upct">${meRow.up} winning now</span>`:''}`:'')+(myChances?`${sc.done?' · ':''}<b class="mychance">${chanceLabel(myChances,me.id)}</b> to win`:'');
+  const summary=sc.done?`<span class="num">${meRow.right}–${meRow.wrong}</span>${meRow.up?` · <span class="upct">${meRow.up} winning now</span>`:''}`:'';
   h+=`<section class="viewer"><div class="viewer-head"><span>${allLocked?'Viewing as':'Picking as'} <b>${esc(me.name)}</b></span><span class="viewer-sum">${summary}</span></div><div class="pickers" role="group" aria-label="Choose whose picks to show">`;
   players().forEach(p=>{
     const r=byPlayer[p.id];
@@ -804,7 +800,7 @@ function alertsCard(){
     else notify='<button type="button" class="toggle" id="notifyBtn">Also notify me in the background</button>';
   }
   return `<section class="card"><p class="eyebrow">Score alerts · this device</p>
-    <p class="muted">Pop-up banners for scores, kickoffs, finals and weekly winners.</p>
+    <p class="muted">Pop-up banners for scores, kickoffs, finals and weekly winners while you’re watching. Tap one for the box score, or × to dismiss.</p>
     <div class="setrow"><button type="button" class="toggle" id="alertsToggle" aria-pressed="${on}">${on?'Alerts on':'Alerts off'}</button>${on?notify:''}<button type="button" class="linkbtn" id="testAlert">Show a sample alert</button></div></section>`;
 }
 
@@ -864,8 +860,9 @@ document.addEventListener('click',(e)=>{
   if(e.target.closest('#alertsToggle')){store.set('alerts',alertsOn()?'off':'on');render();return}
   if(e.target.closest('#notifyBtn')){Notification.requestPermission().then(()=>render());return}
   if(e.target.closest('#testAlert')){sampleAlert();return}
+  if(e.target.closest('[data-alert-close]')){alertQueue.length=0;nextAlert();return}
   const al=e.target.closest('#alert');
-  if(al){const id=al.dataset.game;nextAlert();if(id){S.tab='picks';store.set('tab','picks');render();const el=document.querySelector(`.team[data-game="${id}"]`);if(el)el.closest('.game').scrollIntoView({block:'center',behavior:'smooth'})}return}
+  if(al){const id=al.dataset.game;nextAlert();if(id)openBox(id);return}
   if(e.target.closest('#parentSignOut')){signOut(S.auth).then(()=>toast('Parent signed out on this device'));return}
   const sw=e.target.closest('[data-swatch]');
   if(sw){const i=+sw.dataset.swatch;S.draft[i].color=sw.dataset.color;sw.parentElement.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b===sw)));sw.closest('.frow').style.setProperty('--c',sw.dataset.color);return}
@@ -923,7 +920,9 @@ function activeNflWeeks(){
   return out;
 }
 /* ---- score alerts ---- */
-let lastSeen=null;
+let lastSeen=null,lastDetectAt=0;
+// A refresh this long after the previous one is a catch-up (page was closed, hidden or offline): update quietly
+const STALE_MS=75e3,ALERT_TTL=45e3;
 S.flash={};
 function flashing(g,side){const f=S.flash[g.id];return !!f&&f.until>Date.now()&&(!side||f[side])}
 function alertsOn(){return store.get('alerts')!=='off'}
@@ -935,7 +934,8 @@ function detectEvents(){
   const now=new Map();
   for(const games of Object.values(nfl))for(const g of games)now.set(g.id,g);
   const before=lastSeen;lastSeen=new Map([...now].map(([id,g])=>[id,{as:g.as,hs:g.hs,st:g.st,w:g.w}]));
-  if(!before)return;
+  const gap=Date.now()-lastDetectAt;lastDetectAt=Date.now();
+  if(!before||gap>STALE_MS)return;
   const shown=currentWeek(),events=[];
   for(const g of now.values()){
     const b=before.get(g.id);if(!b||pickWeekOf(g.id)!==shown)continue;
@@ -951,15 +951,18 @@ function detectEvents(){
     }
   }
   if(events.length)setTimeout(()=>render(),3100);
+  if(document.hidden){events.forEach(systemNotify);return}
   events.forEach(queueAlert);
 }
 
 const alertQueue=[];let alertShowing=false,alertTimer=null;
 function queueAlert(ev){
   if(!alertsOn())return;
+  ev.at=Date.now();
+  // Newer news about a game replaces anything about it still waiting
+  if(ev.g)for(let i=alertQueue.length-1;i>=0;i--)if(alertQueue[i].g&&alertQueue[i].g.id===ev.g.id&&alertQueue[i].kind!=='final')alertQueue.splice(i,1);
   alertQueue.push(ev);
-  if(alertQueue.length>8)alertQueue.splice(0,alertQueue.length-8);
-  systemNotify(ev);
+  if(alertQueue.length>3)alertQueue.splice(0,alertQueue.length-3);
   if(!alertShowing)nextAlert();
 }
 function alertView(ev){
@@ -967,7 +970,7 @@ function alertView(ev){
     const r=ev.sc.winner;
     return {tc:r.p.color,tc2:'rgba(0,0,0,.25)',tx:'#fff',title:`Week ${ev.w} winner`,meta:'+3 points',
       score:`<span>${esc(r.p.name)}</span>`,people:ev.sc.rows.slice(0,3).map(x=>`<span>${PLACE_LABEL[x.place-1]} <b>${esc(x.p.name)}</b> +${x.pts}</span>`).join(''),
-      plain:`${r.p.name} wins Week ${ev.w} with ${r.right} correct`,confetti:[r.p.color,'#ffffff','#E8641E']};
+      plain:`${r.p.name} wins Week ${ev.w} with ${r.right} correct`};
   }
   const g=ev.g,w=pickWeekOf(g.id);
   const team=ev.kind==='score'?g[ev.side]:ev.kind==='final'&&g.w&&g.w!=='TIE'?(g.w===g.a.ab?g.a:g.h):g.h;
@@ -976,22 +979,22 @@ function alertView(ev){
   const picks=players().map(p=>({p,st:pickState(g,picksFor(w,p.id)[g.id])}));
   const groups=ev.kind==='final'?[['Right','ok'],['Wrong','no']]:[['Winning','up'],['Losing','down'],['Tied','even']];
   const people=groups.map(([label,st])=>{const list=picks.filter(x=>x.st===st).map(x=>x.p);return list.length?`<span>${label}: ${nameList(list)}</span>`:''}).join('');
-  const me=player(S.me),mineRight=ev.kind==='final'&&picks.some(x=>x.p.id===me.id&&x.st==='ok');
   return {tc:team.c,tc2:team.c2,tx:textOn(team.c),title,meta,game:g.id,logo:ev.kind==='kickoff'?'':team.logo,
     score:`<span class="${g.as<g.hs?'lo':''}">${esc(g.a.ab)} ${g.as}</span><span class="lo">–</span><span class="${g.hs<g.as?'lo':''}">${g.hs} ${esc(g.h.ab)}</span>`,
-    people,plain:`${title}: ${g.a.ab} ${g.as}, ${g.h.ab} ${g.hs}`,confetti:mineRight?[team.c,team.c2,'#ffffff']:null};
+    people,plain:`${title}: ${g.a.ab} ${g.as}, ${g.h.ab} ${g.hs}`};
 }
 function nextAlert(){
   clearTimeout(alertTimer);
-  const el=$('#alert'),ev=alertQueue.shift();
+  const el=$('#alert');
+  let ev=alertQueue.shift();
+  while(ev&&Date.now()-(ev.at||0)>ALERT_TTL)ev=alertQueue.shift();
   if(!ev){alertShowing=false;el.hidden=true;return}
   alertShowing=true;
   const v=alertView(ev);
   el.style.setProperty('--tc',v.tc);el.style.setProperty('--tc2',v.tc2);el.style.setProperty('--tx',v.tx);
   el.dataset.game=v.game||'';
-  el.innerHTML=`<div class="al-head">${v.logo?`<img class="al-logo" src="${esc(v.logo)}" alt="">`:''}<span class="al-kind">${esc(v.title)}</span><span class="al-meta">${esc(v.meta)}</span></div><div class="al-score num">${v.score}</div>${v.people?`<div class="al-people">${v.people}</div>`:''}`;
+  el.innerHTML=`<div class="al-head">${v.logo?`<img class="al-logo" src="${esc(v.logo)}" alt="">`:''}<span class="al-kind">${esc(v.title)}</span><span class="al-meta">${esc(v.meta)}</span><button type="button" class="al-close" data-alert-close aria-label="Dismiss alerts"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div><div class="al-score num">${v.score}</div>${v.people?`<div class="al-people">${v.people}</div>`:''}`;
   el.hidden=false;el.classList.remove('in');void el.offsetWidth;el.classList.add('in');
-  if(v.confetti)confetti(v.confetti);
   alertTimer=setTimeout(nextAlert,6000);
 }
 function systemNotify(ev){
@@ -1000,22 +1003,6 @@ function systemNotify(ev){
     const v=alertView(ev);
     new Notification('Sunday Picks',{body:v.plain,tag:v.game||('week'+ev.w)});
   }catch{}
-}
-function confetti(colors){
-  if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
-  const c=document.createElement('canvas');c.className='confetti';document.body.appendChild(c);
-  const dpr=window.devicePixelRatio||1,W=innerWidth,H=innerHeight;c.width=W*dpr;c.height=H*dpr;
-  const x=c.getContext('2d');x.scale(dpr,dpr);
-  const bits=Array.from({length:110},()=>({x:W/2+(Math.random()-.5)*80,y:110,vx:(Math.random()-.5)*11,vy:-Math.random()*9-3,s:Math.random()*7+4,c:colors[Math.floor(Math.random()*colors.length)],a:Math.random()*6,va:(Math.random()-.5)*.4}));
-  let last=performance.now();
-  requestAnimationFrame(function frame(t){
-    const k=Math.min(40,t-last)/16;last=t;
-    x.clearRect(0,0,W,H);let alive=false;
-    for(const b of bits){b.vy+=.28*k;b.vx*=.99;b.x+=b.vx*k;b.y+=b.vy*k;b.a+=b.va*k;
-      if(b.y<H+20)alive=true;
-      x.save();x.translate(b.x,b.y);x.rotate(b.a);x.fillStyle=b.c;x.fillRect(-b.s/2,-b.s/4,b.s,b.s/2);x.restore();}
-    if(alive)requestAnimationFrame(frame);else c.remove();
-  });
 }
 function sampleAlert(){
   const w=S.week||currentWeek(),gs=weekGames(w);
@@ -1083,10 +1070,6 @@ function renderBox(){
   const started=g.st!=='pre'||!!g.w;
   const status=g.w?(g.w==='TIE'?'Final · Tie':'Final'):g.st==='in'?(g.d||'Live'):g.tbd?'Time TBD':`${fmtDay.format(new Date(g.t))} · ${fmtTime.format(new Date(g.t))}`;
   let h=`<div class="bx-score">${boxTeam(g,'a',w,lk)}<div class="bx-mid">${started?`<div class="bx-nums num"><span class="${g.as<g.hs?'lo':''}">${g.as}</span><span class="dash">–</span><span class="${g.hs<g.as?'lo':''}">${g.hs}</span></div>`:'<div class="bx-at">@</div>'}<div class="st ${g.w?'final':g.st==='in'?'live':''}">${esc(status)}</div></div>${boxTeam(g,'h',w,lk)}</div>`;
-  if(!g.w){
-    const ph=homeWinProb(g),pa=Math.round((1-ph)*100);
-    h+=`<div class="bx-prob" style="--pa:${pa}%;--ca:${esc(g.a.c)};--ch:${esc(g.h.c)}"><div class="bx-prob-bar" role="img" aria-label="Win probability ${esc(g.a.ab)} ${pa}%, ${esc(g.h.ab)} ${100-pa}%"></div><div class="bx-prob-labels num"><span>${esc(g.a.ab)} ${pa}%</span><span>Win probability</span><span>${100-pa}% ${esc(g.h.ab)}</span></div></div>`;
-  }
   if(!started){
     const facts=[spreadText(g),d&&d.venue].filter(Boolean);
     h+=`<section class="bx-sec"><div class="bx-facts">${facts.map(f=>`<span>${esc(f)}</span>`).join('')}</div><p class="muted">The box score fills in once the game kicks off.</p></section>`;
