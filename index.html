@@ -203,12 +203,21 @@ td.none,td.sealedc{color:var(--ink-3)}
 .rrow.has-chance{--f:var(--p);background:linear-gradient(90deg,color-mix(in srgb,var(--c) 16%,var(--raised)) 0,color-mix(in srgb,var(--c) 44%,var(--raised)) var(--f),var(--raised) var(--f))}
 .rrow.filling{animation:fillUp var(--dur,1s) cubic-bezier(.2,.8,.2,1) var(--delay,0s) both}
 @keyframes fillUp{from{--f:var(--p0)}to{--f:var(--p)}}
-.rrow.has-chance::after{content:"";position:absolute;top:0;bottom:0;left:calc(var(--f) - 2px);width:2px;background:color-mix(in srgb,var(--c) 70%,#fff);box-shadow:0 0 calc(6px + 14px*var(--g,0)) calc(1px + 3px*var(--g,0)) color-mix(in srgb,var(--c) 80%,transparent);opacity:var(--edge,0);pointer-events:none}
-.rrow.has-chance::before{content:"";position:absolute;top:0;bottom:0;left:0;width:var(--f);background:linear-gradient(100deg,transparent 35%,rgba(255,255,255,.26) 50%,transparent 65%) 0 0/250% 100% no-repeat;opacity:calc(.15 + .85*var(--g,0));animation:shimmer calc(3.6s - 1.8s*var(--g,0)) linear infinite;pointer-events:none}
-@keyframes shimmer{from{background-position:160% 0}to{background-position:-60% 0}}
+/* After the fill lands, the edge keeps leaning forward: harder and more often for higher chances */
+.rrow.has-chance::after{content:"";position:absolute;top:0;bottom:0;left:calc(var(--f) - 2px);width:2px;background:color-mix(in srgb,var(--c) 70%,#fff);box-shadow:0 0 calc(6px + 14px*var(--g,0)) calc(1px + 3px*var(--g,0)) color-mix(in srgb,var(--c) 80%,transparent);opacity:var(--edge,0);pointer-events:none;animation:edgePush calc(2.8s - 1.2s*var(--g,0)) cubic-bezier(.4,0,.2,1) var(--push-delay,0s) infinite}
+.rrow.has-chance::before{content:"";position:absolute;top:0;bottom:0;left:var(--f);width:calc(12px + 30px*var(--g,0));background:linear-gradient(90deg,color-mix(in srgb,var(--c) 60%,transparent),transparent);opacity:0;pointer-events:none;animation:edgeWisp calc(2.8s - 1.2s*var(--g,0)) cubic-bezier(.4,0,.2,1) var(--push-delay,0s) infinite}
+@keyframes edgePush{
+  0%,62%,100%{transform:translateX(0);box-shadow:0 0 calc(6px + 14px*var(--g,0)) calc(1px + 3px*var(--g,0)) color-mix(in srgb,var(--c) 80%,transparent)}
+  28%{transform:translateX(calc(2px + 6px*var(--g,0)));box-shadow:0 0 calc(10px + 22px*var(--g,0)) calc(2px + 5px*var(--g,0)) color-mix(in srgb,var(--c) 95%,transparent)}
+  40%{transform:translateX(calc(1px + 3px*var(--g,0)))}
+}
+@keyframes edgeWisp{
+  0%,62%,100%{opacity:0;transform:scaleX(.4);transform-origin:left}
+  28%{opacity:calc(var(--edge,0)*(.25 + .55*var(--g,0)));transform:scaleX(1);transform-origin:left}
+}
 .rrow.lead{box-shadow:0 0 0 1px color-mix(in srgb,var(--c) 50%,transparent),0 10px 30px -14px color-mix(in srgb,var(--c) 90%,transparent)}
 .rrow.lead .chance b{text-shadow:0 0 16px color-mix(in srgb,var(--c) 90%,transparent)}
-@media (prefers-reduced-motion:reduce){.rrow.filling{animation:none}.rrow.has-chance::before{display:none}}
+@media (prefers-reduced-motion:reduce){.rrow.filling,.rrow.has-chance::after{animation:none}.rrow.has-chance::before{display:none}}
 .pos{font-weight:800;color:var(--ink-2);text-align:center}
 .who>b{display:flex;align-items:center;gap:6px;min-width:0;font-weight:700;font-size:16px}
 .who span{display:block;font-size:12.5px;color:var(--ink-3);min-height:1.4em}
@@ -929,7 +938,7 @@ function renderStandings(app){
     if(prevFill){if(prevFill.to===fill){from=prevFill.from;start=prevFill.start}else{from=prevFill.to}}
     if(chances)S.fillShown[fkey]={from,to:fill,start};
     const dur=600+Math.round(1200*fill/100),elapsed=now-start,filling=chances&&from!==fill&&elapsed<dur;
-    h+=`<div class="rrow${chances?' has-chance':''}${leadChance?' lead':''}${filling?' filling':''}" data-profile="${r.p.id}" style="--c:${esc(r.p.color)};--p:${fill}%;--p0:${from}%;--g:${(fill/100).toFixed(2)};--dur:${dur}ms;--delay:-${filling?elapsed:0}ms;--edge:${fill>0&&fill<100?1:0}"><span class="pos num">${pos}</span><span class="jersey av-${r.p.id}">${initial(r.p)}</span>
+    h+=`<div class="rrow${chances?' has-chance':''}${leadChance?' lead':''}${filling?' filling':''}" data-profile="${r.p.id}" style="--c:${esc(r.p.color)};--p:${fill}%;--p0:${from}%;--g:${(fill/100).toFixed(2)};--dur:${dur}ms;--delay:-${filling?elapsed:0}ms;--push-delay:${filling?dur-elapsed:0}ms;--edge:${fill>0&&fill<100?1:0}"><span class="pos num">${pos}</span><span class="jersey av-${r.p.id}">${initial(r.p)}</span>
       <div class="who"><b>${esc(r.p.name)} ${sc.complete&&r.place===1?'<span class="crown" aria-label="Week winner">★</span>':''}${spoon?`<span class="spoon" title="Wooden Spoon">${badgeIcon(BADGE.spoon)}</span>`:''}</b><span class="num">${notes.join(' · ')}</span></div>
       ${chanceHtml(chances,r)}<div class="rec num">${r.right}–${r.wrong}<small>${sc.complete?`<b class="ptsb">+${r.pts} pts</b>`:'W–L'}</small></div></div>`;
   });
