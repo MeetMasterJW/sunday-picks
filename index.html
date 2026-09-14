@@ -942,47 +942,52 @@ function renderStandings(app){
 }
 
 /* ---- sparks thrown off each win-chance edge ---- */
-const sparks={parts:[],raf:0,last:0,prevF:{},emitted:{}};
+const sparks={parts:[],raf:0,last:0,moving:{},emitted:{}};
 function startSparks(){
   if(sparks.raf||document.hidden||matchMedia('(prefers-reduced-motion: reduce)').matches)return;
   sparks.last=performance.now();
   sparks.raf=requestAnimationFrame(sparkFrame);
 }
+// Sparks fly only while a fill is moving, with a burst when it lands; then the loop shuts off
 function sparkFrame(t){
   const canvas=document.querySelector('.rank canvas.sparks');
-  if(!canvas||document.hidden){sparks.raf=0;sparks.parts.length=0;sparks.prevF={};return}
+  if(!canvas||document.hidden){sparks.raf=0;sparks.parts.length=0;sparks.moving={};return}
   const dt=Math.min(50,t-sparks.last)/1000;sparks.last=t;
   const box=canvas.parentElement,br=box.getBoundingClientRect(),dpr=window.devicePixelRatio||1;
   const W=Math.round(br.width),H=Math.round(br.height);
   if(canvas.width!==W*dpr||canvas.height!==H*dpr){canvas.width=W*dpr;canvas.height=H*dpr;canvas.style.width=W+'px';canvas.style.height=H+'px'}
   const ctx=canvas.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,W,H);
+  let anyMoving=false;
   for(const row of box.querySelectorAll('.rrow.has-chance')){
-    const cs=getComputedStyle(row),f=parseFloat(cs.getPropertyValue('--f'))||0,g=parseFloat(cs.getPropertyValue('--g'))||0;
-    if(f<=0||f>=100)continue;
-    const rr=row.getBoundingClientRect(),id=row.dataset.profile,x=rr.left-br.left+rr.width*f/100;
-    const prev=sparks.prevF[id]??f;sparks.prevF[id]=f;
-    const surge=Math.max(0,f-prev)/Math.max(dt,.001);        // % per second while the fill is moving
-    let rate=2+22*g+surge*2.5;                                // steady crackle, stronger for higher chances
-    if(Math.random()<dt*(.5+2.2*g))rate+=(30+140*g)/Math.max(dt*60,1)*2; // occasional burst
-    for(let n=rate*dt;n>0;n--){
-      if(n<1&&Math.random()>n)break;
-      const speed=(70+300*g)*(.35+Math.random()),ang=(Math.random()-.35)*Math.PI*.95;
-      sparks.parts.push({x,y:rr.top-br.top+4+Math.random()*(rr.height-8),vx:Math.cos(ang)*speed,vy:Math.sin(ang)*speed-30,life:0,max:.16+Math.random()*(.22+.38*g),w:.7+Math.random()*(1+g),c:row.style.getPropertyValue('--c')||'#ffffff'});
-      sparks.emitted[id]=(sparks.emitted[id]||0)+1;
-    }
+    const cs=getComputedStyle(row),f=parseFloat(cs.getPropertyValue('--f'))||0,target=parseFloat(cs.getPropertyValue('--p'))||0,g=parseFloat(cs.getPropertyValue('--g'))||0;
+    const id=row.dataset.profile,moving=Math.abs(target-f)>.05,landed=!moving&&sparks.moving[id];
+    sparks.moving[id]=moving;
+    if(f<=0&&target<=0)continue;
+    const rr=row.getBoundingClientRect(),x=rr.left-br.left+rr.width*f/100,top=rr.top-br.top,c=row.style.getPropertyValue('--c')||'#ffffff';
+    let count=0;
+    if(moving){anyMoving=true;count=(80+300*g)*dt;if(Math.random()<dt*7)count+=8+22*g}
+    else if(landed)count=30+80*g;
+    for(let n=count;n>0;n--){if(n<1&&Math.random()>n)break;emitSpark(x,top,rr.height,g,c,id,landed)}
   }
   ctx.globalCompositeOperation='lighter';ctx.lineCap='round';
   sparks.parts=sparks.parts.filter(p=>{
     p.life+=dt;if(p.life>=p.max)return false;
-    p.vx*=.9;p.vy=p.vy*.9+260*dt;
-    const nx=p.x+p.vx*dt,ny=p.y+p.vy*dt,tx=nx-p.vx*.03,ty=ny-p.vy*.03,a=1-p.life/p.max;
-    ctx.strokeStyle=p.c;ctx.globalAlpha=.5*a;ctx.lineWidth=p.w*3.2;ctx.beginPath();ctx.moveTo(tx,ty);ctx.lineTo(nx,ny);ctx.stroke();
+    p.vx*=.9;p.vy=p.vy*.9+300*dt;
+    const nx=p.x+p.vx*dt,ny=p.y+p.vy*dt,tx=nx-p.vx*.045,ty=ny-p.vy*.045,a=1-p.life/p.max;
+    ctx.strokeStyle=p.c;ctx.globalAlpha=.6*a;ctx.lineWidth=p.w*4;ctx.beginPath();ctx.moveTo(tx,ty);ctx.lineTo(nx,ny);ctx.stroke();
     ctx.strokeStyle='#fff';ctx.globalAlpha=a;ctx.lineWidth=p.w;ctx.beginPath();ctx.moveTo(tx,ty);ctx.lineTo(nx,ny);ctx.stroke();
+    ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(nx,ny,p.w*.9,0,Math.PI*2);ctx.fill();
     p.x=nx;p.y=ny;return true;
   });
-  if(sparks.parts.length>500)sparks.parts.splice(0,sparks.parts.length-500);
+  if(sparks.parts.length>700)sparks.parts.splice(0,sparks.parts.length-700);
   ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';
+  if(!anyMoving&&!sparks.parts.length){sparks.raf=0;ctx.clearRect(0,0,W,H);return}
   sparks.raf=requestAnimationFrame(sparkFrame);
+}
+function emitSpark(x,top,h,g,c,id,burst){
+  const speed=(130+420*g)*(.35+Math.random())*(burst?1.35:1),ang=(Math.random()-.4)*Math.PI*(burst?1.7:1);
+  sparks.parts.push({x,y:top+3+Math.random()*(h-6),vx:Math.cos(ang)*speed,vy:Math.sin(ang)*speed-50,life:0,max:.28+Math.random()*(.3+.5*g),w:1+Math.random()*(1.4+1.4*g),c});
+  sparks.emitted[id]=(sparks.emitted[id]||0)+1;
 }
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&S.tab==='standings')startSparks()});
 
