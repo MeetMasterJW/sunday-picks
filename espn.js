@@ -74,7 +74,56 @@ function moneyline(odds, sideKey) {
   return Number.isFinite(n) ? n : null;
 }
 
-// Latest home win probability from ESPN's game detail feed (large payload; call sparingly)
+// Box score for one game, trimmed to what the game sheet shows
+const TEAM_STATS = ['totalYards', 'netPassingYards', 'rushingYards', 'turnovers', 'firstDowns', 'thirdDownEff', 'totalPenaltiesYards', 'possessionTime'];
+const LEADER_STATS = ['passingYards', 'rushingYards', 'receivingYards'];
+
+export async function fetchGameSummary(id) {
+  const res = await fetch(`https://site.api.espn.com/apis/site/v2/sports/football/nfl/summary?event=${id}`, { cache: 'no-store' });
+  if (!res.ok) throw new Error(`ESPN summary ${id}: HTTP ${res.status}`);
+  const s = await res.json();
+  const comp = ((s.header || {}).competitions || [])[0] || {};
+  const side = Object.fromEntries((comp.competitors || []).map((c) => [c.homeAway, c]));
+  const abbr = (k) => ((side[k] || {}).team || {}).abbreviation;
+  const lines = (k) => ((side[k] || {}).linescores || []).map((l) => l.displayValue ?? String(l.value ?? ''));
+
+  const statsBy = {};
+  for (const t of (s.boxscore || {}).teams || []) {
+    statsBy[t.team.abbreviation] = Object.fromEntries((t.statistics || []).map((x) => [x.name, { label: x.label, v: x.displayValue }]));
+  }
+  const sa = statsBy[abbr('away')] || {}, sh = statsBy[abbr('home')] || {};
+  const stats = TEAM_STATS.filter((k) => sa[k] || sh[k])
+    .map((k) => ({ key: k, label: (sa[k] || sh[k]).label, a: (sa[k] || {}).v ?? '–', h: (sh[k] || {}).v ?? '–' }));
+
+  const leadBy = {};
+  for (const t of s.leaders || []) {
+    leadBy[(t.team || {}).abbreviation] = Object.fromEntries((t.leaders || []).map((c) => {
+      const top = (c.leaders || [])[0] || {};
+      return [c.name, { label: c.displayName, who: (top.athlete || {}).shortName || (top.athlete || {}).displayName || '', v: top.displayValue || '' }];
+    }));
+  }
+  const la = leadBy[abbr('away')] || {}, lh = leadBy[abbr('home')] || {};
+  const leaders = LEADER_STATS.filter((k) => la[k] || lh[k])
+    .map((k) => ({ label: (la[k] || lh[k]).label.replace(/ Yards$/, ''), a: la[k] || null, h: lh[k] || null }));
+
+  const plays = (s.scoringPlays || []).map((p) => ({
+    q: (p.period || {}).number || 0,
+    clock: (p.clock || {}).displayValue || '',
+    team: (p.team || {}).abbreviation || '',
+    type: (p.scoringType || {}).abbreviation || '',
+    text: p.text || '',
+    as: p.awayScore,
+    hs: p.homeScore,
+  }));
+
+  const v = (s.gameInfo || {}).venue;
+  const venue = v ? [v.fullName, [v.address?.city, v.address?.state].filter(Boolean).join(', ')].filter(Boolean).join(' · ') : '';
+  const wp = s.winprobability || [];
+  const last = wp[wp.length - 1];
+  return { lines: { a: lines('away'), h: lines('home') }, stats, leaders, plays, venue, homeWinProb: last ? numberOrNull(last.homeWinPercentage) : null };
+}
+
+// Latest home win probability from ESPN's game detail feed (about 50 KB compressed; call sparingly)
 export async function fetchWinProb(id) {
   const res = await fetch(`https://site.api.espn.com/apis/site/v2/sports/football/nfl/summary?event=${id}`, { cache: 'no-store' });
   if (!res.ok) throw new Error(`ESPN summary ${id}: HTTP ${res.status}`);

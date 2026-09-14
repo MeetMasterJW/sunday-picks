@@ -189,6 +189,63 @@ td.none,td.sealedc{color:var(--ink-3)}
 .rec{font-family:var(--numeric);font-size:32px;font-weight:700;text-align:right;line-height:1}
 .rec small{display:block;font-family:var(--font);font-size:11px;font-weight:600;color:var(--ink-3);margin-top:3px}
 .ptsb{color:var(--accent);font-weight:800;font-size:12px}
+button.gmeta{width:100%;border:0;background:none;text-align:left;cursor:pointer;border-radius:10px;padding:4px 6px 2px}
+.gmeta .line{display:inline-flex;align-items:center;gap:2px}
+.chev{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;opacity:.7}
+@media (hover:hover){button.gmeta:hover .line{color:var(--ink)}}
+dialog.sheet{padding:0;width:100%;max-width:560px;max-height:min(90vh,880px);margin:auto auto 0;border:1px solid var(--line-2);border-bottom:0;border-radius:24px 24px 0 0;background:var(--surface);color:var(--ink);overflow:hidden}
+dialog.sheet[open]{display:flex;flex-direction:column}
+@media (min-width:640px){dialog.sheet{margin:auto;border-bottom:1px solid var(--line-2);border-radius:24px}}
+@media (prefers-reduced-motion:no-preference){dialog.sheet[open]{animation:sheetIn .28s cubic-bezier(.2,.9,.3,1)}}
+@keyframes sheetIn{from{transform:translateY(28px);opacity:0}}
+.box-head{display:flex;align-items:center;gap:10px;padding:14px 14px 12px 18px;border-bottom:1px solid var(--line)}
+.box-head h3{margin:0;flex:1;font-family:var(--display);font-size:14px;font-weight:700;line-height:1.3}
+.box-close{width:34px;height:34px;flex:none;border-radius:50%;border:0;background:var(--raised);display:grid;place-items:center;color:var(--ink)}
+.box-close svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round}
+#boxBody{overflow-y:auto;overscroll-behavior:contain;padding:16px 16px calc(20px + env(safe-area-inset-bottom));display:grid;gap:18px}
+.bx-score{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:start;gap:8px}
+.bx-team{display:grid;justify-items:center;gap:3px;text-align:center;min-width:0}
+.bx-team .logo{width:60px;height:60px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle,color-mix(in srgb,var(--tc) 75%,transparent) 0,color-mix(in srgb,var(--tc) 30%,transparent) 55%,transparent 71%)}
+.bx-team .logo img{width:44px;height:44px;object-fit:contain;filter:drop-shadow(0 1px 2px rgba(0,0,0,.45))}
+.bx-team b{font-size:15px;font-weight:700}
+.bx-team small{font-size:12px;color:var(--ink-3)}
+.bx-team .pips{justify-content:center;min-height:26px;margin-top:4px}
+.bx-mid{display:grid;justify-items:center;gap:6px;padding-top:8px}
+.bx-nums{display:flex;align-items:baseline;gap:6px;font-family:var(--numeric);font-size:48px;font-weight:700;line-height:1}
+.bx-nums .lo,.bx-nums .dash{color:var(--ink-3)}
+.bx-nums .dash{font-size:26px}
+.bx-at{font-family:var(--numeric);font-size:30px;color:var(--ink-3);padding:6px 0}
+.bx-mid .st{font-size:12.5px;text-align:center;white-space:nowrap}
+.bx-prob-bar{height:8px;border-radius:4px;background:linear-gradient(90deg,var(--ca) var(--pa),var(--ch) var(--pa))}
+.bx-prob-labels{display:flex;justify-content:space-between;gap:8px;margin-top:6px;font-size:12.5px;font-weight:600;color:var(--ink)}
+.bx-prob-labels span:nth-child(2){color:var(--ink-3);font-weight:500}
+.bx-sec h4{margin:0 0 8px;font-size:13px;font-weight:700;color:var(--ink-2)}
+.bx-lines{width:100%;font-size:15px}
+.bx-lines th,.bx-lines td{padding:7px 4px;text-align:center}
+.bx-lines th:first-child,.bx-lines td:first-child{text-align:left;font-weight:700}
+.bx-lines td.tot{font-family:var(--numeric);font-size:19px}
+.bx-plays{list-style:none;margin:0;padding:0;display:grid;gap:12px}
+.bx-plays li{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:3px 10px;align-items:start}
+.bx-q{grid-column:1/-1;font-size:11.5px;font-weight:600;color:var(--ink-3)}
+.bx-type{margin-top:1px;padding:2px 6px;border-radius:6px;background:color-mix(in srgb,var(--tc) 70%,#000);color:#fff;font-size:10.5px;font-weight:800}
+.bx-text{display:flex;gap:6px;align-items:flex-start;font-size:14px;line-height:1.35}
+.bx-text img{width:18px;height:18px;flex:none;object-fit:contain;margin-top:1px}
+.bx-run{font-family:var(--numeric);font-size:18px;font-weight:700;color:var(--ink-2)}
+.bx-cols{display:grid;grid-template-columns:1fr 1.5fr 1fr;margin-bottom:2px;font-size:12px;font-weight:700;color:var(--ink-3)}
+.bx-cols span:last-child{text-align:right}
+.bx-stat{display:grid;grid-template-columns:1fr 1.5fr 1fr;align-items:center;gap:4px 8px;padding:8px 0;border-top:1px solid var(--line)}
+.bx-stat span{text-align:center;font-size:12.5px;color:var(--ink-2)}
+.bx-stat b{font-family:var(--numeric);font-size:19px;font-weight:600;color:var(--ink-2)}
+.bx-stat b:last-of-type{text-align:right}
+.bx-stat b.hi{color:var(--ink);font-weight:700}
+.bx-statbar{grid-column:1/-1;height:4px;border-radius:2px;background:linear-gradient(90deg,var(--ca) var(--pa),var(--ch) var(--pa));opacity:.85}
+.bx-leader{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:10px;align-items:center;padding:9px 0;border-top:1px solid var(--line)}
+.bx-leader>span{font-size:12px;font-weight:600;color:var(--ink-3)}
+.bx-leader b{display:block;font-size:14px}
+.bx-leader small{display:block;font-size:12px;color:var(--ink-2)}
+.bx-leader .r{text-align:right}
+.bx-facts{display:grid;gap:4px;font-size:14px;font-weight:600;color:var(--ink)}
+.bx-msg,.bx-venue{margin:0;text-align:center;font-size:13px;color:var(--ink-3)}
 .chance{display:grid;justify-items:end;gap:4px;min-width:54px}
 .chance b{font-family:var(--numeric);font-size:22px;font-weight:700;line-height:1;color:var(--ink)}
 .chance i{display:block;width:50px;height:4px;border-radius:2px;background:linear-gradient(90deg,var(--c) var(--p),var(--line) var(--p))}
@@ -277,6 +334,10 @@ dialog p{margin:6px 0 0}
 </nav>
 <main id="app"><div class="empty">Loading…</div></main>
 <div class="alert" id="alert" role="status" aria-live="polite" hidden></div>
+<dialog id="boxDlg" class="sheet" aria-labelledby="boxTitle">
+  <div class="box-head"><h3 id="boxTitle">Box score</h3><button type="button" class="box-close" data-box-close aria-label="Close box score"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+  <div id="boxBody"></div>
+</dialog>
 <div class="toast" id="toast" hidden></div>
 <dialog id="parentDlg" aria-labelledby="parentTitle">
   <form id="parentForm">
@@ -292,7 +353,7 @@ dialog p{margin:6px 0 0}
 
 <script type="module">
 import {firebaseConfig,parentEmail} from './config.js';
-import {fetchWeek,fetchWinProb,groupIntoPickWeeks} from './espn.js';
+import {fetchWeek,fetchWinProb,fetchGameSummary,groupIntoPickWeeks} from './espn.js';
 import {initializeApp} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
 import {getFirestore,doc,collection,setDoc,onSnapshot} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
 import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,signOut} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
@@ -457,6 +518,8 @@ function signInError(code){
   return 'That password didn’t work. Try again.';
 }
 $('#parentUser').value=parentEmail||'';
+$('#boxDlg').addEventListener('close',()=>{boxOpenId=null;clearTimeout(boxTimer)});
+$('#boxDlg').addEventListener('click',(e)=>{if(e.target===e.currentTarget)closeBox()});
 $('#parentCancel').addEventListener('click',()=>{afterParent=null;$('#parentDlg').close()});
 $('#parentForm').addEventListener('submit',async(e)=>{
   e.preventDefault();e.stopPropagation();
@@ -560,7 +623,7 @@ function gameCard(g,w,me,mine,isLast){
   else status=`<span class="st">${g.tbd?'Time TBD':fmtTime.format(new Date(g.t))}${slot?`<span class="slot">${slot}</span>`:''}${lk&&!weekLocked(w)?' · locked':''}</span>`;
   const who=players().map(p=>({p,pick:picksFor(w,p.id)[g.id]})).filter(x=>x.pick);
   const pips=(ab)=>lk?who.filter(x=>x.pick===ab).map(x=>`<span class="pip ${pickState(g,x.pick)}" style="--c:${esc(x.p.color)}" title="${esc(x.p.name)}" aria-label="${esc(x.p.name)}">${initial(x.p)}</span>`).join(''):'';
-  let h=`<article class="game${flashing(g)?' flash':''}"><div class="gmeta">${status}<span class="line">${esc(spreadText(g))}</span></div>
+  let h=`<article class="game${flashing(g)?' flash':''}"><button type="button" class="gmeta" data-box="${esc(g.id)}" aria-label="Box score, ${esc(g.a.name)} at ${esc(g.h.name)}">${status}<span class="line">${esc(spreadText(g))}<svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span></button>
     <div class="rows">${teamBtn(g,'a',me,mine,pips(g.a.ab))}${teamBtn(g,'h',me,mine,pips(g.h.ab))}</div>`;
   if(!lk)h+=`<p class="sealed">${who.length}/${players().length} picked · revealed when picks lock</p>`;
   if(isLast)h+=tiebreakRow(g,w,me);
@@ -783,6 +846,10 @@ document.addEventListener('change',async(e)=>{
 });
 
 document.addEventListener('click',(e)=>{
+  const bx=e.target.closest('[data-box]');
+  if(bx){openBox(bx.dataset.box);return}
+  if(e.target.closest('[data-box-close]')){closeBox();return}
+  if(e.target.closest('[data-box-retry]')){loadBox(boxOpenId,true);return}
   const tab=e.target.closest('[data-tab]');
   if(tab){S.tab=tab.dataset.tab;S.results=false;store.set('tab',S.tab);render();window.scrollTo(0,0);return}
   const pk=e.target.closest('[data-picker]');
@@ -804,7 +871,7 @@ document.addEventListener('click',(e)=>{
   if(sw){const i=+sw.dataset.swatch;S.draft[i].color=sw.dataset.color;sw.parentElement.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b===sw)));sw.closest('.frow').style.setProperty('--c',sw.dataset.color);return}
   const tb=e.target.closest('.team[data-game]');
   if(tb){const g=weekGames(S.week).find(x=>x.id===tb.dataset.game);if(!g)return;
-    if(locked(g)){toast('Picks for this game are locked.');return}
+    if(locked(g)){openBox(g.id);return}
     savePick(g,tb.dataset.team)}
 });
 document.addEventListener('submit',async(e)=>{
@@ -840,6 +907,7 @@ function applySchedule(){
   S.weeks=groupIntoPickWeeks(nfl);rememberAllLines();S.ready=true;S.updatedAt=new Date();S.scoreError=false;
   if(!S.week)S.week=currentWeek();
   render();maybeAutoLock();
+  if(boxOpenId)renderBox();
 }
 async function loadAllWeeks(){
   const all=await Promise.all(Array.from({length:18},(_,i)=>fetchWeek(i+1)));
@@ -971,6 +1039,84 @@ function rememberAllLines(){
   let changed=false;
   for(const games of Object.values(nfl))for(const g of games)changed=rememberLine(g)||changed;
   if(changed)store.set('spreads',JSON.stringify(spreads));
+}
+
+/* ---- box score sheet ---- */
+const boxCache=new Map();
+let boxOpenId=null,boxTimer=null;
+function gameById(id){for(const games of Object.values(nfl))for(const g of games)if(g.id===id)return g;return null}
+function openBox(id){
+  if(!gameById(id))return;
+  boxOpenId=id;renderBox();
+  const dlg=$('#boxDlg');if(!dlg.open)dlg.showModal();
+  $('#boxBody').scrollTop=0;
+  loadBox(id,false);
+}
+function closeBox(){boxOpenId=null;clearTimeout(boxTimer);const dlg=$('#boxDlg');if(dlg.open)dlg.close()}
+async function loadBox(id,force){
+  if(!id)return;
+  clearTimeout(boxTimer);
+  const cached=boxCache.get(id);
+  if(force||!cached||Date.now()-cached.at>30e3){
+    if(force&&cached)boxCache.set(id,{...cached,err:false});
+    try{
+      const data=await fetchGameSummary(id);
+      boxCache.set(id,{data,at:Date.now(),err:false});
+      const g=gameById(id);
+      if(g&&g.st==='in'&&data.homeWinProb!=null)S.liveProb[id]={p:data.homeWinProb,at:Date.now()};
+    }catch{boxCache.set(id,{data:cached?cached.data:null,at:Date.now(),err:true})}
+  }
+  if(boxOpenId!==id)return;
+  renderBox();
+  const g=gameById(id);
+  if(g&&g.st==='in')boxTimer=setTimeout(()=>loadBox(id,true),30e3);
+}
+function boxTeam(g,side,w,lk){
+  const t=g[side];
+  const who=lk?players().filter(p=>picksFor(w,p.id)[g.id]===t.ab):[];
+  return `<div class="bx-team"><span class="logo" style="--tc:${esc(t.c)}">${t.logo?`<img src="${esc(t.logo)}" alt="" width="42" height="42">`:`<span class="ab">${esc(t.ab)}</span>`}</span><b>${esc(t.name)}</b><small class="num">${esc(t.rec||t.loc)}</small><div class="pips">${who.map(p=>`<span class="pip ${pickState(g,t.ab)}" style="--c:${esc(p.color)}" title="${esc(p.name)}" aria-label="${esc(p.name)}">${initial(p)}</span>`).join('')}</div></div>`;
+}
+function statBetter(key,a,b){if(key==='turnovers'||key==='totalPenaltiesYards')return a<b;return a>b}
+function renderBox(){
+  const g=gameById(boxOpenId);if(!g)return;
+  const w=pickWeekOf(g.id)||S.week,lk=locked(g,w),cached=boxCache.get(g.id),d=cached&&cached.data;
+  const started=g.st!=='pre'||!!g.w;
+  const status=g.w?(g.w==='TIE'?'Final · Tie':'Final'):g.st==='in'?(g.d||'Live'):g.tbd?'Time TBD':`${fmtDay.format(new Date(g.t))} · ${fmtTime.format(new Date(g.t))}`;
+  let h=`<div class="bx-score">${boxTeam(g,'a',w,lk)}<div class="bx-mid">${started?`<div class="bx-nums num"><span class="${g.as<g.hs?'lo':''}">${g.as}</span><span class="dash">–</span><span class="${g.hs<g.as?'lo':''}">${g.hs}</span></div>`:'<div class="bx-at">@</div>'}<div class="st ${g.w?'final':g.st==='in'?'live':''}">${esc(status)}</div></div>${boxTeam(g,'h',w,lk)}</div>`;
+  if(!g.w){
+    const ph=homeWinProb(g),pa=Math.round((1-ph)*100);
+    h+=`<div class="bx-prob" style="--pa:${pa}%;--ca:${esc(g.a.c)};--ch:${esc(g.h.c)}"><div class="bx-prob-bar" role="img" aria-label="Win probability ${esc(g.a.ab)} ${pa}%, ${esc(g.h.ab)} ${100-pa}%"></div><div class="bx-prob-labels num"><span>${esc(g.a.ab)} ${pa}%</span><span>Win probability</span><span>${100-pa}% ${esc(g.h.ab)}</span></div></div>`;
+  }
+  if(!started){
+    const facts=[spreadText(g),d&&d.venue].filter(Boolean);
+    h+=`<section class="bx-sec"><div class="bx-facts">${facts.map(f=>`<span>${esc(f)}</span>`).join('')}</div><p class="muted">The box score fills in once the game kicks off.</p></section>`;
+  }else if(!d){
+    h+=cached&&cached.err?'<p class="bx-msg">The box score isn’t available right now. <button type="button" class="linkbtn" data-box-retry>Try again</button></p>':'<p class="bx-msg">Loading box score…</p>';
+  }else{
+    const n=Math.max(4,d.lines.a.length,d.lines.h.length);
+    const qs=Array.from({length:n},(_,i)=>i<4?String(i+1):n===5?'OT':'OT'+(i-3));
+    h+=`<section class="bx-sec"><table class="bx-lines num"><thead><tr><th></th>${qs.map(q=>`<th>${q}</th>`).join('')}<th>T</th></tr></thead><tbody>${['a','h'].map(sd=>`<tr><td>${esc(g[sd].ab)}</td>${qs.map((q,i)=>`<td>${esc(d.lines[sd][i]??'')}</td>`).join('')}<td class="tot">${sd==='a'?g.as:g.hs}</td></tr>`).join('')}</tbody></table></section>`;
+    if(d.plays.length){
+      h+=`<section class="bx-sec"><h4>Scoring</h4><ol class="bx-plays">${d.plays.map(pl=>{
+        const t=pl.team===g.a.ab?g.a:pl.team===g.h.ab?g.h:null;
+        return `<li><span class="bx-q">${pl.q>4?'OT':'Q'+pl.q} · ${esc(pl.clock)}</span><span class="bx-type" style="--tc:${esc(t?t.c:'#555555')}">${esc(pl.type||'•')}</span><span class="bx-text">${t&&t.logo?`<img src="${esc(t.logo)}" alt="" width="18" height="18">`:''}<span>${esc(pl.text)}</span></span><span class="bx-run num">${pl.as}–${pl.hs}</span></li>`;
+      }).join('')}</ol></section>`;
+    }
+    if(d.stats.length){
+      h+=`<section class="bx-sec"><h4>Team stats</h4><div class="bx-cols"><span>${esc(g.a.ab)}</span><span></span><span>${esc(g.h.ab)}</span></div>${d.stats.map(st=>{
+        const na=parseFloat(st.a),nh=parseFloat(st.h),num=Number.isFinite(na)&&Number.isFinite(nh)&&!/Eff$|possession|Penalties/.test(st.key);
+        const bar=num&&na+nh>0&&st.key!=='turnovers';
+        return `<div class="bx-stat"><b class="num${num&&statBetter(st.key,na,nh)?' hi':''}">${esc(st.a)}</b><span>${esc(st.label)}</span><b class="num${num&&statBetter(st.key,nh,na)?' hi':''}">${esc(st.h)}</b>${bar?`<div class="bx-statbar" style="--pa:${Math.round(na/(na+nh)*100)}%;--ca:${esc(g.a.c)};--ch:${esc(g.h.c)}"></div>`:''}</div>`;
+      }).join('')}</section>`;
+    }
+    if(d.leaders.length){
+      const who=(x)=>x?`<b>${esc(x.who)}</b><small>${esc(x.v)}</small>`:'<small>–</small>';
+      h+=`<section class="bx-sec"><h4>Leaders</h4>${d.leaders.map(l=>`<div class="bx-leader"><div>${who(l.a)}</div><span>${esc(l.label)}</span><div class="r">${who(l.h)}</div></div>`).join('')}</section>`;
+    }
+    if(d.venue)h+=`<p class="bx-venue">${esc(d.venue)}</p>`;
+  }
+  $('#boxTitle').textContent=`${g.a.name} at ${g.h.name}`;
+  $('#boxBody').innerHTML=h;
 }
 
 let pollTimer=null;
