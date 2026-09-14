@@ -187,10 +187,12 @@ td.none,td.sealedc{color:var(--ink-3)}
 .champ .eyebrow{color:var(--ink-2)!important;opacity:1!important}
 .podium{display:flex;flex-wrap:wrap;gap:2px 14px;margin:6px 0 0;font-size:14px;color:var(--ink-2)}
 .podium b{color:var(--accent)}
-.rank{display:grid;margin-top:4px}
-.rrow{display:grid;grid-template-columns:20px 34px minmax(0,1fr) auto auto;gap:12px;align-items:center;padding:11px 0;border-top:1px solid var(--line)}
-.rrow:first-child{border-top:0}
-.pos{font-weight:800;color:var(--ink-3);text-align:center}
+.rank{display:grid;gap:6px;margin-top:10px}
+@property --p{syntax:'<percentage>';inherits:true;initial-value:0%}
+.rrow{display:grid;grid-template-columns:20px 34px minmax(0,1fr) auto auto;gap:12px;align-items:center;padding:10px 12px 10px 8px;border-radius:14px;background:var(--raised)}
+.rrow.has-chance{background:linear-gradient(90deg,color-mix(in srgb,var(--c) 34%,var(--raised)) var(--p),var(--raised) var(--p))}
+@media (prefers-reduced-motion:no-preference){.rrow.has-chance{transition:--p .7s ease}}
+.pos{font-weight:800;color:var(--ink-2);text-align:center}
 .who>b{display:flex;align-items:center;gap:6px;min-width:0;font-weight:700;font-size:16px}
 .who span{display:block;font-size:12.5px;color:var(--ink-3);min-height:1.4em}
 .rec{font-family:var(--numeric);font-size:32px;font-weight:700;text-align:right;line-height:1}
@@ -250,10 +252,9 @@ dialog.sheet[open]{display:flex;flex-direction:column}
 .bx-leader .r{text-align:right}
 .bx-facts{display:grid;gap:4px;font-size:14px;font-weight:600;color:var(--ink)}
 .bx-msg,.bx-venue{margin:0;text-align:center;font-size:13px;color:var(--ink-3)}
-.chance{display:grid;justify-items:end;gap:4px;min-width:54px}
+.chance{display:grid;justify-items:end;gap:3px;min-width:48px}
 .chance b{font-family:var(--numeric);font-size:22px;font-weight:700;line-height:1;color:var(--ink)}
-.chance i{display:block;width:50px;height:4px;border-radius:2px;background:linear-gradient(90deg,var(--c) var(--p),var(--line) var(--p))}
-.chance small{font-size:10.5px;font-weight:600;color:var(--ink-3);line-height:1}
+.chance small{font-size:10.5px;font-weight:600;color:var(--ink-2);line-height:1}
 .chance.out b{color:var(--ink-3)}
 .crown{color:var(--accent)}
 .rules{padding:0 4px}
@@ -880,7 +881,7 @@ function chanceLabel(ch,id){
 function chanceHtml(ch,r){
   if(!ch)return '<span></span>';
   const v=ch.p[r.p.id],out=ch.out.has(r.p.id);
-  return `<div class="chance${out?' out':''}" style="--p:${out?0:Math.round(v*100)}%;--c:${esc(r.p.color)}" aria-label="${esc(r.p.name)} win chance ${chanceLabel(ch,r.p.id)}"><b class="num">${chanceLabel(ch,r.p.id)}</b><i aria-hidden="true"></i><small>to win</small></div>`;
+  return `<div class="chance${out?' out':''}" aria-label="${esc(r.p.name)} win chance ${chanceLabel(ch,r.p.id)}"><b class="num">${chanceLabel(ch,r.p.id)}</b><small>to win</small></div>`;
 }
 
 function renderStandings(app){
@@ -900,7 +901,9 @@ function renderStandings(app){
     else if(!sc.complete)notes.push(`${left} game${left===1?'':'s'} left`);
     else notes.push(r.tied?`Tiebreaker ${r.tb===null?'—':r.tb}`:'Final');
     const spoon=sc.complete&&r.place===sc.rows.length;
-    h+=`<div class="rrow" data-profile="${r.p.id}" style="--c:${esc(r.p.color)}"><span class="pos num">${pos}</span><span class="jersey av-${r.p.id}">${initial(r.p)}</span>
+    // Win chance fills the row from the left in the person's color
+    const fill=chances?(chances.out.has(r.p.id)?0:Math.round((chances.p[r.p.id]||0)*100)):0;
+    h+=`<div class="rrow${chances?' has-chance':''}" data-profile="${r.p.id}" style="--c:${esc(r.p.color)};--p:${fill}%"><span class="pos num">${pos}</span><span class="jersey av-${r.p.id}">${initial(r.p)}</span>
       <div class="who"><b>${esc(r.p.name)} ${sc.complete&&r.place===1?'<span class="crown" aria-label="Week winner">★</span>':''}${spoon?`<span class="spoon" title="Wooden Spoon">${badgeIcon(BADGE.spoon)}</span>`:''}</b><span class="num">${notes.join(' · ')}</span></div>
       ${chanceHtml(chances,r)}<div class="rec num">${r.right}–${r.wrong}<small>${sc.complete?`<b class="ptsb">+${r.pts} pts</b>`:'W–L'}</small></div></div>`;
   });
