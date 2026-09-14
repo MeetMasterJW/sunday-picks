@@ -104,7 +104,7 @@ main>*{min-width:0}
 .st{font-weight:600;color:var(--ink-2)}
 .st.final{color:var(--ink)}
 .st.live{color:var(--live)}
-.st.live::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:currentColor;margin-right:6px;vertical-align:1px;animation:pulse 1.6s ease-in-out infinite}
+.st.live::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:currentColor;box-shadow:0 0 8px 1px currentColor;margin-right:6px;vertical-align:1px;animation:pulse 1.6s ease-in-out infinite}
 @keyframes pulse{50%{opacity:.3}}
 .rows{display:grid;gap:4px}
 .team{position:relative;display:grid;grid-template-columns:40px minmax(0,1fr) auto auto;align-items:center;gap:12px;width:100%;text-align:left;border:1px solid transparent;background:var(--raised);border-radius:14px;padding:8px 12px 8px 8px;min-height:58px}
@@ -128,13 +128,13 @@ main>*{min-width:0}
 .team.mine .pickmark{border-color:var(--me);background:var(--me)}
 .team.mine .pickmark::after{content:"✓";color:#fff;font-size:13px;font-weight:800;line-height:1}
 .team.mine{border-color:color-mix(in srgb,var(--me) 75%,transparent);background:color-mix(in srgb,var(--me) 16%,var(--raised))}
-.team.mine.up,.team.mine.ok{border-color:color-mix(in srgb,var(--good) 70%,transparent);background:color-mix(in srgb,var(--good) 13%,var(--raised))}
+.team.mine.up,.team.mine.ok{border-color:color-mix(in srgb,var(--good) 70%,transparent);background:color-mix(in srgb,var(--good) 13%,var(--raised));box-shadow:0 0 24px -12px color-mix(in srgb,var(--good) 90%,transparent)}
 .team.mine.down,.team.mine.no{border-color:color-mix(in srgb,var(--bad) 60%,transparent);background:color-mix(in srgb,var(--bad) 9%,var(--raised))}
 .team[aria-disabled="true"]{cursor:default}
 .pips{display:flex;align-items:center}
 .pip{width:24px;height:24px;border-radius:50%;background:var(--c);color:#fff;display:inline-grid;place-items:center;font-size:11px;font-weight:800;box-shadow:0 0 0 2px var(--raised)}
 .pips{gap:3px}
-.pip.up,.pip.ok{box-shadow:0 0 0 2px var(--raised),0 0 0 3.5px var(--good)}
+.pip.up,.pip.ok{box-shadow:0 0 0 2px var(--raised),0 0 0 3.5px var(--good),0 0 10px 1px color-mix(in srgb,var(--good) 55%,transparent)}
 .pip.down{box-shadow:0 0 0 2px var(--raised),0 0 0 3.5px var(--bad)}
 .pip.no{opacity:.4}
 .sealed{margin:0 6px 2px;font-size:12px;color:var(--ink-3)}
@@ -169,7 +169,14 @@ td.tot{font-family:var(--numeric);font-weight:700;font-size:21px}
 td.ok{background:color-mix(in srgb,var(--good) 16%,transparent)}
 td.up{background:color-mix(in srgb,var(--good) 8%,transparent)}
 td.down{background:color-mix(in srgb,var(--bad) 8%,transparent)}
-td.no .pchip{opacity:.4}
+.plogo{display:inline-grid;place-items:center;width:38px;height:38px;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--tc) 70%,transparent) 0,color-mix(in srgb,var(--tc) 25%,transparent) 58%,transparent 72%);transition:box-shadow .3s,opacity .3s}
+.plogo img{width:26px;height:26px;object-fit:contain;filter:drop-shadow(0 1px 2px rgba(0,0,0,.5))}
+.plogo b{font-family:var(--numeric);font-size:13px;font-weight:700}
+td.no .plogo{opacity:.35;filter:grayscale(.6)}
+td.ok .plogo{box-shadow:0 0 0 1px color-mix(in srgb,var(--good) 55%,transparent),0 0 14px -3px color-mix(in srgb,var(--good) 70%,transparent)}
+td.up .plogo{animation:chipGlow 2.4s ease-in-out infinite}
+@keyframes chipGlow{0%,100%{box-shadow:0 0 0 1px color-mix(in srgb,var(--good) 35%,transparent)}50%{box-shadow:0 0 0 1px color-mix(in srgb,var(--good) 65%,transparent),0 0 16px -2px color-mix(in srgb,var(--good) 75%,transparent)}}
+.allpicks th.lead .jersey{box-shadow:0 0 0 2px var(--surface),0 0 0 3.5px var(--c),0 0 18px 2px color-mix(in srgb,var(--c) 70%,transparent)}
 .mark{font-style:normal;font-weight:800;margin-left:4px;font-size:11px}
 td.ok .mark,td.up .mark{color:var(--good)}
 td.no .mark,td.down .mark{color:var(--bad)}
@@ -190,7 +197,12 @@ td.none,td.sealedc{color:var(--ink-3)}
 .rank{display:grid;gap:6px;margin-top:10px}
 @property --p{syntax:'<percentage>';inherits:true;initial-value:0%}
 .rrow{display:grid;grid-template-columns:20px 34px minmax(0,1fr) auto auto;gap:12px;align-items:center;padding:10px 12px 10px 8px;border-radius:14px;background:var(--raised)}
-.rrow.has-chance{background:linear-gradient(90deg,color-mix(in srgb,var(--c) 34%,var(--raised)) var(--p),var(--raised) var(--p))}
+.rrow{position:relative;overflow:hidden}
+.rrow>*{position:relative;z-index:1}
+.rrow.has-chance{background:linear-gradient(90deg,color-mix(in srgb,var(--c) 16%,var(--raised)) 0,color-mix(in srgb,var(--c) 44%,var(--raised)) var(--p),var(--raised) var(--p))}
+.rrow.has-chance::after{content:"";position:absolute;top:0;bottom:0;left:calc(var(--p) - 2px);width:2px;background:color-mix(in srgb,var(--c) 70%,#fff);box-shadow:0 0 12px 3px color-mix(in srgb,var(--c) 75%,transparent);opacity:var(--edge,0);pointer-events:none}
+.rrow.lead{box-shadow:0 0 0 1px color-mix(in srgb,var(--c) 50%,transparent),0 10px 30px -14px color-mix(in srgb,var(--c) 90%,transparent)}
+.rrow.lead .chance b{text-shadow:0 0 16px color-mix(in srgb,var(--c) 90%,transparent)}
 @media (prefers-reduced-motion:no-preference){.rrow.has-chance{transition:--p .7s ease}}
 .pos{font-weight:800;color:var(--ink-2);text-align:center}
 .who>b{display:flex;align-items:center;gap:6px;min-width:0;font-weight:700;font-size:16px}
@@ -289,7 +301,8 @@ dialog.sheet[open]{display:flex;flex-direction:column}
 .pd b{margin-top:8px;max-width:100%;font-size:14px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pd small{font-size:12px;color:var(--ink-2)}
 .pd-step{width:100%;margin-top:8px;border-radius:12px 12px 4px 4px;display:grid;justify-items:center;align-content:center;background:color-mix(in srgb,var(--c) 28%,var(--raised))}
-.pd1 .pd-step{height:76px;background:linear-gradient(180deg,#F5B400,color-mix(in srgb,#F5B400 45%,var(--raised)))}
+.pd1 .pd-step{height:76px;background:linear-gradient(180deg,#F5B400,color-mix(in srgb,#F5B400 45%,var(--raised)));box-shadow:0 -8px 30px -12px #F5B400}
+.pd1 .jersey{box-shadow:0 0 0 3px var(--surface),0 0 0 5px var(--c),0 0 26px 4px color-mix(in srgb,var(--c) 55%,transparent)}
 .pd2 .pd-step{height:56px}
 .pd3 .pd-step{height:40px}
 .pd-step span{font-family:var(--display);font-size:12px;font-weight:700}
@@ -405,10 +418,11 @@ dialog p{margin:6px 0 0}
   .allpicks .jersey{width:24px;height:24px;font-size:12px}
   .gcell b{font-size:15px}
   .gcell span{font-size:10px;line-height:1.25}
-  .pchip{min-width:0;width:100%;padding:2px 0;font-size:14px;text-align:center}
+  .plogo{width:34px;height:34px}
+  .plogo img{width:24px;height:24px}
   .allpicks .mark{display:block;margin:1px 0 0;font-size:9px;text-align:center}
 }
-@media (prefers-reduced-motion:reduce){.alert.in,.alert.in::after,.sc.bump,.game.flash,.st.live::before,.pin-dots.shake{animation:none}}
+@media (prefers-reduced-motion:reduce){.alert.in,.alert.in::after,.sc.bump,.game.flash,.st.live::before,.pin-dots.shake,td.up .plogo{animation:none}}
 </style>
 </head>
 <body>
@@ -770,7 +784,7 @@ function renderAllPicks(app){
   const rec=Object.fromEntries(sc.rows.map(r=>[r.p.id,r]));
   const anyOpen=gs.some(g=>!locked(g));
   let h=`<div class="note"><span>${anyOpen?(S.revealAll?'<b>Showing every pick</b>, including games that haven’t locked yet.':'Picks for games that haven’t locked yet show as ✓ until they lock.'):'Every game this week is locked, so all picks show.'}</span><span style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">${lockButton(w)}${anyOpen?`<button class="toggle" id="revealToggle" aria-pressed="${!!S.revealAll}">${S.revealAll?'Hide open picks':'Show all picks'}</button>`:''}</span></div>`;
-  h+=`<section class="card"><div class="scroll" style="margin-top:-6px"><table class="allpicks"><thead><tr><th>Game</th>${ps.map(p=>`<th style="--c:${esc(p.color)}"><span class="jersey av-${p.id}">${initial(p)}</span><span class="pname">${esc(p.name)}</span><small class="num">${rec[p.id].right}–${rec[p.id].wrong}${rec[p.id].up?`<span class="upct"> · ${rec[p.id].up} ▲</span>`:''}</small></th>`).join('')}</tr></thead><tbody>`;
+  h+=`<section class="card"><div class="scroll" style="margin-top:-6px"><table class="allpicks"><thead><tr><th>Game</th>${ps.map(p=>`<th class="${rec[p.id].right>0&&rec[p.id].right===Math.max(...sc.rows.map(x=>x.right))?'lead':''}" style="--c:${esc(p.color)}"><span class="jersey av-${p.id}">${initial(p)}</span><span class="pname">${esc(p.name)}</span><small class="num">${rec[p.id].right}–${rec[p.id].wrong}${rec[p.id].up?`<span class="upct"> · ${rec[p.id].up} ▲</span>`:''}</small></th>`).join('')}</tr></thead><tbody>`;
   gs.forEach(g=>{
     const show=locked(g)||S.revealAll;
     const status=g.w?(g.w==='TIE'?`Final · tie ${g.as}–${g.hs}`:`Final ${g.as}–${g.hs}`):g.st==='in'?`Live ${g.as}–${g.hs}${g.d?' · '+g.d:''}`:g.tbd?'Time TBD':fmtKick.format(new Date(g.t));
@@ -782,7 +796,7 @@ function renderAllPicks(app){
       const t=pick===g.a.ab?g.a:pick===g.h.ab?g.h:{c:'#555555'};
       const res=pickState(g,pick);
       const mark={ok:'<i class="mark" aria-label="correct">✓</i>',no:'<i class="mark" aria-label="wrong">✗</i>',up:'<i class="mark" aria-label="winning now">▲</i>',down:'<i class="mark" aria-label="losing now">▼</i>'}[res]||'';
-      h+=`<td class="${res}"><span class="pchip" style="--tc:${esc(t.c)};--tx:${textOn(t.c)}">${esc(pick)}</span>${mark}</td>`;
+      h+=`<td class="${res}"><span class="plogo" style="--tc:${esc(t.c)}" title="${esc(t.name||pick)}">${t.logo?`<img src="${esc(t.logo)}" alt="${esc(pick)}" width="26" height="26" loading="lazy">`:`<b>${esc(pick)}</b>`}</span>${mark}</td>`;
     });
     h+='</tr>';
   });
@@ -903,7 +917,8 @@ function renderStandings(app){
     const spoon=sc.complete&&r.place===sc.rows.length;
     // Win chance fills the row from the left in the person's color
     const fill=chances?(chances.out.has(r.p.id)?0:Math.round((chances.p[r.p.id]||0)*100)):0;
-    h+=`<div class="rrow${chances?' has-chance':''}" data-profile="${r.p.id}" style="--c:${esc(r.p.color)};--p:${fill}%"><span class="pos num">${pos}</span><span class="jersey av-${r.p.id}">${initial(r.p)}</span>
+    const leadChance=chances&&fill>0&&fill===Math.max(...sc.rows.map(x=>chances.out.has(x.p.id)?0:Math.round((chances.p[x.p.id]||0)*100)));
+    h+=`<div class="rrow${chances?' has-chance':''}${leadChance?' lead':''}" data-profile="${r.p.id}" style="--c:${esc(r.p.color)};--p:${fill}%;--edge:${fill>0&&fill<100?1:0}"><span class="pos num">${pos}</span><span class="jersey av-${r.p.id}">${initial(r.p)}</span>
       <div class="who"><b>${esc(r.p.name)} ${sc.complete&&r.place===1?'<span class="crown" aria-label="Week winner">★</span>':''}${spoon?`<span class="spoon" title="Wooden Spoon">${badgeIcon(BADGE.spoon)}</span>`:''}</b><span class="num">${notes.join(' · ')}</span></div>
       ${chanceHtml(chances,r)}<div class="rec num">${r.right}–${r.wrong}<small>${sc.complete?`<b class="ptsb">+${r.pts} pts</b>`:'W–L'}</small></div></div>`;
   });
