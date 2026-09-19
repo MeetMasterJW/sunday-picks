@@ -75,6 +75,24 @@ function moneyline(odds, sideKey) {
   return Number.isFinite(n) ? n : null;
 }
 
+// Closing line for a game that already kicked off, so upset badges can be filled in later.
+// Returns {fav, line} or null.
+export async function fetchClosingLine(id) {
+  const res = await fetch(`https://site.api.espn.com/apis/site/v2/sports/football/nfl/summary?event=${id}`, { cache: 'no-store' });
+  if (!res.ok) throw new Error(`ESPN summary ${id}: HTTP ${res.status}`);
+  const s = await res.json();
+  const book = (s.pickcenter || [])[0];
+  if (!book) return null;
+  const comp = ((s.header || {}).competitions || [])[0] || {};
+  const side = Object.fromEntries((comp.competitors || []).map((c) => [c.homeAway, ((c.team || {}).abbreviation) || '']));
+  const line = Math.abs(Number(book.spread));
+  if ((book.homeTeamOdds || {}).favorite && side.home) return { fav: side.home, line: Number.isFinite(line) ? line : null };
+  if ((book.awayTeamOdds || {}).favorite && side.away) return { fav: side.away, line: Number.isFinite(line) ? line : null };
+  const fromDetails = homeLine(book.details, side.home, side.away);
+  if (fromDetails == null || fromDetails === 0) return null;
+  return { fav: fromDetails < 0 ? side.home : side.away, line: Math.abs(fromDetails) };
+}
+
 // Box score for one game, trimmed to what the game sheet shows
 const TEAM_STATS = ['totalYards', 'netPassingYards', 'rushingYards', 'turnovers', 'firstDowns', 'thirdDownEff', 'totalPenaltiesYards', 'possessionTime'];
 const LEADER_STATS = ['passingYards', 'rushingYards', 'receivingYards'];

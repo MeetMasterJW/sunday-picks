@@ -489,7 +489,7 @@ dialog p{margin:6px 0 0}
 
 <script type="module">
 import {firebaseConfig,parentEmail} from './config.js';
-import {fetchWeek,fetchWinProb,fetchGameSummary,groupIntoPickWeeks} from './espn.js';
+import {fetchWeek,fetchWinProb,fetchGameSummary,fetchClosingLine,groupIntoPickWeeks} from './espn.js';
 import {initializeApp} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
 import {getFirestore,doc,collection,setDoc,onSnapshot} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
 import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,signOut} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
@@ -762,7 +762,10 @@ function rememberLine(g){
 function spreadText(g){
   rememberLine(g);
   const sp=g.spread?{s:g.spread,ou:g.ou}:spreads[g.id];
-  return sp?`${sp.s}${sp.ou!=null?' · O/U '+sp.ou:''}`:`${g.a.ab} @ ${g.h.ab}`;
+  if(sp)return `${sp.s}${sp.ou!=null?' · O/U '+sp.ou:''}`;
+  const saved=(S.lines['w'+pickWeekOf(g.id)]||{})[g.id];
+  if(saved&&saved.fav&&saved.line!=null)return `${saved.fav} -${saved.line}`;
+  return `${g.a.ab} @ ${g.h.ab}`;
 }
 
 function gameCard(g,w,me,mine,isLast){
@@ -774,7 +777,7 @@ function gameCard(g,w,me,mine,isLast){
   else status=`<span class="st">${g.tbd?'Time TBD':fmtTime.format(new Date(g.t))}${slot?`<span class="slot">${slot}</span>`:''}${lk&&!weekLocked(w)?' · locked':''}</span>`;
   const who=players().map(p=>({p,pick:picksFor(w,p.id)[g.id]})).filter(x=>x.pick);
   const pips=(ab)=>lk?who.filter(x=>x.pick===ab).map(x=>`<span class="pip ${pickState(g,x.pick)} av-${x.p.id}" style="--c:${esc(x.p.color)}" title="${esc(x.p.name)}" aria-label="${esc(x.p.name)}">${initial(x.p)}</span>`).join(''):'';
-  let h=`<article class="game${flashing(g)?' flash':''}"><button type="button" class="gmeta" data-box="${esc(g.id)}" aria-label="Box score, ${esc(g.a.name)} at ${esc(g.h.name)}">${status}<span class="line">${esc(spreadText(g))}<svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span></button>
+  let h=`<article class="game${flashing(g)?' flash':''}"><button type="button" class="gmeta" data-box="${esc(g.id)}" aria-label="Box score, ${esc(g.a.name)} at ${esc(g.h.name)}">${status}<span class="line">${esc(lk?spreadText(g):`${g.a.ab} @ ${g.h.ab}`)}<svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span></button>
     <div class="rows">${teamBtn(g,'a',me,mine,pips(g.a.ab))}${teamBtn(g,'h',me,mine,pips(g.h.ab))}</div>`;
   if(isTbd(g))h+='<p class="sealed">Matchup is set once the previous round ends</p>';
   else if(!lk)h+=`<p class="sealed">${who.length}/${players().length} picked · revealed when picks lock</p>`;
@@ -995,7 +998,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden&&S.tab==='
 const BADGE={
   champ:{name:'Weekly Champ',desc:'Finish 1st in a week',color:'#F5B400',icon:'<path d="M8 20h8M12 16v4M7 4h10v5a5 5 0 01-10 0V4zM7 6H4.5a2.5 2.5 0 002.8 3.6M17 6h2.5a2.5 2.5 0 01-2.8 3.6"/>',count:o=>o.champ},
   perfect:{name:'Perfect Week',desc:'Every pick right in a week',color:'#30D158',icon:'<circle cx="12" cy="12" r="8.5"/><path d="M8 12.5l2.7 2.7L16 9.5"/>',count:o=>o.perfect},
-  upset:{name:'Upset Artist',desc:'Pick an underdog that wins',color:'#A983FF',icon:'<path d="M13 3L6 13.5h5.5L10.5 21 18 10.5h-5.5L13 3z"/>',count:o=>o.upsets},
+  upset:{name:'Upset Artist',desc:'Pick an underdog that wins',color:'#A983FF',icon:'<path d="M7.6 6.6 5 4.9a1.1 1.1 0 0 0-1.7 1l.2 4.2"/><path d="M16.4 6.6 19 4.9a1.1 1.1 0 0 1 1.7 1l-.2 4.2"/><path d="M3.5 10c0-3 3.8-5.1 8.5-5.1s8.5 2.1 8.5 5.1c0 4.5-3.8 8-8.5 8S3.5 14.5 3.5 10Z"/><path d="M9.4 11.2h.01M14.6 11.2h.01"/><path d="m10.7 13.5 1.3 1.4 1.3-1.4Z"/>',count:o=>o.upsets},
   streak:{name:'Hot Streak',desc:'5 right in a row',color:'#FF7A3D',icon:'<path d="M12 3c.6 3 4.5 5.2 4.5 9.6A4.5 4.5 0 017.5 13c0-2.2 1.2-3.4 2.3-4.8.3 1.4 1.1 2.4 2.2 2.6-.7-2.4-.6-5.1 0-7.8z"/>',count:o=>o.bestStreak>=5?1:0,detail:o=>`Best: ${o.bestStreak} in a row`},
   wizard:{name:'Tiebreak Wizard',desc:'Guess the exact tiebreaker total',color:'#4DB3FF',icon:'<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/>',count:o=>o.wizard},
   spoon:{name:'Wooden Spoon',desc:'Finish last in a week',color:'#C08A5B',icon:'<ellipse cx="12" cy="7.5" rx="3.6" ry="4.5"/><path d="M12 12v9"/>',count:o=>o.spoon},
@@ -1295,6 +1298,39 @@ function syncLines(){
     S.lines={...S.lines,['w'+w]:next};
     S.db.doc('lines/w'+w).set(next).catch(()=>{});
   }
+  backfillLines();
+}
+// A game that kicked off before anyone opened the page has no favorite yet; ESPN keeps the
+// closing line, so fill those in a few at a time.
+const lineTried=new Set();
+let backfilling=false;
+async function backfillLines(){
+  if(backfilling||!S.db||!S.linesLoaded)return;
+  const todo=[];
+  for(const [w,wk] of Object.entries(S.weeks)){
+    const have=S.lines['w'+w]||{};
+    for(const g of wk.games){
+      if(!g.w||have[g.id]||lineTried.has(g.id)||isTbd(g))continue;
+      todo.push({w,g});
+      if(todo.length>=6)break;
+    }
+    if(todo.length>=6)break;
+  }
+  if(!todo.length)return;
+  backfilling=true;
+  try{
+    const found={};
+    for(const {w,g} of todo){
+      lineTried.add(g.id);
+      try{const f=await fetchClosingLine(g.id);if(f&&f.fav){(found[w]=found[w]||{})[g.id]=f}}catch{}
+    }
+    for(const [w,add] of Object.entries(found)){
+      const next={...(S.lines['w'+w]||{}),...add};
+      S.lines={...S.lines,['w'+w]:next};
+      try{await S.db.doc('lines/w'+w).set(next)}catch{}
+    }
+    if(Object.keys(found).length)render();
+  }finally{backfilling=false}
 }
 
 function alertsCard(){
@@ -1611,7 +1647,7 @@ function renderBox(){
   const status=g.w?(g.w==='TIE'?'Final · Tie':'Final'):g.st==='in'?(g.d||'Live'):g.tbd?'Time TBD':`${fmtDay.format(new Date(g.t))} · ${fmtTime.format(new Date(g.t))}`;
   let h=`<div class="bx-score">${boxTeam(g,'a',w,lk)}<div class="bx-mid">${started?`<div class="bx-nums num"><span class="${g.as<g.hs?'lo':''}">${g.as}</span><span class="dash">–</span><span class="${g.hs<g.as?'lo':''}">${g.hs}</span></div>`:'<div class="bx-at">@</div>'}<div class="st ${g.w?'final':g.st==='in'?'live':''}">${esc(status)}</div></div>${boxTeam(g,'h',w,lk)}</div>`;
   if(!started){
-    const facts=[spreadText(g),d&&d.venue].filter(Boolean);
+    const facts=[lk?spreadText(g):'',d&&d.venue].filter(Boolean);
     h+=`<section class="bx-sec"><div class="bx-facts">${facts.map(f=>`<span>${esc(f)}</span>`).join('')}</div><p class="muted">The box score fills in once the game kicks off.</p></section>`;
   }else if(!d){
     h+=cached&&cached.err?'<p class="bx-msg">The box score isn’t available right now. <button type="button" class="linkbtn" data-box-retry>Try again</button></p>':'<p class="bx-msg">Loading box score…</p>';
