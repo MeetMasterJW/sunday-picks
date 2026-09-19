@@ -78,9 +78,7 @@ function moneyline(odds, sideKey) {
 // Closing line for a game that already kicked off, so upset badges can be filled in later.
 // Returns {fav, line} or null.
 export async function fetchClosingLine(id) {
-  const res = await fetch(`https://site.api.espn.com/apis/site/v2/sports/football/nfl/summary?event=${id}`, { cache: 'no-store' });
-  if (!res.ok) throw new Error(`ESPN summary ${id}: HTTP ${res.status}`);
-  const s = await res.json();
+  const s = await getJson(`https://site.api.espn.com/apis/site/v2/sports/football/nfl/summary?event=${id}`, `ESPN summary ${id}`);
   const book = (s.pickcenter || [])[0];
   if (!book) return null;
   const comp = ((s.header || {}).competitions || [])[0] || {};
@@ -98,9 +96,7 @@ const TEAM_STATS = ['totalYards', 'netPassingYards', 'rushingYards', 'turnovers'
 const LEADER_STATS = ['passingYards', 'rushingYards', 'receivingYards'];
 
 export async function fetchGameSummary(id) {
-  const res = await fetch(`https://site.api.espn.com/apis/site/v2/sports/football/nfl/summary?event=${id}`, { cache: 'no-store' });
-  if (!res.ok) throw new Error(`ESPN summary ${id}: HTTP ${res.status}`);
-  const s = await res.json();
+  const s = await getJson(`https://site.api.espn.com/apis/site/v2/sports/football/nfl/summary?event=${id}`, `ESPN summary ${id}`);
   const comp = ((s.header || {}).competitions || [])[0] || {};
   const side = Object.fromEntries((comp.competitors || []).map((c) => [c.homeAway, c]));
   const abbr = (k) => ((side[k] || {}).team || {}).abbreviation;
@@ -144,17 +140,32 @@ export async function fetchGameSummary(id) {
 
 // Latest home win probability from ESPN's game detail feed (about 50 KB compressed; call sparingly)
 export async function fetchWinProb(id) {
-  const res = await fetch(`https://site.api.espn.com/apis/site/v2/sports/football/nfl/summary?event=${id}`, { cache: 'no-store' });
-  if (!res.ok) throw new Error(`ESPN summary ${id}: HTTP ${res.status}`);
-  const wp = (await res.json()).winprobability || [];
+  const wp = (await getJson(`https://site.api.espn.com/apis/site/v2/sports/football/nfl/summary?event=${id}`, `ESPN summary ${id}`)).winprobability || [];
   const last = wp[wp.length - 1];
   return last ? numberOrNull(last.homeWinPercentage) : null;
 }
 
+// One request with a timeout, retried once: a stalled phone connection should fail, not hang forever
+async function getJson(target, label) {
+  let last;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const stop = new AbortController();
+    const timer = setTimeout(() => stop.abort(), 15000);
+    try {
+      const res = await fetch(target, { cache: 'no-store', signal: stop.signal });
+      if (!res.ok) throw new Error(`${label}: HTTP ${res.status}`);
+      return await res.json();
+    } catch (e) {
+      last = e.name === 'AbortError' ? new Error(`${label}: timed out`) : e;
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+  throw last;
+}
+
 export async function fetchWeek(week, seasonType = 2) {
-  const res = await fetch(url(week, seasonType), { cache: 'no-store' });
-  if (!res.ok) throw new Error(`ESPN week ${week}: HTTP ${res.status}`);
-  return (await res.json()).events.map(game);
+  return (await getJson(url(week, seasonType), `ESPN week ${week}`)).events.map(game);
 }
 
 // Eastern calendar day as a whole-day number, so weekday maths ignores time zones

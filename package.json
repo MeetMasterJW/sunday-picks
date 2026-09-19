@@ -3,7 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "migrate": "node scripts/migrate.mjs"
+    "migrate": "node scripts/migrate.mjs",
+    "stamp": "node scripts/stamp.mjs"
   },
   "devDependencies": {
     "firebase": "^10.14.1"

@@ -488,8 +488,8 @@ dialog p{margin:6px 0 0}
 </dialog>
 
 <script type="module">
-import {firebaseConfig,parentEmail} from './config.js';
-import {fetchWeek,fetchWinProb,fetchGameSummary,fetchClosingLine,groupIntoPickWeeks} from './espn.js';
+import {firebaseConfig,parentEmail} from './config.js?v=3f3ed98f';
+import {fetchWeek,fetchWinProb,fetchGameSummary,fetchClosingLine,groupIntoPickWeeks} from './espn.js?v=3f3ed98f';
 import {initializeApp} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
 import {getFirestore,doc,collection,setDoc,onSnapshot} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
 import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,signOut} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
@@ -598,7 +598,7 @@ function render(){
   $('#wkTitle').textContent=S.tab==='family'?'Family':(w?weekName(w):'Week –');
   if(S.tab==='family'){$('#wkDates').textContent='Names & colors'}
   else if(gs.length){const a=new Date(gs[0].t),b=new Date(gs[gs.length-1].t);$('#wkDates').textContent=fmtShort.format(a)+' – '+fmtShort.format(b)+' · '+gs.length+' games'+(S.scoreError?' · scores offline':'')}
-  else $('#wkDates').textContent=S.ready?'Schedule not loaded yet':'Loading schedule…';
+  else $('#wkDates').textContent=S.scoreError?'Couldn’t reach ESPN':(S.ready?'Schedule not loaded yet':'Loading schedule…');
   $('.weeknav').hidden=S.tab==='family';
   const meP=player(S.me),face=$('#meFace');
   face.className='jersey av-'+meP.id;face.style.setProperty('--c',meP.color);face.textContent=(meP.name||'?').trim().charAt(0).toUpperCase();
@@ -607,7 +607,11 @@ function render(){
   const app=$('#app');
   if(S.offline){app.innerHTML='<div class="empty"><b>Sunday Picks isn’t connected to its database yet.</b><br>Add your Firebase settings to config.js.</div>';return}
   if(S.tab==='family')return renderFamily(app);
-  if(!gs.length){app.innerHTML='<div class="empty">'+(S.ready?'No games found for this week yet.':'Loading the schedule…')+'</div>';return}
+  if(!gs.length){
+    app.innerHTML=S.scoreError
+      ?'<div class="empty"><b>Couldn’t load the schedule from ESPN.</b><br>Check your connection, then try again.<br><br><button type="button" class="primary" data-retry>Try again</button></div>'
+      :`<div class="empty">${S.ready?'No games found for this week yet.':'Loading the schedule…'}</div>`;
+    return}
   if(S.tab==='standings')return renderStandings(app);
   if(S.tab==='all')return renderAllPicks(app);
   renderPicks(app);
@@ -1414,6 +1418,7 @@ document.addEventListener('click',(e)=>{
   if(rs){const pid=rs.dataset.pinReset;requireParent(`Enter the parent password to reset ${player(pid).name}’s PIN.`,()=>saveProfile(pid,{pinHash:'',pinSalt:''},`PIN reset. ${player(pid).name} can set a new one next time.`));return}
   const prof=e.target.closest('[data-profile]');
   if(prof&&!e.target.closest('input')){openProfile(prof.dataset.profile);return}
+  if(e.target.closest('[data-retry]')){toast('Loading the schedule…');refresh();return}
   const tab=e.target.closest('[data-tab]');
   if(tab){S.fillShown={};S.tab=tab.dataset.tab;S.results=false;store.set('tab',S.tab);render();window.scrollTo(0,0);return}
   const pk=e.target.closest('[data-picker]');
