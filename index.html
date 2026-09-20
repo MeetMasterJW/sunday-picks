@@ -99,11 +99,12 @@ main>*{min-width:0}
 .game{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:8px 8px 8px;display:grid;gap:6px}
 .game.flash{animation:flash 2.4s ease-out}
 @keyframes flash{0%,35%{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 35%,transparent)}}
-.gmeta{display:flex;justify-content:space-between;gap:4px 10px;flex-wrap:wrap;padding:2px 6px 0;font-size:12.5px;color:var(--ink-3)}
+.gmeta{display:flex;align-items:center;justify-content:space-between;gap:4px 8px;flex-wrap:wrap;padding:2px 6px 0;font-size:12.5px;color:var(--ink-3)}
 .gmeta .line{font-weight:600;color:var(--ink-2)}
 .st{font-weight:600;color:var(--ink-2)}
 .st.final{color:var(--ink)}
 .st.live{color:var(--live)}
+.rzflag{flex:none;padding:1px 7px;border-radius:999px;background:rgba(255,69,58,.22);color:var(--bad);font-size:10.5px;font-weight:800;letter-spacing:.04em;white-space:nowrap}
 .st.live::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:currentColor;box-shadow:0 0 8px 1px currentColor;margin-right:6px;vertical-align:1px;animation:pulse 1.6s ease-in-out infinite}
 @keyframes pulse{50%{opacity:.3}}
 .rows{display:grid;gap:4px}
@@ -246,20 +247,20 @@ dialog.sheet[open]{display:flex;flex-direction:column}
 .bx-poss img{width:20px;height:20px;flex:none;object-fit:contain}
 .bx-poss b{font-weight:700;white-space:nowrap}
 .bx-poss .dd{color:var(--ink-2);font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.bx-poss .rz{margin-left:auto;flex:none;padding:2px 8px;border-radius:999px;background:color-mix(in srgb,var(--bad) 24%,transparent);color:var(--bad);font-size:10.5px;font-weight:800;letter-spacing:.04em}
-.bx-field{display:grid;grid-template-columns:22px minmax(0,1fr) 22px;height:54px;border-radius:10px;overflow:hidden;border:1px solid var(--line-2)}
-.bx-ez{display:grid;place-items:center;background:color-mix(in srgb,var(--tc) 72%,#000);color:#fff;font:700 10px/1 var(--numeric);letter-spacing:.08em;writing-mode:vertical-rl}
-.bx-ez.l{transform:rotate(180deg)}
-.bx-turf{position:relative;background:repeating-linear-gradient(90deg,transparent 0 calc(10% - 1px),rgba(255,255,255,.22) calc(10% - 1px) 10%),repeating-linear-gradient(90deg,#1B3826 0 20%,#17301F 20% 40%)}
-.bx-turf::after{content:"";position:absolute;left:50%;top:0;bottom:0;width:1px;background:rgba(255,255,255,.45)}
-.bx-fd{position:absolute;left:var(--fd);top:0;bottom:0;width:2px;background:#FFD60A;box-shadow:0 0 6px rgba(255,214,10,.55)}
-.bx-los{position:absolute;left:var(--ball);top:0;bottom:0;width:2px;background:#fff;opacity:.9}
-.bx-ball{position:absolute;left:var(--ball);top:50%;transform:translate(-50%,-50%);width:26px;height:18px;filter:drop-shadow(0 1px 3px rgba(0,0,0,.6))}
-.bx-ball ellipse{fill:color-mix(in srgb,var(--tc) 85%,#000);stroke:#fff;stroke-width:1.4}
-.bx-ball path{stroke:#fff;stroke-width:1.3;stroke-linecap:round;fill:none}
-.bx-dir{position:absolute;top:5px;width:0;height:0;border-top:5px solid transparent;border-bottom:5px solid transparent;filter:drop-shadow(0 1px 2px rgba(0,0,0,.6))}
-.bx-dir.l{left:calc(var(--ball) - 12px);border-right:7px solid #fff}
-.bx-dir.r{left:calc(var(--ball) + 5px);border-left:7px solid #fff}
+.bx-poss .rzflag{margin-left:auto}
+.bx-field{display:flex;height:46px;border-radius:9px;overflow:hidden;border:1px solid var(--line-2)}
+/* end zones paint a flat team colour, mixed to a hex in JS: iOS Safari leaves a color-mix() background empty here.
+   The turf stays neutral rather than grass green so dark green teams still read against it. */
+.bx-ez{flex:0 0 18px;align-self:stretch}
+.bx-turf{position:relative;flex:1 1 auto;min-width:0;align-self:stretch;background:linear-gradient(180deg,#262D37,#1A202A);box-shadow:inset 2px 0 0 rgba(255,255,255,.65),inset -2px 0 0 rgba(255,255,255,.65)}
+.bx-yards,.bx-togo,.bx-fd,.bx-los{position:absolute;top:0;bottom:0}
+.bx-yards{left:0;right:0;background:repeating-linear-gradient(90deg,rgba(255,255,255,.13) 0 1px,transparent 1px 10%)}
+.bx-togo{left:var(--togo-x);width:var(--togo-w);background:rgba(255,214,10,.16)}
+.bx-fd{left:var(--fd);width:2px;background:#FFD60A}
+.bx-los{left:var(--ball);width:2px;background:rgba(255,255,255,.85)}
+.bx-ball{position:absolute;left:var(--ball);top:50%;transform:translate(-50%,-50%);width:24px;height:15px;filter:drop-shadow(0 1px 3px rgba(0,0,0,.55))}
+.bx-ball ellipse{stroke:#fff;stroke-width:1.3}
+.bx-ball path{stroke:#fff;stroke-width:1.2;stroke-linecap:round;fill:none}
 .bx-to{display:flex;justify-content:space-between;font-size:11.5px;font-weight:600;color:var(--ink-3)}
 .bx-to span{display:inline-flex;align-items:center;gap:4px}
 .bx-to i{width:6px;height:6px;border-radius:50%;background:var(--ink-3);opacity:.35}
@@ -802,6 +803,7 @@ function gameCard(g,w,me,mine,isLast){
   else if(g.st==='in')status=`<span class="st live">${esc(g.d||'Live')}</span>`;
   else if(Date.now()>=new Date(g.t).getTime())status=`<span class="st live">Kicked off${lk?'':' · picks open until '+fmtTime.format(new Date(lockTime(g)))}</span>`;
   else status=`<span class="st">${g.tbd?'Time TBD':fmtTime.format(new Date(g.t))}${slot?`<span class="slot">${slot}</span>`:''}${lk&&!weekLocked(w)?' · locked':''}</span>`;
+  if(g.st==='in'&&g.sit&&g.sit.rz&&g.sit.pos)status+=`<span class="rzflag">${esc(g[g.sit.pos].ab)} RED ZONE</span>`;
   const who=players().map(p=>({p,pick:picksFor(w,p.id)[g.id]})).filter(x=>x.pick);
   const pips=(ab)=>lk?who.filter(x=>x.pick===ab).map(x=>`<span class="pip ${pickState(g,x.pick)} av-${x.p.id}" style="--c:${esc(x.p.color)}" title="${esc(x.p.name)}" aria-label="${esc(x.p.name)}">${initial(x.p)}</span>`).join(''):'';
   let h=`<article class="game${flashing(g)?' flash':''}"><button type="button" class="gmeta" data-box="${esc(g.id)}" aria-label="Box score, ${esc(g.a.name)} at ${esc(g.h.name)}">${status}<span class="line">${esc(lk?spreadText(g):`${g.a.ab} @ ${g.h.ab}`)}<svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span></button>
@@ -1667,20 +1669,32 @@ function boxTeam(g,side,w,lk){
   const who=lk?players().filter(p=>picksFor(w,p.id)[g.id]===t.ab):[];
   return `<div class="bx-team"><span class="logo" style="--tc:${esc(t.c)}">${t.logo?`<img src="${esc(t.logo)}" alt="" width="42" height="42">`:`<span class="ab">${esc(t.ab)}</span>`}</span><b>${esc(t.name)}</b><small class="num">${esc(t.rec||t.loc)}</small><div class="pips">${who.map(p=>`<span class="pip ${pickState(g,t.ab)} av-${p.id}" style="--c:${esc(p.color)}" title="${esc(p.name)}" aria-label="${esc(p.name)}">${initial(p)}</span>`).join('')}</div></div>`;
 }
-// Live field: which end zone each team defends (away left, home right), where the ball sits
-// and which way the team with it is driving. g.sit.yl counts up from the home goal line.
+// Team colour darkened toward black, as a plain rgb() string: some phones ignore a
+// color-mix() background on these blocks, and an empty end zone reads as a bug.
+function shade(hex,k){
+  const h=String(hex||'').replace('#','');
+  if(h.length!==6)return '#555555';
+  const c=(i)=>Math.round(parseInt(h.substr(i,2),16)*k);
+  return `rgb(${c(0)},${c(2)},${c(4)})`;
+}
+// Live field: away defends the left end zone, home the right, matching the score above.
+// g.sit.yl counts up from the home goal line, so the ball sits at 100 - yl from the left
+// and the shaded band runs from the ball to the line to gain, which shows the drive's way.
 function fieldView(g){
   const s=g.sit;
   if(!s||!s.pos||s.yl==null)return '';
   const t=g[s.pos],x=100-s.yl;
   const fdYl=s.dist==null?null:s.pos==='h'?s.yl+s.dist:s.yl-s.dist;
-  const fd=fdYl!=null&&fdYl>0&&fdYl<100?100-fdYl:null;
+  const fdX=fdYl==null?null:100-Math.min(100,Math.max(0,fdYl));
   const tos=(sd)=>{const n=s.to[sd];return n==null?'':`<span>${esc(g[sd].ab)}<i class="${n>0?'on':''}"></i><i class="${n>1?'on':''}"></i><i class="${n>2?'on':''}"></i></span>`};
-  const style=`--ball:${x}%;--tc:${esc(t.c)}${fd==null?'':`;--fd:${fd}%`}`;
-  const alt=`${t.name} ball${s.spot?` at ${s.spot}`:''}`;
+  const vars=[`--ball:${x}%`,`--tc:${esc(t.c)}`];
+  if(fdX!=null)vars.push(`--togo-x:${Math.min(x,fdX)}%`,`--togo-w:${Math.abs(x-fdX)}%`);
+  // no line to gain on goal to go: the band already runs to the goal line
+  const fd=fdYl!=null&&fdYl>0&&fdYl<100?`<i class="bx-fd" style="--fd:${fdX}%"></i>`:'';
+  const alt=`${t.name} ball${s.spot?` at ${s.spot}`:''}, moving toward the ${s.pos==='h'?'left':'right'} end zone`;
   return `<section class="bx-sec bx-drive">
-    <div class="bx-poss">${t.logo?`<img src="${esc(t.logo)}" alt="" width="20" height="20">`:''}<b>${esc(t.ab)} ball</b><span class="dd">${esc(s.dd||s.spot)}</span>${s.rz?'<span class="rz">RED ZONE</span>':''}</div>
-    <div class="bx-field" role="img" aria-label="${esc(alt)}"><span class="bx-ez l" style="--tc:${esc(g.a.c)}">${esc(g.a.ab)}</span><div class="bx-turf" style="${style}">${fd==null?'':'<i class="bx-fd"></i>'}<i class="bx-los"></i><i class="bx-dir ${s.pos==='h'?'l':'r'}"></i><svg class="bx-ball" viewBox="0 0 26 18" aria-hidden="true"><ellipse cx="13" cy="9" rx="11" ry="6.4"/><path d="M9 9h8M13 6.4v5.2"/></svg></div><span class="bx-ez" style="--tc:${esc(g.h.c)}">${esc(g.h.ab)}</span></div>
+    <div class="bx-poss">${t.logo?`<img src="${esc(t.logo)}" alt="" width="20" height="20">`:''}<b>${esc(t.ab)} ball</b><span class="dd">${esc(s.dd||s.spot)}</span>${s.rz?'<span class="rzflag">RED ZONE</span>':''}</div>
+    <div class="bx-field" role="img" aria-label="${esc(alt)}"><span class="bx-ez" style="background:${esc(shade(g.a.c,.95))}"></span><div class="bx-turf" style="${vars.join(';')}"><i class="bx-yards"></i>${fdX==null?'':'<i class="bx-togo"></i>'}${fd}<i class="bx-los"></i><svg class="bx-ball" viewBox="0 0 24 15" aria-hidden="true"><ellipse cx="12" cy="7.5" rx="10.4" ry="5.6" fill="${esc(shade(t.c,.85))}"/><path d="M8.6 7.5h6.8"/></svg></div><span class="bx-ez" style="background:${esc(shade(g.h.c,.95))}"></span></div>
     <div class="bx-to">${tos('a')}${tos('h')}</div>
   </section>`;
 }
