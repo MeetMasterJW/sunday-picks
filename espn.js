@@ -47,6 +47,26 @@ function game(e) {
     period: Number(e.status.period || 0),
     clock: Number(e.status.clock || 0),
     liveProb: numberOrNull(((comp.situation || {}).lastPlay || {}).probability?.homeWinPercentage),
+    sit: st.state === 'in' ? situation(comp, side) : null,
+  };
+}
+
+// Who has the ball and where, for a game in progress.
+// ESPN's yardLine always counts up from the HOME team's goal line, whoever has the ball,
+// so yl is a single 0-100 spot on the field: 0 = home end zone, 100 = away end zone.
+function situation(comp, side) {
+  const s = comp.situation;
+  if (!s) return null;
+  const id = (k) => ((side[k] || {}).team || {}).id;
+  const yl = numberOrNull(s.yardLine);
+  return {
+    pos: s.possession === id('home') ? 'h' : s.possession === id('away') ? 'a' : null,
+    yl: yl == null ? null : Math.min(100, Math.max(0, yl)),
+    dd: s.downDistanceText || s.shortDownDistanceText || '',
+    spot: s.possessionText || '',
+    dist: numberOrNull(s.distance),
+    rz: !!s.isRedZone,
+    to: { h: numberOrNull(s.homeTimeouts), a: numberOrNull(s.awayTimeouts) },
   };
 }
 

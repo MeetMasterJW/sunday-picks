@@ -241,6 +241,29 @@ dialog.sheet[open]{display:flex;flex-direction:column}
 .bx-nums .dash{font-size:26px}
 .bx-at{font-family:var(--numeric);font-size:30px;color:var(--ink-3);padding:6px 0}
 .bx-mid .st{font-size:12.5px;text-align:center;white-space:nowrap}
+.bx-drive{display:grid;gap:8px}
+.bx-poss{display:flex;align-items:center;gap:7px;font-size:13px;line-height:1.2}
+.bx-poss img{width:20px;height:20px;flex:none;object-fit:contain}
+.bx-poss b{font-weight:700;white-space:nowrap}
+.bx-poss .dd{color:var(--ink-2);font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bx-poss .rz{margin-left:auto;flex:none;padding:2px 8px;border-radius:999px;background:color-mix(in srgb,var(--bad) 24%,transparent);color:var(--bad);font-size:10.5px;font-weight:800;letter-spacing:.04em}
+.bx-field{display:grid;grid-template-columns:22px minmax(0,1fr) 22px;height:54px;border-radius:10px;overflow:hidden;border:1px solid var(--line-2)}
+.bx-ez{display:grid;place-items:center;background:color-mix(in srgb,var(--tc) 72%,#000);color:#fff;font:700 10px/1 var(--numeric);letter-spacing:.08em;writing-mode:vertical-rl}
+.bx-ez.l{transform:rotate(180deg)}
+.bx-turf{position:relative;background:repeating-linear-gradient(90deg,transparent 0 calc(10% - 1px),rgba(255,255,255,.22) calc(10% - 1px) 10%),repeating-linear-gradient(90deg,#1B3826 0 20%,#17301F 20% 40%)}
+.bx-turf::after{content:"";position:absolute;left:50%;top:0;bottom:0;width:1px;background:rgba(255,255,255,.45)}
+.bx-fd{position:absolute;left:var(--fd);top:0;bottom:0;width:2px;background:#FFD60A;box-shadow:0 0 6px rgba(255,214,10,.55)}
+.bx-los{position:absolute;left:var(--ball);top:0;bottom:0;width:2px;background:#fff;opacity:.9}
+.bx-ball{position:absolute;left:var(--ball);top:50%;transform:translate(-50%,-50%);width:26px;height:18px;filter:drop-shadow(0 1px 3px rgba(0,0,0,.6))}
+.bx-ball ellipse{fill:color-mix(in srgb,var(--tc) 85%,#000);stroke:#fff;stroke-width:1.4}
+.bx-ball path{stroke:#fff;stroke-width:1.3;stroke-linecap:round;fill:none}
+.bx-dir{position:absolute;top:5px;width:0;height:0;border-top:5px solid transparent;border-bottom:5px solid transparent;filter:drop-shadow(0 1px 2px rgba(0,0,0,.6))}
+.bx-dir.l{left:calc(var(--ball) - 12px);border-right:7px solid #fff}
+.bx-dir.r{left:calc(var(--ball) + 5px);border-left:7px solid #fff}
+.bx-to{display:flex;justify-content:space-between;font-size:11.5px;font-weight:600;color:var(--ink-3)}
+.bx-to span{display:inline-flex;align-items:center;gap:4px}
+.bx-to i{width:6px;height:6px;border-radius:50%;background:var(--ink-3);opacity:.35}
+.bx-to i.on{opacity:1;background:var(--ink-2)}
 .bx-sec h4{margin:0 0 8px;font-size:13px;font-weight:700;color:var(--ink-2)}
 .bx-lines{width:100%;font-size:15px}
 .bx-lines th,.bx-lines td{padding:7px 4px;text-align:center}
@@ -488,8 +511,8 @@ dialog p{margin:6px 0 0}
 </dialog>
 
 <script type="module">
-import {firebaseConfig,parentEmail} from './config.js?v=3f3ed98f';
-import {fetchWeek,fetchWinProb,fetchGameSummary,fetchClosingLine,groupIntoPickWeeks} from './espn.js?v=3f3ed98f';
+import {firebaseConfig,parentEmail} from './config.js?v=6acbff03';
+import {fetchWeek,fetchWinProb,fetchGameSummary,fetchClosingLine,groupIntoPickWeeks} from './espn.js?v=6acbff03';
 import {initializeApp} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
 import {getFirestore,doc,collection,setDoc,onSnapshot} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
 import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,signOut} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
@@ -1644,6 +1667,23 @@ function boxTeam(g,side,w,lk){
   const who=lk?players().filter(p=>picksFor(w,p.id)[g.id]===t.ab):[];
   return `<div class="bx-team"><span class="logo" style="--tc:${esc(t.c)}">${t.logo?`<img src="${esc(t.logo)}" alt="" width="42" height="42">`:`<span class="ab">${esc(t.ab)}</span>`}</span><b>${esc(t.name)}</b><small class="num">${esc(t.rec||t.loc)}</small><div class="pips">${who.map(p=>`<span class="pip ${pickState(g,t.ab)} av-${p.id}" style="--c:${esc(p.color)}" title="${esc(p.name)}" aria-label="${esc(p.name)}">${initial(p)}</span>`).join('')}</div></div>`;
 }
+// Live field: which end zone each team defends (away left, home right), where the ball sits
+// and which way the team with it is driving. g.sit.yl counts up from the home goal line.
+function fieldView(g){
+  const s=g.sit;
+  if(!s||!s.pos||s.yl==null)return '';
+  const t=g[s.pos],x=100-s.yl;
+  const fdYl=s.dist==null?null:s.pos==='h'?s.yl+s.dist:s.yl-s.dist;
+  const fd=fdYl!=null&&fdYl>0&&fdYl<100?100-fdYl:null;
+  const tos=(sd)=>{const n=s.to[sd];return n==null?'':`<span>${esc(g[sd].ab)}<i class="${n>0?'on':''}"></i><i class="${n>1?'on':''}"></i><i class="${n>2?'on':''}"></i></span>`};
+  const style=`--ball:${x}%;--tc:${esc(t.c)}${fd==null?'':`;--fd:${fd}%`}`;
+  const alt=`${t.name} ball${s.spot?` at ${s.spot}`:''}`;
+  return `<section class="bx-sec bx-drive">
+    <div class="bx-poss">${t.logo?`<img src="${esc(t.logo)}" alt="" width="20" height="20">`:''}<b>${esc(t.ab)} ball</b><span class="dd">${esc(s.dd||s.spot)}</span>${s.rz?'<span class="rz">RED ZONE</span>':''}</div>
+    <div class="bx-field" role="img" aria-label="${esc(alt)}"><span class="bx-ez l" style="--tc:${esc(g.a.c)}">${esc(g.a.ab)}</span><div class="bx-turf" style="${style}">${fd==null?'':'<i class="bx-fd"></i>'}<i class="bx-los"></i><i class="bx-dir ${s.pos==='h'?'l':'r'}"></i><svg class="bx-ball" viewBox="0 0 26 18" aria-hidden="true"><ellipse cx="13" cy="9" rx="11" ry="6.4"/><path d="M9 9h8M13 6.4v5.2"/></svg></div><span class="bx-ez" style="--tc:${esc(g.h.c)}">${esc(g.h.ab)}</span></div>
+    <div class="bx-to">${tos('a')}${tos('h')}</div>
+  </section>`;
+}
 function statBetter(key,a,b){if(key==='turnovers'||key==='totalPenaltiesYards')return a<b;return a>b}
 function renderBox(){
   const g=gameById(boxOpenId);if(!g)return;
@@ -1651,6 +1691,7 @@ function renderBox(){
   const started=g.st!=='pre'||!!g.w;
   const status=g.w?(g.w==='TIE'?'Final · Tie':'Final'):g.st==='in'?(g.d||'Live'):g.tbd?'Time TBD':`${fmtDay.format(new Date(g.t))} · ${fmtTime.format(new Date(g.t))}`;
   let h=`<div class="bx-score">${boxTeam(g,'a',w,lk)}<div class="bx-mid">${started?`<div class="bx-nums num"><span class="${g.as<g.hs?'lo':''}">${g.as}</span><span class="dash">–</span><span class="${g.hs<g.as?'lo':''}">${g.hs}</span></div>`:'<div class="bx-at">@</div>'}<div class="st ${g.w?'final':g.st==='in'?'live':''}">${esc(status)}</div></div>${boxTeam(g,'h',w,lk)}</div>`;
+  if(g.st==='in')h+=fieldView(g);
   if(!started){
     const facts=[lk?spreadText(g):'',d&&d.venue].filter(Boolean);
     h+=`<section class="bx-sec"><div class="bx-facts">${facts.map(f=>`<span>${esc(f)}</span>`).join('')}</div><p class="muted">The box score fills in once the game kicks off.</p></section>`;
