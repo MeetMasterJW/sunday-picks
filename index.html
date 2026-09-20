@@ -258,9 +258,8 @@ dialog.sheet[open]{display:flex;flex-direction:column}
 .bx-togo{left:var(--togo-x);width:var(--togo-w);background:rgba(255,214,10,.16)}
 .bx-fd{left:var(--fd);width:2px;background:#FFD60A}
 .bx-los{left:var(--ball);width:2px;background:rgba(255,255,255,.85)}
-.bx-ball{position:absolute;left:var(--ball);top:50%;transform:translate(-50%,-50%);width:24px;height:15px;filter:drop-shadow(0 1px 3px rgba(0,0,0,.55))}
-.bx-ball ellipse{stroke:#fff;stroke-width:1.3}
-.bx-ball path{stroke:#fff;stroke-width:1.2;stroke-linecap:round;fill:none}
+.bx-mark{position:absolute;left:var(--ball);top:50%;transform:translate(-50%,-50%);width:19px;height:15px;filter:drop-shadow(0 1px 3px rgba(0,0,0,.55))}
+.bx-mark path{stroke:#fff;stroke-width:1.4;stroke-linejoin:round}
 .bx-to{display:flex;justify-content:space-between;font-size:11.5px;font-weight:600;color:var(--ink-3)}
 .bx-to span{display:inline-flex;align-items:center;gap:4px}
 .bx-to i{width:6px;height:6px;border-radius:50%;background:var(--ink-3);opacity:.35}
@@ -1677,6 +1676,17 @@ function shade(hex,k){
   const c=(i)=>Math.round(parseInt(h.substr(i,2),16)*k);
   return `rgb(${c(0)},${c(2)},${c(4)})`;
 }
+// A very dark team colour (Packers green, Jets green, Ravens purple) disappears against the
+// turf, so lift it toward white before it is used for the arrow.
+function lift(hex){
+  const h=String(hex||'').replace('#','');
+  if(h.length!==6)return '#9aa3b0';
+  const p=[0,2,4].map((i)=>parseInt(h.substr(i,2),16));
+  const luma=(.2126*p[0]+.7152*p[1]+.0722*p[2])/255;
+  if(luma>=.22)return `rgb(${p.join(',')})`;
+  const k=.4;
+  return `rgb(${p.map((c)=>Math.round(c+(255-c)*k)).join(',')})`;
+}
 // Live field: away defends the left end zone, home the right, matching the score above.
 // g.sit.yl counts up from the home goal line, so the ball sits at 100 - yl from the left
 // and the shaded band runs from the ball to the line to gain, which shows the drive's way.
@@ -1694,7 +1704,7 @@ function fieldView(g){
   const alt=`${t.name} ball${s.spot?` at ${s.spot}`:''}, moving toward the ${s.pos==='h'?'left':'right'} end zone`;
   return `<section class="bx-sec bx-drive">
     <div class="bx-poss">${t.logo?`<img src="${esc(t.logo)}" alt="" width="20" height="20">`:''}<b>${esc(t.ab)} ball</b><span class="dd">${esc(s.dd||s.spot)}</span>${s.rz?'<span class="rzflag">RED ZONE</span>':''}</div>
-    <div class="bx-field" role="img" aria-label="${esc(alt)}"><span class="bx-ez" style="background:${esc(shade(g.a.c,.95))}"></span><div class="bx-turf" style="${vars.join(';')}"><i class="bx-yards"></i>${fdX==null?'':'<i class="bx-togo"></i>'}${fd}<i class="bx-los"></i><svg class="bx-ball" viewBox="0 0 24 15" aria-hidden="true"><ellipse cx="12" cy="7.5" rx="10.4" ry="5.6" fill="${esc(shade(t.c,.85))}"/><path d="M8.6 7.5h6.8"/></svg></div><span class="bx-ez" style="background:${esc(shade(g.h.c,.95))}"></span></div>
+    <div class="bx-field" role="img" aria-label="${esc(alt)}"><span class="bx-ez" style="background:${esc(shade(g.a.c,.95))}"></span><div class="bx-turf" style="${vars.join(';')}"><i class="bx-yards"></i>${fdX==null?'':'<i class="bx-togo"></i>'}${fd}<i class="bx-los"></i><svg class="bx-mark" viewBox="0 0 19 15" aria-hidden="true"><path d="${s.pos==='h'?'M17 1.5L2.5 7.5 17 13.5Z':'M2 1.5L16.5 7.5 2 13.5Z'}" fill="${esc(lift(t.c))}"/></svg></div><span class="bx-ez" style="background:${esc(shade(g.h.c,.95))}"></span></div>
     <div class="bx-to">${tos('a')}${tos('h')}</div>
   </section>`;
 }
