@@ -14,7 +14,7 @@
 <style>
 :root{
   --bg:#0A0C0F;--surface:#14171C;--raised:#1C2027;--line:#242933;--line-2:#323946;
-  --ink:#F4F6F8;--ink-2:#A8B0BC;--ink-3:#6E7785;
+  --ink:#F4F6F8;--ink-2:#A8B0BC;--ink-3:#7C8797;
   --accent:#FF6A2B;--good:#30D158;--bad:#FF453A;--live:#FF453A;
   --radius:18px;
   --font:"Figtree",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
@@ -44,7 +44,15 @@ button:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid
 .nav{width:40px;height:40px;border-radius:50%;border:0;background:transparent;display:grid;place-items:center;color:var(--ink)}
 .nav:disabled{opacity:.25;cursor:default}
 .nav svg,.tabs svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.wk{text-align:center;line-height:1.15}
+.wk{text-align:center;line-height:1.15;border:0;background:none;color:var(--ink);padding:2px 6px;border-radius:12px;min-width:0}
+@media (hover:hover){.wk:hover{background:var(--raised)}}
+.nowbar{display:flex;justify-content:center;padding-bottom:6px}
+.nowbar button{border:1px solid var(--line-2);background:var(--raised);color:var(--ink-2);border-radius:999px;padding:3px 12px;font-size:12px;font-weight:700}
+.weeks{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:14px}
+.weeks button{border:1px solid var(--line);background:var(--raised);color:var(--ink);border-radius:12px;padding:10px 4px;font:700 14px var(--numeric)}
+.weeks button[aria-current="true"]{border-color:var(--accent);color:var(--accent)}
+.weeks button.now{box-shadow:inset 0 0 0 1px var(--line-2)}
+.weeks button:disabled{opacity:.35}
 .wk b{display:block;font-family:var(--display);font-size:19px;font-weight:700;margin-top:3px}
 .wk span{font-size:12.5px;color:var(--ink-2)}
 
@@ -66,25 +74,25 @@ main>*{min-width:0}
 .toggle[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .linkbtn{border:0;background:none;padding:4px 0;color:var(--accent);font-weight:700;font-size:14px}
 .primary{border:0;background:var(--accent);color:#fff;border-radius:999px;padding:11px 20px;font-weight:700;font-size:15px}
+.primary:disabled{background:var(--raised);color:var(--ink-3)}
+.face-btn{position:relative}
+.setup-dot{position:absolute;right:-1px;top:-1px;width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 2px var(--surface)}
 .empty{text-align:center;padding:48px 12px;color:var(--ink-2)}
 .jersey{border-radius:50%;background:var(--c);color:#fff;display:inline-grid;place-items:center;font-weight:800;width:34px;height:34px;font-size:15px;flex:none}
 
 /* whose picks are shown */
-.viewer{display:grid;gap:8px}
-.viewer-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:0 4px;font-size:14px;color:var(--ink-2)}
-.viewer-head b{color:var(--ink);font-weight:800}
-.viewer-sum{font-size:14px;font-weight:600;color:var(--ink-2)}
-.viewer-sum .num{font-family:var(--numeric);font-size:20px;font-weight:700;color:var(--ink)}
-.pickers{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
-.pk{display:grid;justify-items:center;gap:3px;border:1px solid var(--line);background:var(--surface);border-radius:16px;padding:9px 2px 7px;min-width:0}
-.pk .jersey{width:34px;height:34px;font-size:15px}
-.pk .nm{max-width:100%;font-size:12.5px;font-weight:600;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pk .ct{font-family:var(--numeric);font-size:14px;font-weight:600;color:var(--ink-3);line-height:1}
-.pk[aria-pressed="true"]{border-color:var(--c);background:color-mix(in srgb,var(--c) 20%,var(--surface))}
-.pk[aria-pressed="true"] .nm{color:var(--ink);font-weight:800}
-.pk[aria-pressed="true"] .ct{color:var(--ink)}
-.pk[aria-pressed="true"] .jersey{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--c)}
+.viewer{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:0 2px}
+.viewer-now{display:flex;align-items:baseline;gap:8px;min-width:0;font-size:14px;color:var(--ink-2)}
+.viewer-now b{font-size:16px;font-weight:800;color:var(--ink)}
+.viewer-sum{font-size:13.5px;font-weight:600;color:var(--ink-2)}
+.viewer-sum .num{font-family:var(--numeric);font-size:19px;font-weight:700;color:var(--ink)}
+.pickers{display:flex;gap:6px}
+.pk{border:0;background:none;padding:2px;border-radius:50%;line-height:0}
+.pk .jersey{width:32px;height:32px;font-size:14px;opacity:.55;transition:opacity .15s,box-shadow .15s}
+.pk[aria-pressed="true"] .jersey{opacity:1;box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--c)}
 .note,.lockbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:8px 8px 8px 14px;font-size:14px;color:var(--ink-2)}
+.note.pickbar{position:sticky;top:var(--dock,0px);z-index:4;flex-wrap:nowrap;padding:6px 6px 6px 12px;font-size:13.5px;box-shadow:0 8px 20px -14px rgba(0,0,0,.9)}
+.note .num{font-family:var(--numeric);font-size:19px;font-weight:700;color:var(--ink)}
 .note b{color:var(--ink)}
 .lockbar{flex-wrap:nowrap;padding-left:8px}
 .lockbar .lb-text{flex:1}
@@ -98,8 +106,10 @@ main>*{min-width:0}
 .day{display:grid;gap:10px}
 .dayhead{margin:8px 4px 0}
 .dayhead h2{margin:0;font-size:17px;font-weight:800;letter-spacing:-.01em}
-.slot{font-size:10px;font-weight:800;background:var(--accent);color:#fff;border-radius:5px;padding:1px 5px;margin-left:4px;vertical-align:1px}
-.game{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:8px 8px 8px;display:grid;gap:6px}
+.slothead{display:flex;align-items:center;gap:2px;margin:6px 4px -2px;font-size:12.5px;font-weight:700;color:var(--ink-3);letter-spacing:.02em}
+.pcount{font-family:var(--numeric);font-size:13px;font-weight:700;color:var(--ink-3)}
+.slot{font-size:10px;font-weight:800;background:var(--raised);color:var(--ink-2);border:1px solid var(--line-2);border-radius:5px;padding:1px 5px;margin-left:4px;vertical-align:1px}
+.game{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:7px;display:grid;gap:5px}
 .game.flash{animation:flash 2.4s ease-out}
 @keyframes flash{0%,35%{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 35%,transparent)}}
 .gmeta{display:flex;align-items:center;justify-content:space-between;gap:4px 8px;flex-wrap:wrap;padding:2px 6px 0;font-size:12.5px;color:var(--ink-3)}
@@ -111,18 +121,18 @@ main>*{min-width:0}
 .st.live::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:currentColor;box-shadow:0 0 8px 1px currentColor;margin-right:6px;vertical-align:1px;animation:pulse 1.6s ease-in-out infinite}
 @keyframes pulse{50%{opacity:.3}}
 .rows{display:grid;gap:4px}
-.team{position:relative;display:grid;grid-template-columns:40px minmax(0,1fr) auto auto;align-items:center;gap:12px;width:100%;text-align:left;border:1px solid transparent;background:var(--raised);border-radius:14px;padding:8px 12px 8px 8px;min-height:58px}
-.team .logo{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle,color-mix(in srgb,var(--tc) 75%,transparent) 0,color-mix(in srgb,var(--tc) 30%,transparent) 55%,transparent 71%)}
-.team .logo img{width:30px;height:30px;object-fit:contain;filter:drop-shadow(0 1px 2px rgba(0,0,0,.45))}
+.team{position:relative;display:grid;grid-template-columns:34px minmax(0,1fr) auto auto;align-items:center;gap:10px;width:100%;text-align:left;border:1px solid transparent;background:var(--raised);border-radius:14px;padding:6px 12px 6px 7px;min-height:50px}
+.team .logo{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle,color-mix(in srgb,var(--tc) 75%,transparent) 0,color-mix(in srgb,var(--tc) 30%,transparent) 55%,transparent 71%)}
+.team .logo img{width:27px;height:27px;object-fit:contain;filter:drop-shadow(0 1px 2px rgba(0,0,0,.45))}
 .team .logo .ab{font-weight:800;font-size:12px}
 .tn{min-width:0;display:grid}
-.tn b{font-size:16px;font-weight:700;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tn b{font-size:15.5px;font-weight:700;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tn .sub{font-size:12.5px;color:var(--ink-3);white-space:nowrap}
 .tag{font-style:normal;font-weight:700}
 .up .tag,.ok .tag{color:var(--good)}
 .down .tag,.no .tag{color:var(--bad)}
 .even .tag{color:var(--ink-2)}
-.sc{font-family:var(--numeric);font-size:34px;font-weight:700;min-width:1.6ch;text-align:right;color:var(--ink-3);line-height:1}
+.sc{font-family:var(--numeric);font-size:31px;font-weight:700;min-width:1.6ch;text-align:right;color:var(--ink-3);line-height:1}
 .team.ahead .sc,.team.won .sc{color:var(--ink)}
 .team.lost .tn b,.team.behind .tn b{color:var(--ink-2)}
 .team.lost .logo{opacity:.5}
@@ -193,7 +203,7 @@ td.ok .mark,td.up .mark{color:var(--good)}
 td.no .mark,td.down .mark{color:var(--bad)}
 td.none,td.sealedc{color:var(--ink-3)}
 .tbrow td{border-top:1px solid var(--line-2);font-weight:700}
-.legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin:10px 0 0;font-size:12px;font-weight:600}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin:0 0 10px;font-size:12px;font-weight:600}
 .lg.ok,.lg.up{color:var(--good)}
 .lg.no,.lg.down{color:var(--bad)}
 .upct{color:var(--good)}
@@ -210,7 +220,7 @@ td.none,td.sealedc{color:var(--ink-3)}
 @property --p{syntax:'<percentage>';inherits:true;initial-value:0%}
 .rrow{display:grid;grid-template-columns:20px 34px minmax(0,1fr) auto auto;gap:12px;align-items:center;padding:10px 12px 10px 8px;border-radius:14px;background:var(--raised)}
 .rrow{position:relative;overflow:hidden}
-.rrow>*{position:relative;z-index:1}
+.rrow>*{position:relative;z-index:4}
 @property --f{syntax:'<percentage>';inherits:true;initial-value:0%}
 .rrow.has-chance{--f:var(--p);background:linear-gradient(90deg,color-mix(in srgb,var(--c) 16%,var(--raised)) 0,color-mix(in srgb,var(--c) 44%,var(--raised)) var(--f),var(--raised) var(--f))}
 .rrow.filling{animation:fillUp var(--dur,1s) cubic-bezier(.2,.8,.2,1) var(--delay,0s) both}
@@ -474,9 +484,10 @@ dialog p{margin:6px 0 0}
     </div>
     <div class="weeknav">
       <button id="prev" class="nav" aria-label="Previous week"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
-      <div class="wk"><b id="wkTitle">Week –</b><span id="wkDates">Loading schedule…</span></div>
+      <button type="button" class="wk" id="wkPick" aria-haspopup="dialog" aria-label="Choose a week"><b id="wkTitle">Week –</b><span id="wkDates">Loading schedule…</span></button>
       <button id="next" class="nav" aria-label="Next week"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
     </div>
+    <div class="nowbar" id="nowBar" hidden><button type="button" id="nowBtn">Back to this week</button></div>
   </div>
 </header>
 <nav class="tabs" role="tablist" aria-label="Sections">
@@ -494,6 +505,11 @@ dialog p{margin:6px 0 0}
 <dialog id="profDlg" class="sheet" aria-labelledby="profTitle">
   <div class="box-head"><h3 id="profTitle">Profile</h3><button type="button" class="box-close" data-prof-close aria-label="Close profile"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
   <div id="profBody"></div>
+</dialog>
+<dialog id="weekDlg" aria-labelledby="weekDlgTitle">
+  <h3 id="weekDlgTitle" style="margin:0;font-size:16px">Jump to a week</h3>
+  <div class="weeks" id="weekGrid"></div>
+  <div class="dlgbtns"><button type="button" class="toggle" data-week-close>Close</button></div>
 </dialog>
 <dialog id="pinDlg" class="pin" aria-labelledby="pinTitle">
   <span class="jersey" id="pinFace"></span>
@@ -635,6 +651,9 @@ function render(){
   else if(gs.length){const a=new Date(gs[0].t),b=new Date(gs[gs.length-1].t);$('#wkDates').textContent=fmtShort.format(a)+' – '+fmtShort.format(b)+' · '+gs.length+' games'+(S.scoreError?' · scores offline':'')}
   else $('#wkDates').textContent=S.scoreError?'Couldn’t reach ESPN':(S.ready?'Schedule not loaded yet':'Loading schedule…');
   $('.weeknav').hidden=S.tab==='family';
+  const now=currentWeek();
+  $('#nowBar').hidden=S.tab==='family'||!w||w===now;
+  $('#wkPick').disabled=S.tab==='family';
   const meP=player(S.me),face=$('#meFace');
   face.className='jersey av-'+meP.id;face.style.setProperty('--c',meP.color);face.textContent=(meP.name||'?').trim().charAt(0).toUpperCase();
   $('#meBtn').classList.toggle('unlocked',isUnlocked(meP.id));
@@ -740,27 +759,31 @@ function renderPicks(app){
   const byPlayer=Object.fromEntries(sc.rows.map(r=>[r.p.id,r]));
   const meRow=byPlayer[me.id];
   const summary=sc.done?`<span class="num">${meRow.right}–${meRow.wrong}</span>${meRow.up?` · <span class="upct">${meRow.up} winning now</span>`:''}`:'';
-  h+=`<section class="viewer"><div class="viewer-head"><span>${allLocked?'Viewing as':'Picking as'} <b>${esc(me.name)}</b>${isUnlocked(me.id)?' <button type="button" class="linkbtn sm" data-pin-signout>Sign out</button>':''}</span><span class="viewer-sum">${summary}</span></div><div class="pickers" role="group" aria-label="Choose whose picks to show">`;
+  const madeBy=(id)=>Object.keys(picksFor(w,id)).filter(id2=>gs.some(g=>g.id===id2)).length;
+  // One row of faces: the highlighted face says who you are, so the name is not repeated above it
+  h+=`<section class="viewer"><div class="pickers" role="group" aria-label="Choose whose picks to show">`;
   players().forEach(p=>{
-    const r=byPlayer[p.id];
-    const n=Object.keys(picksFor(w,p.id)).filter(id=>gs.some(g=>g.id===id)).length;
-    h+=`<button class="pk" style="--c:${esc(p.color)}" data-picker="${esc(p.id)}" aria-pressed="${p.id===me.id}" aria-label="Show ${esc(p.name)}’s picks"><span class="jersey av-${p.id}">${initial(p)}</span><span class="nm">${esc(p.name)}</span><span class="ct num">${sc.done?`${r.right}–${r.wrong}`:`${n}/${gs.length}`}</span></button>`;
+    h+=`<button class="pk" style="--c:${esc(p.color)}" data-picker="${esc(p.id)}" aria-pressed="${p.id===me.id}" aria-label="Show ${esc(p.name)}’s picks"><span class="jersey av-${p.id}">${initial(p)}</span></button>`;
   });
-  h+='</div></section>';
+  h+=`</div><div class="viewer-now"><b>${esc(me.name)}</b><span class="viewer-sum">${summary||`<span class="num">${madeBy(me.id)}/${gs.length}</span> picked`}</span>${isUnlocked(me.id)?'<button type="button" class="linkbtn sm" data-pin-signout>Sign out</button>':''}</div></section>`;
   const open=gs.filter(g=>!locked(g)&&!mine[g.id]).length;
   const defaults=players().every(p=>/^Player \d$/.test(p.name));
   const status=S.results?'<b>Entering results.</b> Tap the team that won each game.'
     :weekLocked(w)?`<b>${S.locks['w'+w].auto?`Everyone’s picks are in, so ${weekName(w)} is locked.`:`Picks are locked for ${weekName(w)}.`}</b> Everyone’s picks now show.`
-    :!canSee?`<b>${esc(me.name)}</b> · tap a team and enter your PIN to pick`
-    :`<b>${esc(me.name)}</b> is picking · ${open?`<span class="num">${open}</span> open game${open>1?'s':''} left`:'all set for this week'}`;
+    :!canSee?'Tap a team and enter your PIN · picks stay hidden'
+    :open?`<span class="num">${gs.length-open}</span> of <span class="num">${gs.length}</span> picked · hidden until lock`
+    :'All set · picks show when they lock';
+  const jump=canSee&&open&&!S.results?'<button type="button" class="toggle" data-jump>Next pick</button>':'';
   if(allLocked)h+=`<div class="lockbar"><span class="pill">Locked</span><span class="lb-text">${weekLocked(w)&&S.locks['w'+w].auto?'Everyone’s picks are in.':'Picks are closed for this week.'}</span>${weekLocked(w)?lockButton(w):''}</div>`;
-  else h+=`<div class="note"><span>${status}</span>
-      <span style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">${defaults&&!S.results?'<button class="linkbtn" data-tab="family">Add your names</button>':''}${S.results?'':lockButton(w)}</span></div>`;
+  else h+=`<div class="note pickbar"><span>${status}</span>
+      <span style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">${defaults&&!S.results?'<button class="linkbtn" data-tab="family">Add your names</button>':''}${jump}${S.results?'':lockButton(w)}</span></div>`;
 
-  let lastDay='';
+  let lastDay='',lastSlot='';
   gs.forEach(g=>{
     const d=new Date(g.t),day=g.tbd?weekName(w)+' · Date TBD':fmtDay.format(d);
-    if(day!==lastDay){if(lastDay)h+='</section>';h+=`<section class="day"><div class="dayhead"><h2>${esc(day)}</h2></div>`;lastDay=day}
+    if(day!==lastDay){if(lastDay)h+='</section>';h+=`<section class="day"><div class="dayhead"><h2>${esc(day)}</h2></div>`;lastDay=day;lastSlot=''}
+    const slot=g.tbd?'':fmtTime.format(d),badge=slotLabel(g);
+    if(slot&&slot!==lastSlot){h+=`<h3 class="slothead">${esc(slot)}${badge?`<span class="slot">${esc(badge)}</span>`:''}</h3>`;lastSlot=slot}
     h+=gameCard(g,w,me,shown,g===gs[gs.length-1]);
   });
   h+='</section>';
@@ -786,7 +809,7 @@ function teamBtn(g,side,me,mine,pips){
 function tiebreakRow(g,w,me){
   if(!locked(g)){
     const tb=S.parent||isUnlocked(me.id)?pickDoc(w,me.id).tb:null;
-    return `<label class="tb"><span><b>Tiebreaker</b> · ${esc(me.name)}, how many total points will both teams score?</span><input type="number" min="0" max="150" inputmode="numeric" data-tb="${esc(g.id)}" value="${typeof tb==='number'?tb:''}" placeholder="45" aria-label="Tiebreaker guess for ${esc(me.name)}"></label>`;
+    return `<label class="tb"><span><b>Tiebreaker</b> · ${esc(me.name)}, how many total points will both teams score?</span><input type="number" min="0" max="150" inputmode="numeric" data-tb="${esc(g.id)}" value="${typeof tb==='number'?tb:''}" aria-label="Tiebreaker guess for ${esc(me.name)}"></label>`;
   }
   const guesses=players().map(p=>{const tb=pickDoc(w,p.id).tb;return `<span class="guess"><span class="pip av-${p.id}" style="--c:${esc(p.color)}" title="${esc(p.name)}" aria-label="${esc(p.name)}">${initial(p)}</span>${typeof tb==='number'?tb:'–'}</span>`}).join('');
   return `<div class="tb"><span><b>Tiebreaker guesses</b>${g.w?` · final total <b class="num">${g.as+g.hs}</b>`:''}</span><div class="dots">${guesses}</div></div>`;
@@ -811,19 +834,20 @@ function spreadText(g){
 }
 
 function gameCard(g,w,me,mine,isLast){
-  const lk=locked(g),slot=slotLabel(g);
+  const lk=locked(g);
   let status;
   if(g.w)status=`<span class="st final">${g.w==='TIE'?'Final · Tie':'Final'}</span>`;
   else if(g.st==='in')status=`<span class="st live">${esc(g.d||'Live')}</span>`;
   else if(Date.now()>=new Date(g.t).getTime())status=`<span class="st live">Kicked off${lk?'':' · picks open until '+fmtTime.format(new Date(lockTime(g)))}</span>`;
-  else status=`<span class="st">${g.tbd?'Time TBD':fmtTime.format(new Date(g.t))}${slot?`<span class="slot">${slot}</span>`:''}${lk&&!weekLocked(w)?' · locked':''}</span>`;
+  else status=`<span class="st">${g.tbd?'Time TBD':`${esc(g.a.ab)} @ ${esc(g.h.ab)}`}${lk&&!weekLocked(w)?' · locked':''}</span>`;
   if(g.st==='in'&&g.sit&&g.sit.rz&&g.sit.pos)status+=`<span class="rzflag">${esc(g[g.sit.pos].ab)} RED ZONE</span>`;
   const who=players().map(p=>({p,pick:picksFor(w,p.id)[g.id]})).filter(x=>x.pick);
+  // How many have picked is a chip on the meta line; the "hidden until they lock" half is said once, up top
+  const count=!lk&&!isTbd(g)?`<span class="pcount num" title="${who.length} of ${players().length} picked">${who.length}/${players().length}</span>`:'';
   const pips=(ab)=>lk?who.filter(x=>x.pick===ab).map(x=>`<span class="pip ${pickState(g,x.pick)} av-${x.p.id}" style="--c:${esc(x.p.color)}" title="${esc(x.p.name)}" aria-label="${esc(x.p.name)}">${initial(x.p)}</span>`).join(''):'';
-  let h=`<article class="game${flashing(g)?' flash':''}"><button type="button" class="gmeta" data-box="${esc(g.id)}" aria-label="Box score, ${esc(g.a.name)} at ${esc(g.h.name)}">${status}<span class="line">${esc(lk?spreadText(g):`${g.a.ab} @ ${g.h.ab}`)}<svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span></button>
+  let h=`<article class="game${flashing(g)?' flash':''}" data-card="${esc(g.id)}"><button type="button" class="gmeta" data-box="${esc(g.id)}" aria-label="Box score, ${esc(g.a.name)} at ${esc(g.h.name)}">${status}<span class="line">${count}${lk?esc(spreadText(g)):''}<svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span></button>
     <div class="rows">${teamBtn(g,'a',me,mine,pips(g.a.ab))}${teamBtn(g,'h',me,mine,pips(g.h.ab))}</div>`;
   if(isTbd(g))h+='<p class="sealed">Matchup is set once the previous round ends</p>';
-  else if(!lk)h+=`<p class="sealed">${who.length}/${players().length} picked · revealed when picks lock</p>`;
   if(isLast)h+=tiebreakRow(g,w,me);
   return h+'</article>';
 }
@@ -833,8 +857,8 @@ function renderAllPicks(app){
   const w=S.week,gs=weekGames(w),ps=players(),sc=weekScore(w);
   const rec=Object.fromEntries(sc.rows.map(r=>[r.p.id,r]));
   const anyOpen=gs.some(g=>!locked(g));
-  let h=`<div class="note"><span>${anyOpen?(S.revealAll?'<b>Showing every pick</b>, including games that haven’t locked yet.':'Picks for games that haven’t locked yet show as ✓ until they lock.'):'Every game this week is locked, so all picks show.'}</span><span style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">${lockButton(w)}${anyOpen?`<button class="toggle" id="revealToggle" aria-pressed="${!!S.revealAll}">${S.revealAll?'Hide open picks':'Show all picks'}</button>`:''}</span></div>`;
-  h+=`<section class="card"><div class="scroll dock" style="margin-top:-6px"><table class="allpicks"><thead><tr><th>Game</th>${ps.map(p=>`<th class="${rec[p.id].right>0&&rec[p.id].right===Math.max(...sc.rows.map(x=>x.right))?'lead':''}" style="--c:${esc(p.color)}"><span class="jersey av-${p.id}">${initial(p)}</span><span class="pname">${esc(p.name)}</span><small class="num">${rec[p.id].right}–${rec[p.id].wrong}${rec[p.id].up?`<span class="upct"> · ${rec[p.id].up} ▲</span>`:''}</small></th>`).join('')}</tr></thead><tbody>`;
+  let h=`<div class="note"><span>${anyOpen?(S.revealAll?'<b>Showing every pick</b>, locked or not':'Open games show as ✓ until they lock'):'Every game is locked · all picks show'}</span><span style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">${lockButton(w)}${anyOpen?`<button class="toggle" id="revealToggle" aria-pressed="${!!S.revealAll}">${S.revealAll?'Hide open picks':'Show all picks'}</button>`:''}</span></div>`;
+  h+=`<section class="card"><p class="legend"><span class="lg ok">✓ Right</span><span class="lg up">▲ Winning now</span><span class="lg down">▼ Losing now</span><span class="lg no">✗ Wrong</span></p><div class="scroll dock"><table class="allpicks"><thead><tr><th>Game</th>${ps.map(p=>`<th class="${rec[p.id].right>0&&rec[p.id].right===Math.max(...sc.rows.map(x=>x.right))?'lead':''}" style="--c:${esc(p.color)}"><span class="jersey av-${p.id}">${initial(p)}</span><span class="pname">${esc(p.name)}</span><small class="num">${rec[p.id].right}–${rec[p.id].wrong}${rec[p.id].up?`<span class="upct"> · ${rec[p.id].up} ▲</span>`:''}</small></th>`).join('')}</tr></thead><tbody>`;
   gs.forEach(g=>{
     const show=locked(g)||S.revealAll;
     const status=g.w?(g.w==='TIE'?`Final · tie ${g.as}–${g.hs}`:`Final ${g.as}–${g.hs}`):g.st==='in'?`Live ${g.as}–${g.hs}${g.d?' · '+g.d:''}`:g.tbd?'Time TBD':fmtKick.format(new Date(g.t));
@@ -852,7 +876,7 @@ function renderAllPicks(app){
   });
   const last=gs[gs.length-1],tbShow=locked(last)||S.revealAll;
   h+=`<tr class="tbrow"><td class="gcell"><b>Tiebreaker</b><span>Total points, ${esc(last.a.ab)} @ ${esc(last.h.ab)}${last.w?' · final '+(last.as+last.hs):''}</span></td>${ps.map(p=>{const tb=pickDoc(w,p.id).tb;return `<td class="num">${typeof tb!=='number'?'—':tbShow?tb:'✓'}</td>`}).join('')}</tr>`;
-  h+='</tbody></table></div><p class="legend"><span class="lg ok">✓ Right</span><span class="lg up">▲ Winning now</span><span class="lg down">▼ Losing now</span><span class="lg no">✗ Wrong</span></p></section>';
+  h+='</tbody></table></div></section>';
   app.innerHTML=h;
 }
 
@@ -938,13 +962,15 @@ function winChances(w){
   return value;
 }
 function chanceLabel(ch,id){
-  if(ch.out.has(id))return 'Out';
+  if(isOut(ch,id))return 'Out';
   const v=ch.p[id];
   return v>=1?'100%':v>.99?'>99%':v>0&&v<.01?'<1%':Math.round(v*100)+'%';
 }
+// Eliminated, or simulated at a flat zero: "0% to win" next to "2 games left" reads as a bug
+function isOut(ch,id){return ch.out.has(id)||!(ch.p[id]>0)}
 function chanceHtml(ch,r){
   if(!ch)return '<span></span>';
-  const v=ch.p[r.p.id],out=ch.out.has(r.p.id);
+  const out=isOut(ch,r.p.id);
   return `<div class="chance${out?' out':''}" aria-label="${esc(r.p.name)} win chance ${chanceLabel(ch,r.p.id)}"><b class="num">${chanceLabel(ch,r.p.id)}</b><small>to win</small></div>`;
 }
 
@@ -966,8 +992,8 @@ function renderStandings(app){
     else notes.push(r.tied?`Tiebreaker ${r.tb===null?'—':r.tb}`:'Final');
     const spoon=sc.complete&&r.place===sc.rows.length;
     // Win chance fills the row from the left in the person's color
-    const fill=chances?(chances.out.has(r.p.id)?0:Math.round((chances.p[r.p.id]||0)*100)):0;
-    const leadChance=chances&&fill>0&&fill===Math.max(...sc.rows.map(x=>chances.out.has(x.p.id)?0:Math.round((chances.p[x.p.id]||0)*100)));
+    const fill=chances?(isOut(chances,r.p.id)?0:Math.round((chances.p[r.p.id]||0)*100)):0;
+    const leadChance=chances&&fill>0&&fill===Math.max(...sc.rows.map(x=>isOut(chances,x.p.id)?0:Math.round((chances.p[x.p.id]||0)*100)));
     // Fill animates from the last value shown; a redraw mid-animation picks up where it left off
     const fkey=w+':'+r.p.id,prevFill=S.fillShown[fkey],now=Date.now();
     let from=0,start=now;
@@ -1011,8 +1037,8 @@ function sparkFrame(t){
     if(f<=0&&target<=0)continue;
     const rr=row.getBoundingClientRect(),x=rr.left-br.left+rr.width*f/100,top=rr.top-br.top,c=row.style.getPropertyValue('--c')||'#ffffff';
     let count=0;
-    if(moving){anyMoving=true;count=(80+300*g)*dt;if(Math.random()<dt*7)count+=8+22*g}
-    else if(landed)count=30+80*g;
+    if(moving){anyMoving=true;count=(55+190*g)*dt;if(Math.random()<dt*5)count+=5+14*g}
+    else if(landed)count=18+45*g;
     for(let n=count;n>0;n--){if(n<1&&Math.random()>n)break;emitSpark(x,top,rr.height,g,c,id,landed)}
   }
   ctx.globalCompositeOperation='lighter';ctx.lineCap='round';
@@ -1025,7 +1051,7 @@ function sparkFrame(t){
     ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(nx,ny,p.w*.9,0,Math.PI*2);ctx.fill();
     p.x=nx;p.y=ny;return true;
   });
-  if(sparks.parts.length>700)sparks.parts.splice(0,sparks.parts.length-700);
+  if(sparks.parts.length>450)sparks.parts.splice(0,sparks.parts.length-450);
   ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';
   if(!anyMoving&&!sparks.parts.length){sparks.raf=0;ctx.clearRect(0,0,W,H);return}
   sparks.raf=requestAnimationFrame(sparkFrame);
@@ -1209,7 +1235,7 @@ function seasonSection(stats,po){
   const title=po?(over?`Playoff ${champs.length>1?'co-champions':'champion'} · ${champNames}`:`Playoff points · ${done.length} of 4 rounds final`)
     :(over?`Season ${champs.length>1?'co-champions':'champion'} · ${champNames}`:`Season points · ${done.length} of 18 weeks final`);
   let h=`<section class="card"><p class="eyebrow">${title}</p>`;
-  if(!po)h+=done.length?seasonChart(stats,done):'<p class="muted">The points chart starts once Week 1 is final.</p>';
+  if(!po)h+=done.length>1?seasonChart(stats,done):`<p class="muted">The points chart starts once ${done.length?'a second week is':'Week 1 is'} final.</p>`;
   h+=`<div class="scroll"><table class="num season"><thead><tr><th>Player</th><th>Pts</th>${done.map(k=>`<th>${po?ROUNDS[k].short:'Wk '+k}</th>`).join('')}</tr></thead><tbody>`;
   rows.forEach(r=>{
     h+=`<tr data-profile="${r.p.id}"><td><span class="pcell"><span class="rk">${r.rank}</span><span class="jersey mini av-${r.p.id}" style="--c:${esc(r.p.color)}">${initial(r.p)}</span><span>${esc(r.p.name)}</span>${over&&r.rank===1?'<span class="crown">★</span>':''}</span></td><td class="tot">${total(r)}</td>${done.map(k=>{const c=r.weeks[k];return `<td>${c?`<span class="plc plc${c.place}${c.place===ps.length?' last':''}" title="${PLACE_LABEL[c.place-1]}">${c.pts}</span>`:'–'}</td>`}).join('')}</tr>`;
@@ -1420,14 +1446,14 @@ function alertsCard(){
 }
 
 function renderFamily(app){
-  let h='<section class="card"><p class="eyebrow">The five of you</p><p class="muted">Tap a face to set a PIN, photo or color. Changing names needs the parent password.</p><form id="famForm">';
+  let h='<section class="card"><p class="eyebrow">The five of you</p><p class="muted">Tap a face for a PIN, photo or color. Changing names needs the parent password.</p><form id="famForm">';
   players().forEach((p,i)=>{
     const pr=S.profiles[p.id]||{};
-    h+=`<div class="frow" style="--c:${esc(p.color)}"><button type="button" class="face-btn" data-profile="${p.id}" aria-label="Open ${esc(p.name)}’s profile"><span class="jersey av-${p.id}">${initial(p)}</span></button>
+    h+=`<div class="frow" style="--c:${esc(p.color)}"><button type="button" class="face-btn" data-profile="${p.id}" aria-label="Open ${esc(p.name)}’s profile"><span class="jersey av-${p.id}">${initial(p)}</span>${pr.pinHash?'':'<span class="setup-dot" aria-hidden="true"></span>'}</button>
       <input name="n${i}" value="${esc(p.name)}" maxlength="16" aria-label="Name for player ${i+1}" autocomplete="off">
-      <button type="button" class="toggle" data-profile="${p.id}">${pr.pinHash?'Profile':'Set up'}</button></div>`;
+      ${pr.pinHash?'':`<button type="button" class="toggle" data-profile="${p.id}">Set up</button>`}</div>`;
   });
-  h+='<div class="setrow"><button class="primary" type="submit">Save names</button><span class="muted">Everyone sees these names.</span></div></form></section>';
+  h+='<div class="setrow"><button class="primary" id="saveNames" type="submit" disabled>Save names</button><span class="muted">Everyone sees these names.</span></div></form></section>';
   h+=alertsCard();
   if(S.parent)h+=`<section class="card"><p class="eyebrow">Parent controls</p><p class="muted">A parent is signed in on this device. <button type="button" class="linkbtn" id="parentSignOut">Sign out</button></p></section>`;
   h+=`<details class="rules"><summary>How Sunday Picks works</summary><p class="muted">Tap your face at the top of the Picks tab, then tap the team you think will win each game. The first time, you’ll create a 4-digit PIN; after that the PIN keeps others from picking for you or seeing your picks before they lock, and it stays signed in on that device for 10 minutes. You can change a pick until kickoff; then it locks and everyone’s picks show. Each week runs Sunday through the next Thursday. When a week ends, 1st place (most correct picks) gets 3 points, 2nd gets 2 and 3rd gets 1, and last place takes home the Wooden Spoon. After Week 18 the playoffs keep going round by round with their own standings.</p></details>`;
@@ -1494,6 +1520,19 @@ document.addEventListener('click',(e)=>{
   if(pk){S.me=pk.dataset.picker;store.set('picker',S.me);render();return}
   if(e.target.closest('#resToggle')){S.results=!S.results;render();return}
   if(e.target.closest('#revealToggle')){S.revealAll=!S.revealAll;render();return}
+  const wkBtn=e.target.closest('#weekGrid [data-week]');
+  if(wkBtn){S.week=+wkBtn.dataset.week;S.results=false;$('#weekDlg').close();render();window.scrollTo(0,0);return}
+  if(e.target.closest('[data-week-close]')){$('#weekDlg').close();return}
+  if(e.target.closest('[data-jump]')){
+    // Jump to the first game still waiting on a pick, rather than hunting the week for it
+    const w=S.week,mine=picksFor(w,S.me),next=weekGames(w).find(g=>!locked(g)&&!isTbd(g)&&!mine[g.id]);
+    const card=next&&document.querySelector(`.game[data-card="${next.id}"]`);
+    if(card){
+      const top=card.getBoundingClientRect().top+window.scrollY-(($('.top').getBoundingClientRect().height||0)+($('.pickbar')?.getBoundingClientRect().height||0)+18);
+      window.scrollTo({top,behavior:'smooth'});
+      card.classList.remove('flash');void card.offsetWidth;card.classList.add('flash');
+    }
+    return}
   if(e.target.closest('#lockToggle')){
     const w=S.week;
     if(!weekLocked(w))setLock(w,true);
@@ -1513,6 +1552,13 @@ document.addEventListener('click',(e)=>{
     const who=player(S.me);
     requirePin(who.id,`Enter ${who.name}’s PIN to make picks.`,()=>savePick(g,tb.dataset.team))}
 });
+// Save only wakes up once a name actually changed, so the orange button always means something
+document.addEventListener('input',(e)=>{
+  if(!e.target.closest('#famForm'))return;
+  const btn=$('#saveNames');if(!btn)return;
+  const base=(S.family.players||DEFAULT_FAMILY.players).slice(0,5);
+  btn.disabled=[...document.querySelectorAll('#famForm input[name^="n"]')].every((inp,i)=>inp.value.trim()===(base[i]||{}).name);
+});
 document.addEventListener('submit',async(e)=>{
   if(e.target.id!=='famForm')return;e.preventDefault();
   const fd=new FormData(e.target);
@@ -1525,6 +1571,15 @@ document.addEventListener('submit',async(e)=>{
   });
 });
 $('#prev').onclick=()=>{if(S.week>1){S.week--;S.results=false;render()}};
+$('#nowBtn').onclick=()=>{S.week=currentWeek();S.results=false;render();window.scrollTo(0,0)};
+$('#wkPick').onclick=()=>{
+  const now=currentWeek(),grid=$('#weekGrid');
+  grid.innerHTML=Array.from({length:MAX_WEEK},(_,i)=>i+1).map(k=>{
+    const label=ROUNDS[k]?ROUNDS[k].short:k;
+    return `<button type="button" data-week="${k}" class="${k===now?'now':''}" aria-current="${k===S.week}" ${weekGames(k).length?'':'disabled'} aria-label="${esc(weekName(k))}${k===now?', this week':''}">${esc(String(label))}</button>`;
+  }).join('');
+  $('#weekDlg').showModal();
+};
 $('#next').onclick=()=>{if(S.week<MAX_WEEK){S.week++;S.results=false;render()}};
 
 /* ---- data ---- */
