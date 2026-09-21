@@ -160,7 +160,12 @@ td.tot{font-family:var(--numeric);font-weight:700;font-size:21px}
 .rk{display:inline-block;min-width:14px;color:var(--ink-3);font-weight:700}
 .pcell{display:inline-flex;align-items:center;gap:8px;vertical-align:middle}
 .pcell .jersey.mini{margin:0;vertical-align:0}
-.allpicks th{vertical-align:top;min-width:64px}
+.allpicks{width:100%;table-layout:fixed}
+.allpicks th{vertical-align:top}
+/* the header row docks under the app bar, which sets --dock to its own height */
+.allpicks thead th{position:sticky;top:var(--dock,0px);z-index:3;background:var(--surface);box-shadow:inset 0 -1px 0 var(--line)}
+.allpicks thead th:first-child{z-index:4}
+.scroll.dock{overflow:visible}
 .allpicks th:first-child{vertical-align:bottom}
 .allpicks th small{display:block;font-size:12px;color:var(--ink-2)}
 .allpicks .jersey{width:28px;height:28px;font-size:13px;margin:0 auto 4px;display:grid}
@@ -435,10 +440,9 @@ dialog p{margin:6px 0 0}
   .team{gap:10px;padding:7px 10px 7px 7px}
   .tn b{font-size:15px}
   .sc{font-size:32px}
-  .allpicks{width:100%;table-layout:fixed;font-size:12px}
+  .allpicks{font-size:12px}
   .allpicks th,.allpicks td{padding:6px 2px;white-space:normal}
   .allpicks th:first-child,.allpicks td:first-child{width:86px;padding-left:0}
-  .allpicks th{min-width:0}
   .allpicks .pname{display:none}
   .allpicks th small{font-size:10px}
   .allpicks th .upct{display:block}
@@ -819,7 +823,7 @@ function renderAllPicks(app){
   const rec=Object.fromEntries(sc.rows.map(r=>[r.p.id,r]));
   const anyOpen=gs.some(g=>!locked(g));
   let h=`<div class="note"><span>${anyOpen?(S.revealAll?'<b>Showing every pick</b>, including games that haven’t locked yet.':'Picks for games that haven’t locked yet show as ✓ until they lock.'):'Every game this week is locked, so all picks show.'}</span><span style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">${lockButton(w)}${anyOpen?`<button class="toggle" id="revealToggle" aria-pressed="${!!S.revealAll}">${S.revealAll?'Hide open picks':'Show all picks'}</button>`:''}</span></div>`;
-  h+=`<section class="card"><div class="scroll" style="margin-top:-6px"><table class="allpicks"><thead><tr><th>Game</th>${ps.map(p=>`<th class="${rec[p.id].right>0&&rec[p.id].right===Math.max(...sc.rows.map(x=>x.right))?'lead':''}" style="--c:${esc(p.color)}"><span class="jersey av-${p.id}">${initial(p)}</span><span class="pname">${esc(p.name)}</span><small class="num">${rec[p.id].right}–${rec[p.id].wrong}${rec[p.id].up?`<span class="upct"> · ${rec[p.id].up} ▲</span>`:''}</small></th>`).join('')}</tr></thead><tbody>`;
+  h+=`<section class="card"><div class="scroll dock" style="margin-top:-6px"><table class="allpicks"><thead><tr><th>Game</th>${ps.map(p=>`<th class="${rec[p.id].right>0&&rec[p.id].right===Math.max(...sc.rows.map(x=>x.right))?'lead':''}" style="--c:${esc(p.color)}"><span class="jersey av-${p.id}">${initial(p)}</span><span class="pname">${esc(p.name)}</span><small class="num">${rec[p.id].right}–${rec[p.id].wrong}${rec[p.id].up?`<span class="upct"> · ${rec[p.id].up} ▲</span>`:''}</small></th>`).join('')}</tr></thead><tbody>`;
   gs.forEach(g=>{
     const show=locked(g)||S.revealAll;
     const status=g.w?(g.w==='TIE'?`Final · tie ${g.as}–${g.hs}`:`Final ${g.as}–${g.hs}`):g.st==='in'?`Live ${g.as}–${g.hs}${g.d?' · '+g.d:''}`:g.tbd?'Time TBD':fmtKick.format(new Date(g.t));
@@ -1762,6 +1766,10 @@ async function refresh(){
   pollTimer=setTimeout(refresh,activeNflWeeks().length?30e3:10*60e3);
 }
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&S.updatedAt&&Date.now()-S.updatedAt>60e3)refresh()});
+
+// The app bar is sticky and its height changes with the week nav, so the all-picks
+// header row is told how far down to dock.
+new ResizeObserver(([e])=>document.documentElement.style.setProperty('--dock',Math.round(e.target.getBoundingClientRect().height)+'px')).observe($('.top'));
 
 render();
 if(!firebaseConfig||!firebaseConfig.projectId||firebaseConfig.projectId.startsWith('YOUR')){
