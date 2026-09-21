@@ -89,6 +89,9 @@ main>*{min-width:0}
 .lockbar{flex-wrap:nowrap;padding-left:8px}
 .lockbar .lb-text{flex:1}
 .lockbar .toggle,.note .toggle{padding:6px 12px}
+.iconbtn{width:32px;height:32px;flex:none;display:grid;place-items:center;border:0;background:none;border-radius:50%;color:var(--ink-3)}
+.iconbtn svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+@media (hover:hover){.iconbtn:hover{color:var(--ink);background:var(--raised)}}
 .pill{font-size:11px;font-weight:700;background:var(--raised);color:var(--ink);border:1px solid var(--line-2);border-radius:999px;padding:3px 9px}
 
 /* games */
@@ -165,6 +168,8 @@ td.tot{font-family:var(--numeric);font-weight:700;font-size:21px}
 /* the header row docks under the app bar, which sets --dock to its own height */
 .allpicks thead th{position:sticky;top:var(--dock,0px);z-index:3;background:var(--surface);box-shadow:inset 0 -1px 0 var(--line)}
 .allpicks thead th:first-child{z-index:4}
+/* the tick sits under the logo, never beside it, or it shunts the logo off the column's centre */
+.allpicks .mark{display:block;margin:2px 0 0;font-size:10px;text-align:center}
 .scroll.dock{overflow:visible}
 .allpicks th:first-child{vertical-align:bottom}
 .allpicks th small{display:block;font-size:12px;color:var(--ink-2)}
@@ -367,7 +372,7 @@ dialog.sheet[open]{display:flex;flex-direction:column}
 .plc.last{box-shadow:inset 0 0 0 1.5px #C08A5B;color:#E0AE82}
 .tc-row{display:grid;grid-template-columns:34px minmax(0,1fr) auto 16px;gap:12px;align-items:center;width:100%;padding:10px 0;border:0;border-top:1px solid var(--line);background:none;text-align:left;color:var(--ink)}
 .tc-row:first-of-type{border-top:0}
-.tc-row b{font-weight:700}
+.tc-row b{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tc-row .chev{color:var(--ink-3)}
 .tc-badges{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}
 .tc-b{position:relative;display:inline-grid}
@@ -437,6 +442,9 @@ dialog p{margin:6px 0 0}
 .toast{position:fixed;left:50%;bottom:calc(86px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:999px;font-weight:600;font-size:14px;z-index:9;max-width:90vw;box-shadow:0 10px 30px -10px rgba(0,0,0,.7)}
 
 @media (max-width:520px){
+  .tc-row{grid-template-columns:34px minmax(0,1fr) 16px;row-gap:8px}
+  .tc-row .chev{grid-column:3;grid-row:1}
+  .tc-badges{grid-column:1/-1;justify-content:flex-start}
   .team{gap:10px;padding:7px 10px 7px 7px}
   .tn b{font-size:15px}
   .sc{font-size:32px}
@@ -451,7 +459,7 @@ dialog p{margin:6px 0 0}
   .gcell span{font-size:10px;line-height:1.25}
   .plogo{width:34px;height:34px}
   .plogo img{width:24px;height:24px}
-  .allpicks .mark{display:block;margin:1px 0 0;font-size:9px;text-align:center}
+  .allpicks .mark{margin-top:1px;font-size:9px}
 }
 @media (prefers-reduced-motion:reduce){.alert.in,.alert.in::after,.sc.bump,.game.flash,.st.live::before,.pin-dots.shake,td.up .plogo{animation:none}}
 </style>
@@ -714,8 +722,11 @@ $('#parentForm').addEventListener('submit',async(e)=>{
   }finally{go.disabled=false}
 });
 
+// Locking a week is a parent's housekeeping, not a headline: a quiet padlock, drawn
+// open once the week is locked, since that is what the tap would do next.
 function lockButton(w){
-  return `<button class="toggle" id="lockToggle" aria-pressed="${weekLocked(w)}">${weekLocked(w)?'Unlock':'Lock all picks'}</button>`;
+  const on=weekLocked(w),label=on?`Unlock ${weekName(w)} picks`:`Lock all picks for ${weekName(w)}`;
+  return `<button class="iconbtn" id="lockToggle" aria-pressed="${on}" aria-label="${esc(label)}" title="${esc(on?'Unlock picks':'Lock all picks')}"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4.8" y="10.5" width="14.4" height="9.7" rx="2.4"/><path d="${on?'M9 10.5V7.6a3.4 3.4 0 016.6-1.1':'M9 10.5V7.6a3 3 0 016 0v2.9'}"/></svg></button>`;
 }
 
 function renderPicks(app){
@@ -1029,10 +1040,18 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden&&S.tab==='
 /* ---- season stats, badges, recap, chart ---- */
 const BADGE={
   champ:{name:'Weekly Champ',desc:'Finish 1st in a week',color:'#F5B400',icon:'<path d="M8 20h8M12 16v4M7 4h10v5a5 5 0 01-10 0V4zM7 6H4.5a2.5 2.5 0 002.8 3.6M17 6h2.5a2.5 2.5 0 01-2.8 3.6"/>',count:o=>o.champ},
+  b2b:{name:'Back-to-Back',desc:'Win two weeks in a row',color:'#6C7BFF',icon:'<path d="M5 13.5l7-6.5 7 6.5M5 19l7-6.5L19 19"/>',count:o=>o.b2b},
   perfect:{name:'Perfect Week',desc:'Every pick right in a week',color:'#30D158',icon:'<circle cx="12" cy="12" r="8.5"/><path d="M8 12.5l2.7 2.7L16 9.5"/>',count:o=>o.perfect},
+  sharp:{name:'Sharpshooter',desc:'Get 80% of a week right',color:'#5AD6C8',icon:'<circle cx="12" cy="12" r="6.5"/><circle cx="12" cy="12" r="1.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3"/>',count:o=>o.sharp},
   upset:{name:'Upset Artist',desc:'Pick an underdog that wins',color:'#A983FF',icon:'<path d="M6.7 6.6 4.8 5.3a.9.9 0 0 0-1.4.8v2.4"/><path d="M17.3 6.6l1.9-1.3a.9.9 0 0 1 1.4.8v2.4"/><path d="M4.3 9.4c0-2.7 3.4-4.6 7.7-4.6s7.7 1.9 7.7 4.6c0 1.7-.6 3-1.6 4 .7.8 1 1.7 1 2.5 0 1.9-2.2 3.1-4.4 3.1-1.1 0-2.1-.3-2.7-.9-.6.6-1.6.9-2.7.9-2.2 0-4.4-1.2-4.4-3.1 0-.8.3-1.7 1-2.5-1-1-1.6-2.3-1.6-4Z"/><path d="M9.2 10.1h.01M14.8 10.1h.01"/><path d="M10.3 12.7h3.4v1.5h-3.4z"/><path d="M12 14.2v1.1M9.9 16.1c.6.5 1.3.8 2.1.8s1.5-.3 2.1-.8"/>',count:o=>o.upsets},
+  dogpile:{name:'Dog Pile',desc:'Three winning underdogs in one week',color:'#E86FA6',icon:'<ellipse cx="12" cy="15.5" rx="4.4" ry="3.6"/><circle cx="6.6" cy="11.4" r="1.9"/><circle cx="17.4" cy="11.4" r="1.9"/><circle cx="9.6" cy="7.2" r="1.9"/><circle cx="14.4" cy="7.2" r="1.9"/>',count:o=>o.dogpile},
+  lone:{name:'Lone Wolf',desc:'Be the only one to call a game right',color:'#CBD5E1',icon:'<path d="M19.5 14.5A8 8 0 019.5 4.5a8 8 0 1010 10z"/><path d="M6.5 5.5h.01M9 9h.01"/>',count:o=>o.lone},
+  slayer:{name:'Giant Slayer',desc:'Take a 7+ point underdog that wins',color:'#FF5C5C',icon:'<path d="M14.5 9.5 20 4M17.5 3.5H20V6"/><path d="m5.5 18.5 7-7M4 20l1.5-1.5M8.5 15.5l2 2"/><path d="M3.5 13.5 8 18"/>',count:o=>o.slayer},
   streak:{name:'Hot Streak',desc:'5 right in a row',color:'#FF7A3D',icon:'<path d="M12 3c.6 3 4.5 5.2 4.5 9.6A4.5 4.5 0 017.5 13c0-2.2 1.2-3.4 2.3-4.8.3 1.4 1.1 2.4 2.2 2.6-.7-2.4-.6-5.1 0-7.8z"/>',count:o=>o.bestStreak>=5?1:0,detail:o=>`Best: ${o.bestStreak} in a row`},
   wizard:{name:'Tiebreak Wizard',desc:'Guess the exact tiebreaker total',color:'#4DB3FF',icon:'<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/>',count:o=>o.wizard},
+  soclose:{name:'So Close',desc:'Miss the tiebreaker by 3 or less',color:'#9CC9E8',icon:'<path d="M12 4.5v15M4 8.5l3.4 3.5L4 15.5M20 8.5L16.6 12l3.4 3.5"/>',count:o=>o.soclose},
+  ironman:{name:'Iron Man',desc:'Pick every game, every week',color:'#8A93A3',icon:'<rect x="4" y="5.5" width="16" height="14.5" rx="2.5"/><path d="M8 3v5M16 3v5M4 10.5h16M9.5 15.2l1.9 1.9 3.4-3.6"/>',count:o=>o.scoredWeeks>0&&o.fullWeeks===o.scoredWeeks?1:0,detail:o=>`Every pick in all ${o.scoredWeeks} scored ${o.scoredWeeks===1?'week':'weeks'}`},
+  comeback:{name:'Comeback Kid',desc:'Finish last, then win the next week',color:'#B0E64C',icon:'<path d="M5 18.5a7 7 0 1 1 7 0"/><path d="M12 3.5l3 3-3 3"/><path d="M8.5 21h7"/>',count:o=>o.comeback},
   spoon:{name:'Wooden Spoon',desc:'Finish last in a week',color:'#C08A5B',icon:'<ellipse cx="12" cy="7.5" rx="3.6" ry="4.5"/><path d="M12 12v9"/>',count:o=>o.spoon},
 };
 const BADGES=Object.values(BADGE);
@@ -1043,31 +1062,53 @@ function seasonStats(){
   const ps=players();
   const key=JSON.stringify([S.picks,S.lines,ps.map(p=>p.id),Object.values(S.weeks).map(wk=>wk.games.map(g=>g.id+(g.w||'')+g.as+'-'+g.hs))]);
   if(statsCache.key===key)return statsCache.value;
-  const out=Object.fromEntries(ps.map(p=>[p.id,{p,points:0,poPoints:0,champ:0,spoon:0,perfect:0,upsets:0,wizard:0,bestStreak:0,streak:0,right:0,wrong:0,weeks:{}}]));
+  const out=Object.fromEntries(ps.map(p=>[p.id,{p,points:0,poPoints:0,champ:0,spoon:0,perfect:0,upsets:0,wizard:0,bestStreak:0,streak:0,right:0,wrong:0,weeks:{},
+    lone:0,dogpile:0,sharp:0,comeback:0,b2b:0,slayer:0,soclose:0,fullWeeks:0,scoredWeeks:0}]));
   const seq=Object.fromEntries(ps.map(p=>[p.id,[]]));
+  // where each player finished in the previous scored week, for the badges that span two weeks
+  let was={};
   for(let w=1;w<=MAX_WEEK;w++){
     const games=weekGames(w);if(!games.length)continue;
     const lines=S.lines['w'+w]||{};
+    const wkUpsets=Object.fromEntries(ps.map(p=>[p.id,0]));
     for(const g of games){
       if(!g.w||g.w==='TIE')continue;
       const fav=lines[g.id];
+      let right=[],made=0;
       for(const p of ps){
         const pick=picksFor(w,p.id)[g.id],o=out[p.id],ok=pick===g.w;
+        if(pick)made++;
         if(ok)o.right++;else o.wrong++;
+        if(ok)right.push(p.id);
         seq[p.id].push(ok);
-        if(ok&&fav&&fav.fav&&pick!==fav.fav)o.upsets++;
+        if(ok&&fav&&fav.fav&&pick!==fav.fav){
+          o.upsets++;wkUpsets[p.id]++;
+          if(fav.line>=7)o.slayer++;
+        }
       }
+      // standing alone only counts when there was a crowd to stand apart from
+      if(right.length===1&&made>1)out[right[0]].lone++;
     }
     const sc=weekScore(w);if(!sc.complete)continue;
+    const next={};
     for(const r of sc.rows){
       const o=out[r.p.id];
       if(w<=18)o.points+=r.pts;else o.poPoints+=r.pts;
       o.weeks[w]={pts:r.pts,place:r.place,right:r.right,wrong:r.wrong};
+      o.scoredWeeks++;
+      if(r.made===games.length)o.fullWeeks++;
       if(r.place===1)o.champ++;
       if(r.place===sc.rows.length)o.spoon++;
       if(r.wrong===0&&r.right>0)o.perfect++;
+      if(r.wrong>0&&r.right/(r.right+r.wrong)>=.8)o.sharp++;
+      if(wkUpsets[r.p.id]>=3)o.dogpile++;
+      if(r.place===1&&was[r.p.id]==='first')o.b2b++;
+      if(r.place===1&&was[r.p.id]==='last')o.comeback++;
+      next[r.p.id]=r.place===1?'first':r.place===sc.rows.length?'last':'mid';
       if(r.tb!==null&&sc.actual!==null&&r.tb===sc.actual)o.wizard++;
+      if(r.tb!==null&&sc.actual!==null){const off=Math.abs(r.tb-sc.actual);if(off>0&&off<=3)o.soclose++}
     }
+    was=next;
   }
   for(const p of ps){let cur=0,best=0;for(const ok of seq[p.id]){cur=ok?cur+1:0;best=Math.max(best,cur)}out[p.id].streak=cur;out[p.id].bestStreak=best}
   statsCache={key,value:out};
