@@ -504,6 +504,32 @@ dialog p{margin:6px 0 0}
 .keep{display:flex;gap:8px;align-items:center;margin-top:12px;font-size:14px;color:var(--ink-2)}
 .err{color:var(--bad);font-weight:600;font-size:14px}
 .dlgbtns{display:flex;justify-content:flex-end;gap:10px;margin-top:18px}
+/* A legendary or mythic badge takes over the screen for a moment */
+.unlock{position:fixed;inset:0;z-index:10;display:grid;place-items:center;padding:24px;cursor:pointer;
+  background:radial-gradient(60% 50% at 50% 42%,color-mix(in srgb,var(--bc) 26%,transparent),transparent 70%),rgba(6,8,12,.86);
+  -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.unlock-in{position:relative;display:grid;justify-items:center;gap:6px;text-align:center;max-width:420px}
+.unlock .rays{position:absolute;top:-18px;width:300px;height:300px;border-radius:50%;pointer-events:none;
+  background:repeating-conic-gradient(from 0deg,color-mix(in srgb,var(--bc) 38%,transparent) 0deg 4deg,transparent 4deg 16deg);
+  -webkit-mask-image:radial-gradient(circle,#000 18%,transparent 68%);mask-image:radial-gradient(circle,#000 18%,transparent 68%)}
+.unlock .badge-ico{width:132px;height:132px;z-index:1}
+.unlock .badge-ico::before{inset:10px}
+.unlock .badge-ico svg{width:68px;height:68px;stroke-width:1.9}
+.unlock-tier{margin:14px 0 0;font-size:12px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:var(--bc)}
+.unlock h2{margin:2px 0 0;font-family:var(--display,inherit);font-size:30px;font-weight:800;line-height:1.1;text-wrap:balance}
+.unlock-desc{margin:6px 0 0;font-size:15px;color:var(--ink-2)}
+.unlock-who{margin:10px 0 0;font-size:14px;font-weight:700;color:var(--ink)}
+.unlock .toggle{margin-top:16px}
+@media (prefers-reduced-motion:no-preference){
+  .unlock.in{animation:unlockFade .35s ease}
+  .unlock.in .rays{animation:unlockSpin 16s linear infinite}
+  .unlock.in .badge-ico{animation:unlockPop .75s cubic-bezier(.2,1.5,.35,1)}
+  .unlock.in .unlock-tier,.unlock.in h2,.unlock.in .unlock-desc,.unlock.in .unlock-who{animation:unlockRise .5s .18s both ease-out}
+}
+@keyframes unlockFade{from{opacity:0}}
+@keyframes unlockSpin{to{transform:rotate(360deg)}}
+@keyframes unlockPop{0%{transform:scale(.3) rotate(-16deg);opacity:0}60%{opacity:1}100%{transform:none}}
+@keyframes unlockRise{from{opacity:0;transform:translateY(10px)}}
 .toast{position:fixed;left:50%;bottom:calc(86px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:999px;font-weight:600;font-size:14px;z-index:9;max-width:90vw;box-shadow:0 10px 30px -10px rgba(0,0,0,.7)}
 
 @media (max-width:520px){
@@ -627,6 +653,7 @@ html.tv .wk b{font-size:22px}
   </div>
   <p class="muted pin-forgot" id="pinForgot">Forgot it? A parent can reset it from the profile.</p>
 </dialog>
+<div class="unlock" id="unlock" role="status" aria-live="polite" hidden></div>
 <div class="toast" id="toast" hidden></div>
 <dialog id="parentDlg" aria-labelledby="parentTitle">
   <form id="parentForm">
@@ -1566,6 +1593,7 @@ function finishPin(){
   if(action)action();
 }
 document.addEventListener('keydown',(e)=>{
+  if(e.key==='Escape'&&!$('#unlock').hidden){nextCelebration();return}
   if(!$('#pinDlg').open)return;
   if(/^\d$/.test(e.key)){e.preventDefault();pinKey(e.key)}
   else if(e.key==='Backspace'){e.preventDefault();pinKey('back')}
@@ -1760,6 +1788,7 @@ document.addEventListener('click',(e)=>{
   if(e.target.closest('#alertsToggle')){store.set('alerts',alertsOn()?'off':'on');render();return}
   if(e.target.closest('#notifyBtn')){Notification.requestPermission().then(()=>render());return}
   if(e.target.closest('#testAlert')){sampleAlert();return}
+  if(e.target.closest('#unlock')){nextCelebration();return}
   if(e.target.closest('[data-alert-close]')){alertQueue.length=0;nextAlert();return}
   const al=e.target.closest('#alert');
   if(al){const id=al.dataset.game;nextAlert();if(id)openBox(id);return}
@@ -1951,9 +1980,29 @@ function badgeUnlocks(){
     for(const name of earned){
       if(seen.includes(name))continue;
       const badge=BADGES.find(b=>b.name===name);
-      if(badge)queueAlert({kind:'badge',badge,who:p});
+      if(!badge)continue;
+      if(tierRank(badge)>=3&&alertsOn())celebrate(badge,p);
+      else queueAlert({kind:'badge',badge,who:p});
     }
   }
+}
+// Legendary and mythic get the whole screen; everything else gets the banner
+const bigQueue=[];let bigShowing=false,bigTimer=null;
+function celebrate(badge,who){
+  bigQueue.push({badge,who});
+  if(!bigShowing)nextCelebration();
+}
+function nextCelebration(){
+  clearTimeout(bigTimer);
+  const el=$('#unlock'),item=bigQueue.shift();
+  if(!item){bigShowing=false;el.hidden=true;el.innerHTML='';el.classList.remove('in');return}
+  bigShowing=true;
+  const t=TIER[item.badge.tier]||TIER.common;
+  el.style.setProperty('--bc',t.color);
+  el.innerHTML=`<div class="unlock-in"><span class="rays" aria-hidden="true"></span>${badgeIcon(item.badge)}<p class="unlock-tier">${esc(t.label)} unlocked</p><h2>${esc(item.badge.name)}</h2><p class="unlock-desc">${esc(item.badge.desc)}</p><p class="unlock-who">${esc(item.who.name)}</p><button type="button" class="toggle" data-unlock-close>Nice</button></div>`;
+  el.hidden=false;el.classList.remove('in');void el.offsetWidth;el.classList.add('in');
+  if(!calm())navigator.vibrate?.([14,60,14]);
+  bigTimer=setTimeout(nextCelebration,7500);
 }
 function sampleAlert(){
   const w=S.week||currentWeek(),gs=weekGames(w);
@@ -2142,7 +2191,7 @@ if(!firebaseConfig||!firebaseConfig.projectId||firebaseConfig.projectId.startsWi
   refresh();
 }
 // Local testing only: lets a preview inspect state without touching the family's data
-if(location.hostname==='localhost')window.__sp={S,sparks,nfl,render,weekScore,seasonStats,recapCard,makeAvatar,hashPin,openProfile,openPin,applyAvatarCss,isUnlocked};
+if(location.hostname==='localhost')window.__sp={S,sparks,nfl,BADGE,celebrate,player,render,weekScore,seasonStats,recapCard,makeAvatar,hashPin,openProfile,openPin,applyAvatarCss,isUnlocked};
 </script>
 </body>
 </html>
