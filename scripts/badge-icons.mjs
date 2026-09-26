@@ -3,6 +3,21 @@
 import { readFile, writeFile } from 'node:fs/promises';
 
 const ICONS = {
+  postseason: 'delapouite/podium-winner',
+  champion: 'delapouite/trophy-cup',
+  longgame: 'lorc/sands-of-time',
+  wire: 'delapouite/checkered-flag',
+  bullseye: 'lorc/archery-target',
+  perfectsun: 'lorc/sunbeams',
+  grain: 'delapouite/school-of-fish',
+  icecold: 'lorc/frozen-orb',
+  ring: 'delapouite/ring',
+  chalk: 'delapouite/sheep',
+  rockbottom: 'lorc/anchor',
+  loyalist: 'delapouite/shaking-hands',
+  jinx: 'lorc/voodoo-doll',
+  photo: 'lorc/stopwatch',
+  heart: 'lorc/broken-heart',
   champ: 'lorc/trophy',
   b2b: 'lorc/laurels',
   perfect: 'delapouite/check-mark',
