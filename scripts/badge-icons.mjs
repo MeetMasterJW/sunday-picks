@@ -7,7 +7,7 @@ const ICONS = {
   champ: 'trophy', b2b: 'chevrons-up', perfect: 'circle-check', sharp: 'target-arrow',
   upset: 'dog', dogpile: 'paw', lone: 'moon-stars', slayer: 'sword', streak: 'flame',
   wizard: 'wand', soclose: 'ruler-measure', ironman: 'calendar-check', comeback: 'trending-up',
-  dynasty: 'crown', spoon: 'soup',
+  dynasty: 'crown', immaculate: 'diamond', untouchable: 'shield-check', spoon: 'soup',
 };
 
 async function paths(name) {

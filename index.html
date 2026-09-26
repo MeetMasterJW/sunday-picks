@@ -362,8 +362,29 @@ dialog.sheet[open]{display:flex;flex-direction:column}
 .jersey.mini{width:20px;height:20px;font-size:10px;vertical-align:-5px;margin-right:2px}
 
 /* badges, recap, chart, trophy case */
-.badge-ico{width:30px;height:30px;flex:none;border-radius:50%;display:inline-grid;place-items:center;background:color-mix(in srgb,var(--bc) 22%,var(--raised));color:var(--bc);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--bc) 45%,transparent)}
-.badge-ico svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
+/* Badges are struck like medals: metal face, bevelled rim, tier shape */
+.badge-ico{position:relative;width:44px;height:44px;flex:none;border-radius:50%;display:inline-grid;place-items:center;color:#fff;
+  background:radial-gradient(118% 118% at 30% 16%,color-mix(in srgb,var(--bc) 55%,#fff) 0,var(--bc) 44%,color-mix(in srgb,var(--bc) 58%,#000) 100%);
+  box-shadow:inset 0 1px 0 color-mix(in srgb,#fff 42%,transparent),inset 0 -3px 6px color-mix(in srgb,#000 42%,transparent),0 2px 7px -3px #000}
+.badge-ico::before{content:"";position:absolute;inset:3px;border-radius:inherit;border:1px solid color-mix(in srgb,#fff 26%,transparent);pointer-events:none}
+.badge-ico svg{position:relative;width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 1px 1px rgba(0,0,0,.5))}
+/* Epic and legendary get a plaque instead of a disc */
+.badge-ico.t-epic,.badge-ico.t-legendary,.badge-ico.t-mythic{border-radius:10px;clip-path:polygon(50% 0,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%)}
+.badge-ico.t-epic::before,.badge-ico.t-legendary::before,.badge-ico.t-mythic::before{inset:4px;border-radius:8px;clip-path:polygon(50% 0,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%)}
+.badge-ico.t-legendary,.badge-ico.t-mythic{
+  background:
+    repeating-conic-gradient(from 0deg,rgba(255,255,255,.16) 0deg 5deg,transparent 5deg 18deg),
+    radial-gradient(118% 118% at 30% 16%,color-mix(in srgb,var(--bc) 62%,#fff) 0,var(--bc) 46%,color-mix(in srgb,var(--bc) 55%,#000) 100%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.6),inset 0 -3px 8px rgba(0,0,0,.45),0 0 18px -3px color-mix(in srgb,var(--bc) 85%,transparent),0 3px 12px -4px #000}
+.badge-ico.t-mythic{animation:holo 7s linear infinite}
+@keyframes holo{to{filter:hue-rotate(360deg)}}
+.badge-ico.t-mythic::after{content:"";position:absolute;inset:0;clip-path:inherit;pointer-events:none;background:linear-gradient(115deg,transparent 38%,rgba(255,255,255,.62) 50%,transparent 62%);background-size:260% 100%;animation:medalShine 3s linear infinite}
+.badge-ico.t-legendary::after{content:"";position:absolute;inset:0;clip-path:inherit;pointer-events:none;background:linear-gradient(115deg,transparent 40%,rgba(255,255,255,.5) 50%,transparent 60%);background-size:260% 100%;animation:medalShine 4s linear infinite}
+@keyframes medalShine{from{background-position:150% 0}to{background-position:-60% 0}}
+.badge.dim .badge-ico::after{display:none}
+.badge.dim .badge-ico{animation:none}
+.hl .badge-ico,.tc-b .badge-ico{width:32px;height:32px}
+.hl .badge-ico svg,.tc-b .badge-ico svg{width:17px;height:17px}
 .recap{background:linear-gradient(165deg,color-mix(in srgb,var(--accent) 20%,var(--surface)),var(--surface) 62%);border:1px solid var(--line);border-radius:var(--radius);padding:16px 14px}
 .podium3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:end;gap:8px;margin-top:14px}
 .pd{display:grid;justify-items:center;gap:2px;text-align:center;min-width:0}
@@ -424,6 +445,7 @@ dialog.sheet[open]{display:flex;flex-direction:column}
 .pf-tiles b{font-family:var(--numeric);font-size:26px;line-height:1}
 .pf-tiles span{font-size:11px;font-weight:600;color:var(--ink-3);text-align:center}
 .badges{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.badge{align-items:center}
 .badge{position:relative;overflow:hidden;display:flex;align-items:flex-start;gap:10px;padding:10px;border-radius:var(--r2);background:var(--raised);min-width:0}
 .badge b{display:block;font-size:13.5px;line-height:1.25;margin-top:2px}
 .badge small{display:block;font-size:11.5px;line-height:1.3;color:var(--ink-3)}
@@ -431,11 +453,13 @@ dialog.sheet[open]{display:flex;flex-direction:column}
 .t-common{--tc:#8A93A3}.t-rare{--tc:#4DB3FF}.t-epic{--tc:#A983FF}.t-legendary{--tc:#F5B400}
 .badge.epic:not(.dim){box-shadow:inset 0 0 0 1px color-mix(in srgb,#A983FF 42%,transparent)}
 .badge.legendary:not(.dim){background:linear-gradient(135deg,color-mix(in srgb,#F5B400 18%,var(--raised)),var(--raised) 62%);box-shadow:inset 0 0 0 1px color-mix(in srgb,#F5B400 48%,transparent)}
-.badge.legendary:not(.dim)::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:linear-gradient(115deg,transparent 42%,rgba(255,255,255,.16) 50%,transparent 58%);background-size:260% 100%;animation:badgeShine 4.5s linear infinite}
+.badge.mythic:not(.dim){background:linear-gradient(135deg,color-mix(in srgb,#FF4FD8 20%,var(--raised)),color-mix(in srgb,#7B5CFF 12%,var(--raised)) 55%,var(--raised) 85%);box-shadow:inset 0 0 0 1px color-mix(in srgb,#FF4FD8 55%,transparent),0 0 22px -12px #FF4FD8}
+.t-mythic{--tc:#FF4FD8}
 @keyframes badgeShine{from{background-position:150% 0}to{background-position:-60% 0}}
-@media (prefers-reduced-motion:reduce){.badge.legendary:not(.dim)::after{animation:none}}
+@media (prefers-reduced-motion:reduce){.badge-ico.t-legendary::after,.badge-ico.t-mythic,.badge-ico.t-mythic::after{animation:none}}
 .badge.dim{opacity:.5}
-.badge.dim .badge-ico{filter:grayscale(1)}
+.badge.dim .badge-ico{filter:grayscale(1) brightness(.5) contrast(.9)}
+.badge.dim .badge-ico svg{opacity:.75}
 .pf-row{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin-top:10px}
 .pf-small{width:40px;height:40px;font-size:17px}
 .pf-sw{margin-top:12px}
@@ -747,6 +771,7 @@ function withTransition(fn){
     const t=document.startViewTransition(fn);
     t.finished?.catch(()=>{});
     t.ready?.catch(()=>{});
+    t.updateCallbackDone?.catch(()=>{});
   }catch{fn()}
 }
 function render(){
@@ -1239,6 +1264,7 @@ const TIER={
   rare:{label:'Rare',color:'#4DB3FF',rank:1},
   epic:{label:'Epic',color:'#A983FF',rank:2},
   legendary:{label:'Legendary',color:'#F5B400',rank:3},
+  mythic:{label:'Mythic',color:'#FF4FD8',rank:4},
 };
 const BADGE={
   champ:{tier:'common',name:'Weekly Champ',desc:'Finish 1st in a week',color:'#F5B400',icon:'<path d="M8 21l8 0" /><path d="M12 17l0 4" /><path d="M7 4l10 0" /><path d="M17 4v8a5 5 0 0 1 -10 0v-8" /><path d="M5 9m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" /><path d="M19 9m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />',count:o=>o.champ},
@@ -1254,6 +1280,8 @@ const BADGE={
   soclose:{tier:'common',name:'So Close',desc:'Miss the tiebreaker by 2 or less',color:'#9CC9E8',icon:'<path d="M19.875 12c.621 0 1.125 .512 1.125 1.143v5.714c0 .631 -.504 1.143 -1.125 1.143h-15.875a1 1 0 0 1 -1 -1v-5.857c0 -.631 .504 -1.143 1.125 -1.143h15.75z" /><path d="M9 12v2" /><path d="M6 12v3" /><path d="M12 12v3" /><path d="M18 12v3" /><path d="M15 12v2" /><path d="M3 3v4" /><path d="M3 5h18" /><path d="M21 3v4" />',count:o=>o.soclose},
   ironman:{tier:'rare',name:'Iron Man',desc:'Pick every game, every week',color:'#8A93A3',icon:'<path d="M11.5 21h-5.5a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v6" /><path d="M16 3v4" /><path d="M8 3v4" /><path d="M4 11h16" /><path d="M15 19l2 2l4 -4" />',count:o=>o.scoredWeeks>0&&o.fullWeeks===o.scoredWeeks?1:0,detail:o=>`Every pick in all ${o.scoredWeeks} scored ${o.scoredWeeks===1?'week':'weeks'}`},
   comeback:{tier:'epic',name:'Comeback Kid',desc:'Finish last, then win the next week',color:'#B0E64C',icon:'<path d="M3 17l6 -6l4 4l8 -8" /><path d="M14 7l7 0l0 7" />',count:o=>o.comeback},
+  immaculate:{tier:'mythic',name:'Immaculate',desc:'A perfect week and the exact tiebreaker',color:'#FF4FD8',icon:'<path d="M6 5h12l3 5l-8.5 9.5a.7 .7 0 0 1 -1 0l-8.5 -9.5l3 -5" /><path d="M10 12l-2 -2.2l.6 -1" />',count:o=>o.immaculate},
+  untouchable:{tier:'mythic',name:'Untouchable',desc:'Win five weeks in a row',color:'#FF4FD8',icon:'<path d="M11.46 20.846a12 12 0 0 1 -7.96 -14.846a12 12 0 0 0 8.5 -3a12 12 0 0 0 8.5 3a12 12 0 0 1 -.09 7.06" /><path d="M15 19l2 2l4 -4" />',count:o=>o.untouchable},
   dynasty:{tier:'legendary',name:'Dynasty',desc:'Win three weeks in a row',color:'#F5B400',icon:'<path d="M12 6l4 6l5 -4l-2 10h-14l-2 -10l5 4z" />',count:o=>o.dynasty},
   spoon:{tier:'common',name:'Wooden Spoon',desc:'Finish last in a week',color:'#C08A5B',icon:'<path d="M4 11h16a1 1 0 0 1 1 1v.5c0 1.5 -2.517 5.573 -4 6.5v1a1 1 0 0 1 -1 1h-8a1 1 0 0 1 -1 -1v-1c-1.687 -1.054 -4 -5 -4 -6.5v-.5a1 1 0 0 1 1 -1z" /><path d="M12 4a2.4 2.4 0 0 0 -1 2a2.4 2.4 0 0 0 1 2" /><path d="M16 4a2.4 2.4 0 0 0 -1 2a2.4 2.4 0 0 0 1 2" /><path d="M8 4a2.4 2.4 0 0 0 -1 2a2.4 2.4 0 0 0 1 2" />',count:o=>o.spoon},
 };
@@ -1267,7 +1295,7 @@ function seasonStats(){
   const key=JSON.stringify([S.picks,S.lines,ps.map(p=>p.id),Object.values(S.weeks).map(wk=>wk.games.map(g=>g.id+(g.w||'')+g.as+'-'+g.hs))]);
   if(statsCache.key===key)return statsCache.value;
   const out=Object.fromEntries(ps.map(p=>[p.id,{p,points:0,poPoints:0,champ:0,spoon:0,perfect:0,upsets:0,wizard:0,bestStreak:0,streak:0,right:0,wrong:0,weeks:{},
-    lone:0,dogpile:0,sharp:0,comeback:0,b2b:0,slayer:0,soclose:0,fullWeeks:0,scoredWeeks:0,dynasty:0}]));
+    lone:0,dogpile:0,sharp:0,comeback:0,b2b:0,slayer:0,soclose:0,fullWeeks:0,scoredWeeks:0,dynasty:0,immaculate:0,untouchable:0}]));
   const seq=Object.fromEntries(ps.map(p=>[p.id,[]]));
   // where each player finished in the previous scored week, for the badges that span two weeks
   let was={};
@@ -1309,6 +1337,8 @@ function seasonStats(){
       if(wkUpsets[r.p.id]>=3)o.dogpile++;
       champRun[r.p.id]=r.place===1?(champRun[r.p.id]||0)+1:0;
       if(champRun[r.p.id]===3)o.dynasty++;
+      if(champRun[r.p.id]===5)o.untouchable++;
+      if(r.wrong===0&&r.right>0&&r.tb!==null&&sc.actual!==null&&r.tb===sc.actual)o.immaculate++;
       if(r.place===1&&was[r.p.id]==='first')o.b2b++;
       if(r.place===1&&was[r.p.id]==='last')o.comeback++;
       next[r.p.id]=r.place===1?'first':r.place===sc.rows.length?'last':'mid';
@@ -1863,6 +1893,12 @@ function queueAlert(ev){
   if(!alertShowing)nextAlert();
 }
 function alertView(ev){
+  if(ev.kind==='badge'){
+    const t=TIER[ev.badge.tier]||TIER.common;
+    return {tc:t.color,tc2:'rgba(0,0,0,.25)',tx:'#fff',title:ev.badge.name,meta:t.label+' badge',
+      score:`<span>${esc(ev.who.name)}</span>`,people:`<span>${esc(ev.badge.desc)}</span>`,
+      plain:`${ev.who.name} unlocked ${ev.badge.name} (${t.label})`};
+  }
   if(ev.kind==='week'){
     const r=ev.sc.winner;
     return {tc:r.p.color,tc2:'rgba(0,0,0,.25)',tx:'#fff',title:`${weekName(ev.w)} winner`,meta:'+3 points',
@@ -1900,6 +1936,24 @@ function systemNotify(ev){
     const v=alertView(ev);
     new Notification('Sunday Picks',{body:v.plain,tag:v.game||('week'+ev.w)});
   }catch{}
+}
+// A badge that wasn't there last time this device looked is worth announcing
+function badgeUnlocks(){
+  if(!S.picksLoaded)return;
+  const stats=seasonStats();
+  for(const p of players()){
+    const o=stats[p.id],key='badges:'+p.id;
+    const earned=BADGES.filter(b=>b.count(o)).map(b=>b.name);
+    let seen=null;
+    try{seen=JSON.parse(store.get(key)||'null')}catch{}
+    store.set(key,JSON.stringify(earned));
+    if(!Array.isArray(seen))continue;                    // first look on this device: just remember
+    for(const name of earned){
+      if(seen.includes(name))continue;
+      const badge=BADGES.find(b=>b.name===name);
+      if(badge)queueAlert({kind:'badge',badge,who:p});
+    }
+  }
 }
 function sampleAlert(){
   const w=S.week||currentWeek(),gs=weekGames(w);
@@ -2083,7 +2137,7 @@ if(!firebaseConfig||!firebaseConfig.projectId||firebaseConfig.projectId.startsWi
   },()=>{});
   db.collection('picks').onSnapshot(s=>{
     const next={};s.docs.forEach(d=>next[d.id]=d.data());S.picks=next;
-    if(!s.metadata.fromCache)S.picksLoaded=true;render();maybeAutoLock();
+    if(!s.metadata.fromCache)S.picksLoaded=true;render();maybeAutoLock();badgeUnlocks();
   },()=>toast('Live updates stopped. Reload the page to see new picks.'));
   refresh();
 }
