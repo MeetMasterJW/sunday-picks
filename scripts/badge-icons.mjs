@@ -6,6 +6,7 @@ const ICONS = {
   champ: 'lorc/trophy',
   b2b: 'lorc/laurels',
   perfect: 'delapouite/check-mark',
+  landslide: 'lorc/earth-crack',
   sharp: 'lorc/target-arrows',
   upset: 'delapouite/sitting-dog',
   dogpile: 'lorc/paw',
