@@ -733,11 +733,21 @@ const PLACE_POINTS=[3,2,1];
 const PLACE_LABEL=['1st','2nd','3rd','4th','5th','6th','7th','8th'];
 /* Weekly order: most correct picks, then closest guess of total points in the
    week's last game, then a guess that isn't over, then whoever saved their guess first. */
+// A week belongs to whoever actually played it: once it has started, anyone with no picks
+// and no tiebreaker that week sits it out of the standings, points and badges.
+function playedIn(w,p){const d=pickDoc(w,p.id);return Object.keys(d.picks||{}).length>0||typeof d.tb==='number'}
+function rosterFor(w){
+  const ps=players(),gs=weekGames(w);
+  const started=weekLocked(w)||gs.some(g=>g.w||g.st==='in'||Date.now()>=lockTime(g));
+  if(!started)return ps;
+  const played=ps.filter(p=>playedIn(w,p));
+  return played.length?played:ps;
+}
 function weekScore(w){
   const games=weekGames(w);const done=games.filter(g=>g.w);
   const last=games[games.length-1];
   const actual=last&&last.w?last.as+last.hs:null;
-  const rows=players().map((p,idx)=>{
+  const rows=rosterFor(w).map((p,idx)=>{
     const doc=pickDoc(w,p.id),pk=doc.picks||{};let right=0,wrong=0,made=0,up=0;
     games.forEach(g=>{if(pk[g.id])made++;if(pickState(g,pk[g.id])==='up')up++});
     done.forEach(g=>{if(g.w==='TIE')return; if(pk[g.id]===g.w)right++; else wrong++});
@@ -1107,6 +1117,8 @@ let chanceCache={key:'',value:null};
 function winChances(w){
   const games=weekGames(w);
   if(!games.length)return null;
+  // Until picks lock, anyone can still pick, so a chance would be guesswork
+  if(games.some(g=>!locked(g,w)))return null;
   const ps=players(),last=games[games.length-1];
   const pending=games.filter(g=>!g.w).map(g=>({g,ph:homeWinProb(g)}));
   if(!pending.length)return null;
@@ -1330,12 +1342,13 @@ function seasonStats(){
   for(let w=1;w<=MAX_WEEK;w++){
     const games=weekGames(w);if(!games.length)continue;
     const lines=S.lines['w'+w]||{};
-    const wkUpsets=Object.fromEntries(ps.map(p=>[p.id,0]));
+    const roster=rosterFor(w);
+    const wkUpsets=Object.fromEntries(roster.map(p=>[p.id,0]));
     for(const g of games){
       if(!g.w||g.w==='TIE')continue;
       const fav=lines[g.id];
       let right=[],made=0;
-      for(const p of ps){
+      for(const p of roster){
         const pick=picksFor(w,p.id)[g.id],o=out[p.id],ok=pick===g.w;
         if(pick)made++;
         if(ok)o.right++;else o.wrong++;
