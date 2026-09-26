@@ -98,7 +98,7 @@ a.toggle{text-decoration:none;color:var(--ink)}
 .viewer-now b{font-size:16px;font-weight:800;color:var(--ink)}
 .viewer-sum{font-size:13.5px;font-weight:600;color:var(--ink-2)}
 .viewer-sum .num{font-family:var(--numeric);font-size:19px;font-weight:700;color:var(--ink)}
-.pickers{display:flex;gap:6px}
+.pickers{display:flex;flex-wrap:wrap;gap:6px}
 .pk{border:0;background:none;padding:2px;border-radius:50%;line-height:0}
 .pk .jersey{width:32px;height:32px;font-size:14px;opacity:.55;transition:opacity .15s,box-shadow .15s}
 .pk[aria-pressed="true"] .jersey{opacity:1;box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--c)}
@@ -194,6 +194,8 @@ td.tot{font-family:var(--numeric);font-weight:700;font-size:21px}
 .pcell{display:inline-flex;align-items:center;gap:8px;vertical-align:middle}
 .pcell .jersey.mini{margin:0;vertical-align:0}
 .allpicks{width:100%;table-layout:fixed}
+.allpicks.wide{width:auto;min-width:100%;table-layout:auto}
+.allpicks.wide th,.allpicks.wide td{min-width:52px}
 .allpicks th{vertical-align:top}
 /* the header row docks under the app bar, which sets --dock to its own height */
 .allpicks thead th{position:sticky;top:var(--dock,0px);z-index:3;background:var(--surface);box-shadow:inset 0 -1px 0 var(--line)}
@@ -422,9 +424,16 @@ dialog.sheet[open]{display:flex;flex-direction:column}
 .pf-tiles b{font-family:var(--numeric);font-size:26px;line-height:1}
 .pf-tiles span{font-size:11px;font-weight:600;color:var(--ink-3);text-align:center}
 .badges{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
-.badge{display:flex;align-items:flex-start;gap:10px;padding:10px;border-radius:var(--r2);background:var(--raised);min-width:0}
+.badge{position:relative;overflow:hidden;display:flex;align-items:flex-start;gap:10px;padding:10px;border-radius:var(--r2);background:var(--raised);min-width:0}
 .badge b{display:block;font-size:13.5px;line-height:1.25;margin-top:2px}
 .badge small{display:block;font-size:11.5px;line-height:1.3;color:var(--ink-3)}
+.badge .tier{display:block;margin-top:4px;font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--tc)}
+.t-common{--tc:#8A93A3}.t-rare{--tc:#4DB3FF}.t-epic{--tc:#A983FF}.t-legendary{--tc:#F5B400}
+.badge.epic:not(.dim){box-shadow:inset 0 0 0 1px color-mix(in srgb,#A983FF 42%,transparent)}
+.badge.legendary:not(.dim){background:linear-gradient(135deg,color-mix(in srgb,#F5B400 18%,var(--raised)),var(--raised) 62%);box-shadow:inset 0 0 0 1px color-mix(in srgb,#F5B400 48%,transparent)}
+.badge.legendary:not(.dim)::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:linear-gradient(115deg,transparent 42%,rgba(255,255,255,.16) 50%,transparent 58%);background-size:260% 100%;animation:badgeShine 4.5s linear infinite}
+@keyframes badgeShine{from{background-position:150% 0}to{background-position:-60% 0}}
+@media (prefers-reduced-motion:reduce){.badge.legendary:not(.dim)::after{animation:none}}
 .badge.dim{opacity:.5}
 .badge.dim .badge-ico{filter:grayscale(1)}
 .pf-row{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin-top:10px}
@@ -614,6 +623,7 @@ import {initializeApp} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase
 import {getFirestore,doc,collection,setDoc,onSnapshot} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
 import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,signOut} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
 const COLORS=['#E8641E','#2E6FD8','#C23B6B','#1E9E8A','#7B4FC9','#D9432B','#B71C1C','#AD1457','#E0457B','#A43BB5','#5B5BD6','#1565C0','#1B8FD1','#0F8C9E','#2F8F3A','#558B2F','#8A7A12','#C9A200','#D98200','#A0522D','#6D4C41','#4A5560','#37474F','#2B2F36'];
+const MAX_PLAYERS=8;
 const DEFAULT_FAMILY={players:[1,2,3,4,5].map((i)=>({id:'p'+i,name:'Player '+i,color:COLORS[i-1]}))};
 const S={db:null,auth:null,parent:false,liveProb:{},profiles:{},lines:{},fillShown:{},family:DEFAULT_FAMILY,weeks:{},picks:{},locks:{},week:null,me:'p1',tab:'picks',results:false,ready:false,offline:false};
 const $=(s)=>document.querySelector(s);
@@ -626,7 +636,7 @@ if(S.tv){document.documentElement.classList.add('tv');S.tab='picks'}
 
 function toast(msg){const t=$('#toast');t.textContent=msg;t.hidden=false;clearTimeout(toast._t);toast._t=setTimeout(()=>t.hidden=true,2400)}
 function textOn(hex){const h=hex.replace('#','');const [r,g,b]=[0,2,4].map(i=>parseInt(h.substr(i,2),16)/255).map(c=>c<=.03928?c/12.92:((c+.055)/1.055)**2.4);return (.2126*r+.7152*g+.0722*b)>.45?'#111':'#fff'}
-function players(){return (S.family.players||DEFAULT_FAMILY.players).slice(0,5).map(p=>{const pr=S.profiles[p.id]||{};return {...p,color:pr.color||p.color}})}
+function players(){return (S.family.players||DEFAULT_FAMILY.players).slice(0,MAX_PLAYERS).map(p=>{const pr=S.profiles[p.id]||{};return {...p,color:pr.color||p.color}})}
 function player(id){return players().find(p=>p.id===id)||players()[0]}
 function initial(p){return esc((p.name||'?').trim().charAt(0).toUpperCase())}
 // Late-pick days (Eastern date -> minutes after kickoff that picks stay open)
@@ -669,7 +679,7 @@ function slotLabel(g){
 /* ---- scoring ---- */
 // Week points by final place: 1st, 2nd, 3rd
 const PLACE_POINTS=[3,2,1];
-const PLACE_LABEL=['1st','2nd','3rd','4th','5th'];
+const PLACE_LABEL=['1st','2nd','3rd','4th','5th','6th','7th','8th'];
 /* Weekly order: most correct picks, then closest guess of total points in the
    week's last game, then a guess that isn't over, then whoever saved their guess first. */
 function weekScore(w){
@@ -733,7 +743,11 @@ function playRowMoves(at){
 // A tab or week change is a scene change, so it gets a cross-fade rather than a hard swap
 function withTransition(fn){
   if(calm()||!document.startViewTransition)return fn();
-  document.startViewTransition(fn);
+  try{
+    const t=document.startViewTransition(fn);
+    t.finished?.catch(()=>{});
+    t.ready?.catch(()=>{});
+  }catch{fn()}
 }
 function render(){
   const rowsWere=takeRowPositions();
@@ -983,10 +997,10 @@ function renderAllPicks(app){
   const w=S.week,gs=weekGames(w),ps=players(),sc=weekScore(w);
   const rec=Object.fromEntries(sc.rows.map(r=>[r.p.id,r]));
   const anyOpen=gs.some(g=>!locked(g));
-  let h=`<div class="note"><span>${anyOpen?(S.revealAll?'<b>Showing every pick</b>, locked or not':'Open games show as ✓ until they lock'):'Every game is locked · all picks show'}</span><span style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">${lockButton(w)}${anyOpen?`<button class="toggle" id="revealToggle" aria-pressed="${!!S.revealAll}">${S.revealAll?'Hide open picks':'Show all picks'}</button>`:''}</span></div>`;
-  h+=`<section class="card"><p class="legend"><span class="lg ok">✓ Right</span><span class="lg up">▲ Winning now</span><span class="lg down">▼ Losing now</span><span class="lg no">✗ Wrong</span></p><div class="scroll dock"><table class="allpicks"><thead><tr><th>Game</th>${ps.map(p=>`<th class="${rec[p.id].right>0&&rec[p.id].right===Math.max(...sc.rows.map(x=>x.right))?'lead':''}" style="--c:${esc(p.color)}"><span class="jersey av-${p.id}">${initial(p)}</span><span class="pname">${esc(p.name)}</span><small class="num">${rec[p.id].right}–${rec[p.id].wrong}${rec[p.id].up?`<span class="upct"> · ${rec[p.id].up} ▲</span>`:''}</small></th>`).join('')}</tr></thead><tbody>`;
+  let h=`<div class="note"><span>${anyOpen?'Open games show as ✓ until they lock':'Every game is locked · all picks show'}</span><span style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">${lockButton(w)}</span></div>`;
+  h+=`<section class="card"><p class="legend"><span class="lg ok">✓ Right</span><span class="lg up">▲ Winning now</span><span class="lg down">▼ Losing now</span><span class="lg no">✗ Wrong</span></p><div class="scroll${ps.length>5?'':' dock'}"><table class="allpicks${ps.length>5?' wide':''}"><thead><tr><th>Game</th>${ps.map(p=>`<th class="${rec[p.id].right>0&&rec[p.id].right===Math.max(...sc.rows.map(x=>x.right))?'lead':''}" style="--c:${esc(p.color)}"><span class="jersey av-${p.id}">${initial(p)}</span><span class="pname">${esc(p.name)}</span><small class="num">${rec[p.id].right}–${rec[p.id].wrong}${rec[p.id].up?`<span class="upct"> · ${rec[p.id].up} ▲</span>`:''}</small></th>`).join('')}</tr></thead><tbody>`;
   gs.forEach(g=>{
-    const show=locked(g)||S.revealAll;
+    const show=locked(g);
     const status=g.w?(g.w==='TIE'?`Final · tie ${g.as}–${g.hs}`:`Final ${g.as}–${g.hs}`):g.st==='in'?`Live ${g.as}–${g.hs}${g.d?' · '+g.d:''}`:g.tbd?'Time TBD':fmtKick.format(new Date(g.t));
     h+=`<tr><td class="gcell"><b>${esc(g.a.ab)} @ ${esc(g.h.ab)}</b><span class="num">${esc(status)}</span></td>`;
     ps.forEach(p=>{
@@ -1000,7 +1014,7 @@ function renderAllPicks(app){
     });
     h+='</tr>';
   });
-  const last=gs[gs.length-1],tbShow=locked(last)||S.revealAll;
+  const last=gs[gs.length-1],tbShow=locked(last);
   h+=`<tr class="tbrow"><td class="gcell"><b>Tiebreaker</b><span>Total points, ${esc(last.a.ab)} @ ${esc(last.h.ab)}${last.w?' · final '+(last.as+last.hs):''}</span></td>${ps.map(p=>{const tb=pickDoc(w,p.id).tb;return `<td class="num">${typeof tb!=='number'?'—':tbShow?tb:'✓'}</td>`}).join('')}</tr>`;
   h+='</tbody></table></div></section>';
   app.innerHTML=h;
@@ -1109,7 +1123,7 @@ function renderTv(app){
   const side=(g,k)=>{
     const t=g[k],score=k==='a'?g.as:g.hs,other=k==='a'?g.hs:g.as;
     const lead=(g.st!=='pre'||g.w)&&score>other;
-    const who=players().filter(p=>picksFor(w,p.id)[g.id]===t.ab);
+    const who=locked(g,w)?players().filter(p=>picksFor(w,p.id)[g.id]===t.ab):[];
     return `<div class="tv-side${lead?' lead':''}" style="--tc:${esc(t.c)}">
       <span class="tv-logo">${t.logo?`<img src="${esc(t.logo)}" alt="" width="54" height="54">`:esc(t.ab)}</span>
       <b>${esc(t.ab)}</b>
@@ -1219,24 +1233,33 @@ function emitSpark(x,top,h,g,c,id,burst){
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&S.tab==='standings')startSparks()});
 
 /* ---- season stats, badges, recap, chart ---- */
+// How rare a badge is meant to be; the colour and label come from the tier, not the badge
+const TIER={
+  common:{label:'Common',color:'#8A93A3',rank:0},
+  rare:{label:'Rare',color:'#4DB3FF',rank:1},
+  epic:{label:'Epic',color:'#A983FF',rank:2},
+  legendary:{label:'Legendary',color:'#F5B400',rank:3},
+};
 const BADGE={
-  champ:{name:'Weekly Champ',desc:'Finish 1st in a week',color:'#F5B400',icon:'<path d="M8 20h8M12 16v4M7 4h10v5a5 5 0 01-10 0V4zM7 6H4.5a2.5 2.5 0 002.8 3.6M17 6h2.5a2.5 2.5 0 01-2.8 3.6"/>',count:o=>o.champ},
-  b2b:{name:'Back-to-Back',desc:'Win two weeks in a row',color:'#6C7BFF',icon:'<path d="M5 13.5l7-6.5 7 6.5M5 19l7-6.5L19 19"/>',count:o=>o.b2b},
-  perfect:{name:'Perfect Week',desc:'Every pick right in a week',color:'#30D158',icon:'<circle cx="12" cy="12" r="8.5"/><path d="M8 12.5l2.7 2.7L16 9.5"/>',count:o=>o.perfect},
-  sharp:{name:'Sharpshooter',desc:'Get 80% of a week right',color:'#5AD6C8',icon:'<circle cx="12" cy="12" r="6.5"/><circle cx="12" cy="12" r="1.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3"/>',count:o=>o.sharp},
-  upset:{name:'Upset Artist',desc:'Pick an underdog that wins',color:'#A983FF',icon:'<path d="M6.7 6.6 4.8 5.3a.9.9 0 0 0-1.4.8v2.4"/><path d="M17.3 6.6l1.9-1.3a.9.9 0 0 1 1.4.8v2.4"/><path d="M4.3 9.4c0-2.7 3.4-4.6 7.7-4.6s7.7 1.9 7.7 4.6c0 1.7-.6 3-1.6 4 .7.8 1 1.7 1 2.5 0 1.9-2.2 3.1-4.4 3.1-1.1 0-2.1-.3-2.7-.9-.6.6-1.6.9-2.7.9-2.2 0-4.4-1.2-4.4-3.1 0-.8.3-1.7 1-2.5-1-1-1.6-2.3-1.6-4Z"/><path d="M9.2 10.1h.01M14.8 10.1h.01"/><path d="M10.3 12.7h3.4v1.5h-3.4z"/><path d="M12 14.2v1.1M9.9 16.1c.6.5 1.3.8 2.1.8s1.5-.3 2.1-.8"/>',count:o=>o.upsets},
-  dogpile:{name:'Dog Pile',desc:'Three winning underdogs in one week',color:'#E86FA6',icon:'<ellipse cx="12" cy="15.5" rx="4.4" ry="3.6"/><circle cx="6.6" cy="11.4" r="1.9"/><circle cx="17.4" cy="11.4" r="1.9"/><circle cx="9.6" cy="7.2" r="1.9"/><circle cx="14.4" cy="7.2" r="1.9"/>',count:o=>o.dogpile},
-  lone:{name:'Lone Wolf',desc:'Be the only one to call a game right',color:'#CBD5E1',icon:'<path d="M19.5 14.5A8 8 0 019.5 4.5a8 8 0 1010 10z"/><path d="M6.5 5.5h.01M9 9h.01"/>',count:o=>o.lone},
-  slayer:{name:'Giant Slayer',desc:'Take a 7+ point underdog that wins',color:'#FF5C5C',icon:'<path d="M14.5 9.5 20 4M17.5 3.5H20V6"/><path d="m5.5 18.5 7-7M4 20l1.5-1.5M8.5 15.5l2 2"/><path d="M3.5 13.5 8 18"/>',count:o=>o.slayer},
-  streak:{name:'Hot Streak',desc:'5 right in a row',color:'#FF7A3D',icon:'<path d="M12 3c.6 3 4.5 5.2 4.5 9.6A4.5 4.5 0 017.5 13c0-2.2 1.2-3.4 2.3-4.8.3 1.4 1.1 2.4 2.2 2.6-.7-2.4-.6-5.1 0-7.8z"/>',count:o=>o.bestStreak>=5?1:0,detail:o=>`Best: ${o.bestStreak} in a row`},
-  wizard:{name:'Tiebreak Wizard',desc:'Guess the exact tiebreaker total',color:'#4DB3FF',icon:'<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/>',count:o=>o.wizard},
-  soclose:{name:'So Close',desc:'Miss the tiebreaker by 3 or less',color:'#9CC9E8',icon:'<path d="M12 4.5v15M4 8.5l3.4 3.5L4 15.5M20 8.5L16.6 12l3.4 3.5"/>',count:o=>o.soclose},
-  ironman:{name:'Iron Man',desc:'Pick every game, every week',color:'#8A93A3',icon:'<rect x="4" y="5.5" width="16" height="14.5" rx="2.5"/><path d="M8 3v5M16 3v5M4 10.5h16M9.5 15.2l1.9 1.9 3.4-3.6"/>',count:o=>o.scoredWeeks>0&&o.fullWeeks===o.scoredWeeks?1:0,detail:o=>`Every pick in all ${o.scoredWeeks} scored ${o.scoredWeeks===1?'week':'weeks'}`},
-  comeback:{name:'Comeback Kid',desc:'Finish last, then win the next week',color:'#B0E64C',icon:'<path d="M5 18.5a7 7 0 1 1 7 0"/><path d="M12 3.5l3 3-3 3"/><path d="M8.5 21h7"/>',count:o=>o.comeback},
-  spoon:{name:'Wooden Spoon',desc:'Finish last in a week',color:'#C08A5B',icon:'<ellipse cx="12" cy="7.5" rx="3.6" ry="4.5"/><path d="M12 12v9"/>',count:o=>o.spoon},
+  champ:{tier:'common',name:'Weekly Champ',desc:'Finish 1st in a week',color:'#F5B400',icon:'<path d="M8 21l8 0" /><path d="M12 17l0 4" /><path d="M7 4l10 0" /><path d="M17 4v8a5 5 0 0 1 -10 0v-8" /><path d="M5 9m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" /><path d="M19 9m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />',count:o=>o.champ},
+  b2b:{tier:'rare',name:'Back-to-Back',desc:'Win two weeks in a row',color:'#6C7BFF',icon:'<path d="M7 11l5 -5l5 5" /><path d="M7 17l5 -5l5 5" />',count:o=>o.b2b},
+  perfect:{tier:'legendary',name:'Perfect Week',desc:'Every pick right in a week',color:'#30D158',icon:'<path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" /><path d="M9 12l2 2l4 -4" />',count:o=>o.perfect},
+  sharp:{tier:'rare',name:'Sharpshooter',desc:'Get 85% of a week right',color:'#5AD6C8',icon:'<path d="M12 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M12 7a5 5 0 1 0 5 5" /><path d="M13 3.055a9 9 0 1 0 7.941 7.945" /><path d="M15 6v3h3l3 -3h-3v-3z" /><path d="M15 9l-3 3" />',count:o=>o.sharp},
+  upset:{tier:'common',name:'Upset Artist',desc:'Pick an underdog that wins',color:'#A983FF',icon:'<path d="M11 5h2" /><path d="M19 12c-.667 5.333 -2.333 8 -5 8h-4c-2.667 0 -4.333 -2.667 -5 -8" /><path d="M11 16c0 .667 .333 1 1 1s1 -.333 1 -1h-2z" /><path d="M12 18v2" /><path d="M10 11v.01" /><path d="M14 11v.01" /><path d="M5 4l6 .97l-6.238 6.688a1.021 1.021 0 0 1 -1.41 .111a.953 .953 0 0 1 -.327 -.954l1.975 -6.815z" /><path d="M19 4l-6 .97l6.238 6.688c.358 .408 .989 .458 1.41 .111a.953 .953 0 0 0 .327 -.954l-1.975 -6.815z" />',count:o=>o.upsets},
+  dogpile:{tier:'epic',name:'Dog Pile',desc:'Three winning underdogs in one week',color:'#E86FA6',icon:'<path d="M14.7 13.5c-1.1 -2 -1.441 -2.5 -2.7 -2.5c-1.259 0 -1.736 .755 -2.836 2.747c-.942 1.703 -2.846 1.845 -3.321 3.291c-.097 .265 -.145 .677 -.143 .962c0 1.176 .787 2 1.8 2c1.259 0 3 -1 4.5 -1s3.241 1 4.5 1c1.013 0 1.8 -.823 1.8 -2c0 -.285 -.049 -.697 -.146 -.962c-.475 -1.451 -2.512 -1.835 -3.454 -3.538z" /><path d="M20.188 8.082a1.039 1.039 0 0 0 -.406 -.082h-.015c-.735 .012 -1.56 .75 -1.993 1.866c-.519 1.335 -.28 2.7 .538 3.052c.129 .055 .267 .082 .406 .082c.739 0 1.575 -.742 2.011 -1.866c.516 -1.335 .273 -2.7 -.54 -3.052z" /><path d="M9.474 9c.055 0 .109 0 .163 -.011c.944 -.128 1.533 -1.346 1.32 -2.722c-.203 -1.297 -1.047 -2.267 -1.932 -2.267c-.055 0 -.109 0 -.163 .011c-.944 .128 -1.533 1.346 -1.32 2.722c.204 1.293 1.048 2.267 1.933 2.267z" /><path d="M16.456 6.733c.214 -1.376 -.375 -2.594 -1.32 -2.722a1.164 1.164 0 0 0 -.162 -.011c-.885 0 -1.728 .97 -1.93 2.267c-.214 1.376 .375 2.594 1.32 2.722c.054 .007 .108 .011 .162 .011c.885 0 1.73 -.974 1.93 -2.267z" /><path d="M5.69 12.918c.816 -.352 1.054 -1.719 .536 -3.052c-.436 -1.124 -1.271 -1.866 -2.009 -1.866c-.14 0 -.277 .027 -.407 .082c-.816 .352 -1.054 1.719 -.536 3.052c.436 1.124 1.271 1.866 2.009 1.866c.14 0 .277 -.027 .407 -.082z" />',count:o=>o.dogpile},
+  lone:{tier:'rare',name:'Lone Wolf',desc:'Be the only one to call a game right',color:'#CBD5E1',icon:'<path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" /><path d="M17 4a2 2 0 0 0 2 2a2 2 0 0 0 -2 2a2 2 0 0 0 -2 -2a2 2 0 0 0 2 -2" /><path d="M19 11h2m-1 -1v2" />',count:o=>o.lone},
+  slayer:{tier:'epic',name:'Giant Slayer',desc:'Take a 10+ point underdog that wins',color:'#FF5C5C',icon:'<path d="M20 4v5l-9 7l-4 4l-3 -3l4 -4l7 -9z" /><path d="M6.5 11.5l6 6" />',count:o=>o.slayer},
+  streak:{tier:'rare',name:'Hot Streak',desc:'7 right in a row',color:'#FF7A3D',icon:'<path d="M12 12c2 -2.96 0 -7 -1 -8c0 3.038 -1.773 4.741 -3 6c-1.226 1.26 -2 3.24 -2 5a6 6 0 1 0 12 0c0 -1.532 -1.056 -3.94 -2 -5c-1.786 3 -2.791 3 -4 2z" />',count:o=>o.bestStreak>=7?1:0,detail:o=>`Best: ${o.bestStreak} in a row`},
+  wizard:{tier:'epic',name:'Tiebreak Wizard',desc:'Guess the exact tiebreaker total',color:'#4DB3FF',icon:'<path d="M6 21l15 -15l-3 -3l-15 15l3 3" /><path d="M15 6l3 3" /><path d="M9 3a2 2 0 0 0 2 2a2 2 0 0 0 -2 2a2 2 0 0 0 -2 -2a2 2 0 0 0 2 -2" /><path d="M19 13a2 2 0 0 0 2 2a2 2 0 0 0 -2 2a2 2 0 0 0 -2 -2a2 2 0 0 0 2 -2" />',count:o=>o.wizard},
+  soclose:{tier:'common',name:'So Close',desc:'Miss the tiebreaker by 2 or less',color:'#9CC9E8',icon:'<path d="M19.875 12c.621 0 1.125 .512 1.125 1.143v5.714c0 .631 -.504 1.143 -1.125 1.143h-15.875a1 1 0 0 1 -1 -1v-5.857c0 -.631 .504 -1.143 1.125 -1.143h15.75z" /><path d="M9 12v2" /><path d="M6 12v3" /><path d="M12 12v3" /><path d="M18 12v3" /><path d="M15 12v2" /><path d="M3 3v4" /><path d="M3 5h18" /><path d="M21 3v4" />',count:o=>o.soclose},
+  ironman:{tier:'rare',name:'Iron Man',desc:'Pick every game, every week',color:'#8A93A3',icon:'<path d="M11.5 21h-5.5a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v6" /><path d="M16 3v4" /><path d="M8 3v4" /><path d="M4 11h16" /><path d="M15 19l2 2l4 -4" />',count:o=>o.scoredWeeks>0&&o.fullWeeks===o.scoredWeeks?1:0,detail:o=>`Every pick in all ${o.scoredWeeks} scored ${o.scoredWeeks===1?'week':'weeks'}`},
+  comeback:{tier:'epic',name:'Comeback Kid',desc:'Finish last, then win the next week',color:'#B0E64C',icon:'<path d="M3 17l6 -6l4 4l8 -8" /><path d="M14 7l7 0l0 7" />',count:o=>o.comeback},
+  dynasty:{tier:'legendary',name:'Dynasty',desc:'Win three weeks in a row',color:'#F5B400',icon:'<path d="M12 6l4 6l5 -4l-2 10h-14l-2 -10l5 4z" />',count:o=>o.dynasty},
+  spoon:{tier:'common',name:'Wooden Spoon',desc:'Finish last in a week',color:'#C08A5B',icon:'<path d="M4 11h16a1 1 0 0 1 1 1v.5c0 1.5 -2.517 5.573 -4 6.5v1a1 1 0 0 1 -1 1h-8a1 1 0 0 1 -1 -1v-1c-1.687 -1.054 -4 -5 -4 -6.5v-.5a1 1 0 0 1 1 -1z" /><path d="M12 4a2.4 2.4 0 0 0 -1 2a2.4 2.4 0 0 0 1 2" /><path d="M16 4a2.4 2.4 0 0 0 -1 2a2.4 2.4 0 0 0 1 2" /><path d="M8 4a2.4 2.4 0 0 0 -1 2a2.4 2.4 0 0 0 1 2" />',count:o=>o.spoon},
 };
 const BADGES=Object.values(BADGE);
-function badgeIcon(b){return `<span class="badge-ico" style="--bc:${b.color}"><svg viewBox="0 0 24 24" aria-hidden="true">${b.icon}</svg></span>`}
+function badgeIcon(b){return `<span class="badge-ico t-${b.tier||'common'}" style="--bc:${(TIER[b.tier]||TIER.common).color}"><svg viewBox="0 0 24 24" aria-hidden="true">${b.icon}</svg></span>`}
+function tierRank(b){return (TIER[b.tier]||TIER.common).rank}
 
 let statsCache={key:'',value:null};
 function seasonStats(){
@@ -1244,10 +1267,11 @@ function seasonStats(){
   const key=JSON.stringify([S.picks,S.lines,ps.map(p=>p.id),Object.values(S.weeks).map(wk=>wk.games.map(g=>g.id+(g.w||'')+g.as+'-'+g.hs))]);
   if(statsCache.key===key)return statsCache.value;
   const out=Object.fromEntries(ps.map(p=>[p.id,{p,points:0,poPoints:0,champ:0,spoon:0,perfect:0,upsets:0,wizard:0,bestStreak:0,streak:0,right:0,wrong:0,weeks:{},
-    lone:0,dogpile:0,sharp:0,comeback:0,b2b:0,slayer:0,soclose:0,fullWeeks:0,scoredWeeks:0}]));
+    lone:0,dogpile:0,sharp:0,comeback:0,b2b:0,slayer:0,soclose:0,fullWeeks:0,scoredWeeks:0,dynasty:0}]));
   const seq=Object.fromEntries(ps.map(p=>[p.id,[]]));
   // where each player finished in the previous scored week, for the badges that span two weeks
   let was={};
+  const champRun={};
   for(let w=1;w<=MAX_WEEK;w++){
     const games=weekGames(w);if(!games.length)continue;
     const lines=S.lines['w'+w]||{};
@@ -1264,7 +1288,7 @@ function seasonStats(){
         seq[p.id].push(ok);
         if(ok&&fav&&fav.fav&&pick!==fav.fav){
           o.upsets++;wkUpsets[p.id]++;
-          if(fav.line>=7)o.slayer++;
+          if(fav.line>=10)o.slayer++;
         }
       }
       // standing alone only counts when there was a crowd to stand apart from
@@ -1281,13 +1305,15 @@ function seasonStats(){
       if(r.place===1)o.champ++;
       if(r.place===sc.rows.length)o.spoon++;
       if(r.wrong===0&&r.right>0)o.perfect++;
-      if(r.wrong>0&&r.right/(r.right+r.wrong)>=.8)o.sharp++;
+      if(r.wrong>0&&r.right/(r.right+r.wrong)>=.85)o.sharp++;
       if(wkUpsets[r.p.id]>=3)o.dogpile++;
+      champRun[r.p.id]=r.place===1?(champRun[r.p.id]||0)+1:0;
+      if(champRun[r.p.id]===3)o.dynasty++;
       if(r.place===1&&was[r.p.id]==='first')o.b2b++;
       if(r.place===1&&was[r.p.id]==='last')o.comeback++;
       next[r.p.id]=r.place===1?'first':r.place===sc.rows.length?'last':'mid';
       if(r.tb!==null&&sc.actual!==null&&r.tb===sc.actual)o.wizard++;
-      if(r.tb!==null&&sc.actual!==null){const off=Math.abs(r.tb-sc.actual);if(off>0&&off<=3)o.soclose++}
+      if(r.tb!==null&&sc.actual!==null){const off=Math.abs(r.tb-sc.actual);if(off>0&&off<=2)o.soclose++}
     }
     was=next;
   }
@@ -1402,7 +1428,7 @@ function trophyCase(stats){
   const rows=players().map(p=>stats[p.id]).sort((a,b)=>b.points-a.points||b.champ-a.champ);
   let h='<section class="card"><p class="eyebrow">Trophy case</p>';
   rows.forEach(o=>{
-    const earned=BADGES.filter(b=>b.count(o));
+    const earned=BADGES.filter(b=>b.count(o)).sort((a,b)=>tierRank(b)-tierRank(a));
     h+=`<button type="button" class="tc-row" data-profile="${o.p.id}" style="--c:${esc(o.p.color)}"><span class="jersey av-${o.p.id}">${initial(o.p)}</span><b>${esc(o.p.name)}</b><span class="tc-badges">${earned.length?earned.map(b=>`<span class="tc-b" title="${b.name}">${badgeIcon(b)}${b.count(o)>1?`<small>${b.count(o)}</small>`:''}</span>`).join(''):'<small class="muted">No badges yet</small>'}</span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>`;
   });
   return h+'</section>';
@@ -1524,7 +1550,13 @@ function renderProfile(){
   const tiles=[['Season pts',o.points],['Weekly wins',o.champ],['Best streak',o.bestStreak],['Upsets',o.upsets]];
   let h=`<div class="pf-top" style="--c:${esc(p.color)}"><span class="jersey pf-face av-${p.id}">${initial(p)}</span><div class="pf-id"><b>${esc(p.name)}</b><span class="num">${o.right}–${o.wrong} all season${o.poPoints?` · ${o.poPoints} playoff pts`:''}</span>${un?'<span class="pf-state">Signed in on this device</span>':''}</div></div>`;
   h+=`<div class="pf-tiles">${tiles.map(([label,v])=>`<div><b class="num">${v}</b><span>${label}</span></div>`).join('')}</div>`;
-  h+=`<section class="bx-sec"><h4>Badges</h4><div class="badges">${BADGES.map(b=>{const n=b.count(o);return `<div class="badge${n?'':' dim'}">${badgeIcon(b)}<div><b>${b.name}${n>1?` <span class="num">×${n}</span>`:''}</b><small>${n&&b.detail?b.detail(o):b.desc}</small></div></div>`}).join('')}</div></section>`;
+  const all=seasonStats();
+  const sorted=[...BADGES].sort((a,b)=>tierRank(b)-tierRank(a)||b.count(o)-a.count(o));
+  h+=`<section class="bx-sec"><h4>Badges</h4><div class="badges">${sorted.map(b=>{
+    const n=b.count(o),holders=players().filter(x=>b.count(all[x.id])>0);
+    const rarity=n?(holders.length===1?'Only you':`${holders.length} of ${players().length} have it`):(holders.length?(holders.length===1?holders[0].name+' has it':holders.length+' have it'):'Nobody yet');
+    return `<div class="badge ${b.tier||'common'}${n?'':' dim'}">${badgeIcon(b)}<div><b>${b.name}${n>1?` <span class="num">×${n}</span>`:''}</b><small>${n&&b.detail?b.detail(o):b.desc}</small><span class="tier t-${b.tier||'common'}">${(TIER[b.tier]||TIER.common).label} · ${rarity}</span></div></div>`;
+  }).join('')}</div></section>`;
   h+=`<section class="bx-sec"><h4>Make it yours</h4>${un||S.parent?'':`<p class="muted">Changes ask for ${esc(p.name)}’s PIN.</p>`}
     <div class="pf-row"><span class="jersey pf-small av-${p.id}" style="--c:${esc(p.color)}">${initial(p)}</span><label class="toggle">${pr.avatar?'Change photo':'Add a photo'}<input type="file" accept="image/*" data-avatar-input="${p.id}" hidden></label>${pr.avatar?`<button type="button" class="linkbtn" data-avatar-remove="${p.id}">Remove photo</button>`:''}</div>
     <div class="sw pf-sw" role="group" aria-label="Color for ${esc(p.name)}">${COLORS.map(c=>`<button type="button" style="--c:${c}" data-pcolor="${c}" data-pid="${p.id}" aria-pressed="${c===p.color}" aria-label="Color ${c}"></button>`).join('')}</div>
@@ -1601,14 +1633,15 @@ function alertsCard(){
 }
 
 function renderFamily(app){
-  let h='<section class="card"><p class="eyebrow">The five of you</p><p class="muted">Tap a face for a PIN, photo or color. Changing names needs the parent password.</p><form id="famForm">';
+  const roster=players();
+  let h=`<section class="card"><p class="eyebrow">${roster.length===5?'The five of you':`Everyone · ${roster.length}`}</p><p class="muted">Tap a face for a PIN, photo or color. Adding someone or changing names needs the parent password.</p><form id="famForm">`;
   players().forEach((p,i)=>{
     const pr=S.profiles[p.id]||{};
     h+=`<div class="frow" style="--c:${esc(p.color)}"><button type="button" class="face-btn" data-profile="${p.id}" aria-label="Open ${esc(p.name)}’s profile"><span class="jersey av-${p.id}">${initial(p)}</span>${pr.pinHash?'':'<span class="setup-dot" aria-hidden="true"></span>'}</button>
       <input name="n${i}" value="${esc(p.name)}" maxlength="16" aria-label="Name for player ${i+1}" autocomplete="off">
       ${pr.pinHash?'':`<button type="button" class="toggle" data-profile="${p.id}">Set up</button>`}</div>`;
   });
-  h+='<div class="setrow"><button class="primary" id="saveNames" type="submit" disabled>Save names</button><span class="muted">Everyone sees these names.</span></div></form></section>';
+  h+=`<div class="setrow"><button class="primary" id="saveNames" type="submit" disabled>Save names</button>${roster.length<MAX_PLAYERS?'<button type="button" class="toggle" id="addPerson">Add someone</button>':`<span class="muted">${MAX_PLAYERS} is the most the app holds.</span>`}</div></form></section>`;
   h+=`<section class="card"><p class="eyebrow">Big screen</p><p class="muted">Every game of the week, sized for the room. Open it on the TV or cast this tab.</p><div class="setrow"><a class="toggle" href="?tv" target="_blank" rel="noopener">Open TV mode</a></div></section>`;
   h+=alertsCard();
   if(S.parent)h+=`<section class="card"><p class="eyebrow">Parent controls</p><p class="muted">A parent is signed in on this device. <button type="button" class="linkbtn" id="parentSignOut">Sign out</button></p></section>`;
@@ -1677,7 +1710,6 @@ document.addEventListener('click',(e)=>{
   const pk=e.target.closest('[data-picker]');
   if(pk){S.me=pk.dataset.picker;store.set('picker',S.me);render();return}
   if(e.target.closest('#resToggle')){S.results=!S.results;render();return}
-  if(e.target.closest('#revealToggle')){S.revealAll=!S.revealAll;render();return}
   const wkBtn=e.target.closest('#weekStrip [data-week]');
   if(wkBtn){const k=+wkBtn.dataset.week;if(k!==S.week){S.week=k;S.results=false;withTransition(render);window.scrollTo(0,0)}return}
   if(e.target.closest('[data-jump]')){
@@ -1701,6 +1733,19 @@ document.addEventListener('click',(e)=>{
   if(e.target.closest('[data-alert-close]')){alertQueue.length=0;nextAlert();return}
   const al=e.target.closest('#alert');
   if(al){const id=al.dataset.game;nextAlert();if(id)openBox(id);return}
+  if(e.target.closest('#addPerson')){
+    const base=(S.family.players||DEFAULT_FAMILY.players).slice(0,MAX_PLAYERS);
+    if(base.length>=MAX_PLAYERS){toast(`${MAX_PLAYERS} is the most the app holds.`);return}
+    const taken=new Set(base.map(p=>p.id));
+    let slot=1;while(taken.has('p'+slot))slot++;
+    const usedColors=new Set(base.map(p=>p.color));
+    const next={players:[...base,{id:'p'+slot,name:'Player '+slot,color:COLORS.find(c=>!usedColors.has(c))||COLORS[base.length%COLORS.length]}]};
+    requireParent('Enter the parent password to add someone.',async()=>{
+      const prev=S.family;S.family=next;render();
+      try{await S.db.doc('config/family').set(next);toast('Added. Tap their face to set a name, PIN and photo.')}
+      catch{S.family=prev;render();toast('Couldn’t add them. Publish the updated database rules first.')}
+    });
+    return}
   if(e.target.closest('#parentSignOut')){signOut(S.auth).then(()=>toast('Parent signed out on this device'));return}
   const tb=e.target.closest('.team[data-game]');
   if(tb){const g=weekGames(S.week).find(x=>x.id===tb.dataset.game);if(!g)return;
@@ -1713,13 +1758,13 @@ document.addEventListener('click',(e)=>{
 document.addEventListener('input',(e)=>{
   if(!e.target.closest('#famForm'))return;
   const btn=$('#saveNames');if(!btn)return;
-  const base=(S.family.players||DEFAULT_FAMILY.players).slice(0,5);
+  const base=(S.family.players||DEFAULT_FAMILY.players).slice(0,MAX_PLAYERS);
   btn.disabled=[...document.querySelectorAll('#famForm input[name^="n"]')].every((inp,i)=>inp.value.trim()===(base[i]||{}).name);
 });
 document.addEventListener('submit',async(e)=>{
   if(e.target.id!=='famForm')return;e.preventDefault();
   const fd=new FormData(e.target);
-  const base=(S.family.players||DEFAULT_FAMILY.players).slice(0,5);
+  const base=(S.family.players||DEFAULT_FAMILY.players).slice(0,MAX_PLAYERS);
   const next={players:base.map((p,i)=>({id:p.id,name:(fd.get('n'+i)||'').trim().slice(0,16)||'Player '+(i+1),color:p.color||COLORS[i]}))};
   requireParent('Enter the parent password to change names.',async()=>{
     const prev=S.family;S.family=next;

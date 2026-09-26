@@ -22,7 +22,7 @@ service cloud.firestore {
       allow create, update: if request.resource.data.keys().hasOnly(['week', 'player', 'picks', 'tb', 'tbAt'])
         && request.resource.data.week is int
         && request.resource.data.week >= 1 && request.resource.data.week <= 22
-        && request.resource.data.player.matches('p[1-5]')
+        && request.resource.data.player.matches('p[1-8]')
         && id == 'w' + string(request.resource.data.week) + '-' + request.resource.data.player
         && request.resource.data.picks is map
         && (isParent() || !weekLocked(request.resource.data.week));
@@ -42,13 +42,14 @@ service cloud.firestore {
       allow create, update: if isParent()
         && request.resource.data.keys().hasOnly(['players'])
         && request.resource.data.players is list
-        && request.resource.data.players.size() == 5;
+        && request.resource.data.players.size() >= 2
+        && request.resource.data.players.size() <= 8;
     }
 
     // Each person's color, photo (a small JPEG data URL) and hashed PIN
     match /profiles/{id} {
       allow read: if true;
-      allow create, update: if id.matches('p[1-5]')
+      allow create, update: if id.matches('p[1-8]')
         && request.resource.data.keys().hasOnly(['color', 'avatar', 'pinHash', 'pinSalt', 'updatedAt'])
         && request.resource.data.get('avatar', '') is string
         && request.resource.data.get('avatar', '').size() < 200000;
