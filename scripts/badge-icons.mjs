@@ -1,31 +1,46 @@
-// Badge artwork comes from Tabler Icons (MIT). This pulls the ones we use and inlines
-// their paths into index.html, so the page has no runtime dependency on another site.
+// Badge emblems come from game-icons.net (CC BY 3.0) — silhouettes made for games, which
+// suit awards better than UI line icons. This inlines them so the page fetches nothing at runtime.
 import { readFile, writeFile } from 'node:fs/promises';
 
-const VERSION = '3.19.0';
 const ICONS = {
-  champ: 'trophy', b2b: 'chevrons-up', perfect: 'circle-check', sharp: 'target-arrow',
-  upset: 'dog', dogpile: 'paw', lone: 'moon-stars', slayer: 'sword', streak: 'flame',
-  wizard: 'wand', soclose: 'ruler-measure', ironman: 'calendar-check', comeback: 'trending-up',
-  dynasty: 'crown', immaculate: 'diamond', untouchable: 'shield-check', spoon: 'soup',
+  champ: 'lorc/trophy',
+  b2b: 'lorc/laurels',
+  perfect: 'delapouite/check-mark',
+  sharp: 'lorc/target-arrows',
+  upset: 'delapouite/sitting-dog',
+  dogpile: 'lorc/paw',
+  lone: 'lorc/wolf-head',
+  slayer: 'lorc/broadsword',
+  streak: 'lorc/small-fire',
+  wizard: 'lorc/pointy-hat',
+  soclose: 'delapouite/dart',
+  ironman: 'lorc/anvil',
+  comeback: 'lorc/sunrise',
+  dynasty: 'lorc/crown',
+  immaculate: 'lorc/diamond-hard',
+  untouchable: 'lorc/edged-shield',
+  spoon: 'lorc/spoon',
 };
 
-async function paths(name) {
-  const res = await fetch(`https://unpkg.com/@tabler/icons@${VERSION}/icons/outline/${name}.svg`);
-  if (!res.ok) throw new Error(`${name}: HTTP ${res.status}`);
+async function emblem(path) {
+  const res = await fetch(`https://raw.githubusercontent.com/game-icons/icons/master/${path}.svg`);
+  if (!res.ok) throw new Error(`${path}: HTTP ${res.status}`);
   const svg = await res.text();
-  return [...svg.matchAll(/<path[^>]*\/>/g)]
-    .map((m) => m[0].replace(/\s+/g, ' ').trim())
-    .filter((p) => !p.includes('stroke="none"'))     // drop Tabler's invisible bounding path
+  const art = [...svg.matchAll(/<path[^>]*\/>/g)]
+    .map((m) => m[0])
+    .filter((p) => !/d="M0 0h512v512H0z"/.test(p))   // drop the black backing square
+    .map((p) => p.replace(/\s*fill="[^"]*"/g, '').replace(/\s+/g, ' '))
     .join('');
+  if (!art) throw new Error(`${path}: no artwork found`);
+  return art;
 }
 
 let html = await readFile('index.html', 'utf8');
-for (const [key, name] of Object.entries(ICONS)) {
-  const art = await paths(name);
+for (const [key, path] of Object.entries(ICONS)) {
+  const art = await emblem(path);
   const re = new RegExp(`(\\b${key}:\\{[^}]*?icon:')(.*?)(')`);
   if (!re.test(html)) throw new Error(`badge ${key} not found in index.html`);
   html = html.replace(re, (_m, before, _old, after) => `${before}${art}${after}`);
-  console.log(`${key} → ${name}`);
+  console.log(`${key} → ${path}`);
 }
 await writeFile('index.html', html);
