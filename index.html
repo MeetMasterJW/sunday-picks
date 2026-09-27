@@ -180,6 +180,8 @@ a.toggle{text-decoration:none;color:var(--ink)}
 .sealed{margin:0 6px 2px;font-size:12px;color:var(--ink-3)}
 .tb{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;border-top:1px solid var(--line);margin-top:2px;padding:10px 6px 4px;font-size:14px;color:var(--ink-2)}
 .tb b{color:var(--ink)}
+.tb-second{border-top-style:dashed}
+.tb-second small{display:block;font-size:11.5px;color:var(--ink-3)}
 .tb input{width:84px;font:700 26px var(--numeric);text-align:center;padding:8px;border-radius:var(--r1);border:1px solid var(--line-2);background:var(--bg);color:var(--ink)}
 .tb input:focus{outline:none;border-color:var(--accent)}
 .dots{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
@@ -772,7 +774,7 @@ html.tv .wk b{font-size:22px}
 import {firebaseConfig,parentEmail} from './config.js?v=001521f7';
 import {fetchWeek,fetchWinProb,fetchGameSummary,fetchClosingLine,groupIntoPickWeeks} from './espn.js?v=001521f7';
 import {initializeApp} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
-import {getFirestore,doc,collection,setDoc,onSnapshot} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
+import {getFirestore,doc,collection,setDoc,onSnapshot,serverTimestamp} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
 import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,signOut} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
 const COLORS=['#E8641E','#2E6FD8','#C23B6B','#1E9E8A','#7B4FC9','#D9432B','#B71C1C','#AD1457','#E0457B','#A43BB5','#5B5BD6','#1565C0','#1B8FD1','#0F8C9E','#2F8F3A','#558B2F','#8A7A12','#C9A200','#D98200','#A0522D','#6D4C41','#4A5560','#37474F','#2B2F36'];
 const MAX_PLAYERS=8;
@@ -805,8 +807,28 @@ function pickState(g,pick){
   return pick===(g.as>g.hs?g.a.ab:g.h.ab)?'up':'down';
 }
 function weekLocked(w=S.week){return !!(S.locks['w'+w]&&S.locks['w'+w].locked)}
+// The Monday night game of a pick week carries the second tiebreaker guess. The week's
+// own last game is usually the Thursday that follows, and it already carries the first,
+// so a week whose last game IS the Monday one gets no second guess.
+function mondayGame(w){
+  const gs=weekGames(w);if(gs.length<2)return null;
+  const mon=gs.filter((g,i)=>i<gs.length-1&&slotLabel(g)==='MNF');
+  return mon.length?mon[mon.length-1]:null;
+}
+// It stays open until that game kicks off, even once the rest of the week has locked:
+// Monday is after the lock, and everyone has the same Sunday results in front of them.
+function tb2Open(w){const g=mondayGame(w);return !!g&&!g.w&&g.st==='pre'&&Date.now()<lockTime(g)}
 function locked(g,w=S.week){return weekLocked(w)||g.st==='post'||!!g.w||Date.now()>=lockTime(g)}
 function pickDoc(week,pid){return S.picks['w'+week+'-'+pid]||{week,player:pid,picks:{}}}
+// tbAt used to be a client clock reading; it's now the server's, stored as a Firestore
+// Timestamp. This reads either one (plus the moment-long gap before a fresh write echoes
+// back from the server) into a single comparable number, latest sorting last.
+function tbMillis(v){
+  if(v==null)return Infinity;
+  if(typeof v==='string'){const t=Date.parse(v);return Number.isNaN(t)?Infinity:t}
+  if(typeof v.toMillis==='function')return v.toMillis();
+  return Infinity;
+}
 function picksFor(week,pid){return pickDoc(week,pid).picks||{}}
 function weekGames(w){return (S.weeks[w]||{}).games||[]}
 // Weeks 19-22 are the playoffs; ESPN numbers those rounds 1, 2, 3 and 5
@@ -859,17 +881,23 @@ function weekScore(w){
     const doc=pickDoc(w,p.id),pk=doc.picks||{};let right=0,wrong=0,made=0,up=0;
     games.forEach(g=>{if(pk[g.id])made++;if(pickState(g,pk[g.id])==='up')up++});
     done.forEach(g=>{if(g.w==='TIE')return; if(pk[g.id]===g.w)right++; else wrong++});
-    return {p,right,wrong,made,up,idx,tb:typeof doc.tb==='number'?doc.tb:null,tbAt:doc.tbAt||'9999'};
+    return {p,right,wrong,made,up,idx,tb:typeof doc.tb==='number'?doc.tb:null,tbAt:tbMillis(doc.tbAt),
+      tb2:typeof doc.tb2==='number'?doc.tb2:null};
   });
   const complete=games.length>0&&done.length===games.length;
+  const mon=mondayGame(w),actual2=mon&&mon.w?mon.as+mon.hs:null;
+  // closest guess, then didn't go over — first on the week's last game, then on Monday night
+  const guessOff=(x,y,actualPts)=>{
+    if((x===null)!==(y===null))return x===null?1:-1;
+    if(x===null)return 0;
+    const d=Math.abs(x-actualPts)-Math.abs(y-actualPts);if(d)return d;
+    const ox=x>actualPts,oy=y>actualPts;return ox!==oy?(ox?1:-1):0;
+  };
   const tiebreak=(a,b)=>{
     if(actual===null)return 0;
-    if((a.tb===null)!==(b.tb===null))return a.tb===null?1:-1;
-    if(a.tb!==null){
-      const d=Math.abs(a.tb-actual)-Math.abs(b.tb-actual);if(d)return d;
-      const oa=a.tb>actual,ob=b.tb>actual;if(oa!==ob)return oa?1:-1;
-    }
-    return a.tbAt<b.tbAt?-1:a.tbAt>b.tbAt?1:a.idx-b.idx;
+    const first=guessOff(a.tb,b.tb,actual);if(first)return first;
+    if(actual2!==null){const second=guessOff(a.tb2,b.tb2,actual2);if(second)return second}
+    return a.tbAt-b.tbAt||a.idx-b.idx;
   };
   rows.sort((a,b)=>b.right-a.right||(complete?tiebreak(a,b):a.wrong-b.wrong||a.idx-b.idx));
   rows.forEach((r,i)=>{
@@ -881,7 +909,7 @@ function weekScore(w){
   rows.forEach(r=>r.lead=done.length>0&&r.right===top&&top>0);
   const winner=complete?rows[0]:null;
   const byTiebreak=!!winner&&rows.filter(r=>r.right===winner.right).length>1;
-  return {rows,winner,byTiebreak,actual,last,complete,done:done.length,total:games.length,top};
+  return {rows,winner,byTiebreak,actual,actual2,mon,last,complete,done:done.length,total:games.length,top};
 }
 function currentWeek(){
   const now=Date.now();
@@ -1081,7 +1109,9 @@ function renderPicks(app){
     :open?`<span class="num">${gs.length-open}</span> of <span class="num">${gs.length}</span> picked · hidden until lock`
     :'All set · picks show when they lock';
   const jump=canSee&&open&&!S.results?'<button type="button" class="toggle" data-jump>Next pick</button>':'';
-  if(allLocked)h+=`<div class="lockbar"><span class="pill">Locked</span><span class="lb-text">${weekLocked(w)&&S.locks['w'+w].auto?'Everyone’s picks are in.':'Picks are closed for this week.'}</span>${weekLocked(w)?lockButton(w):''}</div>`;
+  // the one thing still open on a locked week, so nobody loses a tie by not noticing it
+  const needsSecond=tb2Open(w)&&typeof pickDoc(w,me.id).tb2!=='number';
+  if(allLocked)h+=`<div class="lockbar"><span class="pill">Locked</span><span class="lb-text">${needsSecond?`${esc(me.name)}, the Monday night tiebreaker is still open.`:weekLocked(w)&&S.locks['w'+w].auto?'Everyone’s picks are in.':'Picks are closed for this week.'}</span>${weekLocked(w)?lockButton(w):''}</div>`;
   else h+=`<div class="note pickbar"><span>${status}</span>
       <span style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">${defaults&&!S.results?'<button class="linkbtn" data-tab="family">Add your names</button>':''}${jump}${S.results?'':lockButton(w)}</span></div>`;
 
@@ -1116,6 +1146,16 @@ function teamBtn(g,side,me,mine,pips){
   </button>`;
 }
 
+// The second guess, on the Monday night game. Open until that kickoff even on a locked
+// week, so it is the one thing on a locked card that can still be typed into.
+function secondGuessRow(g,w,me){
+  if(tb2Open(w)){
+    const mine=S.parent||isUnlocked(me.id)?pickDoc(w,me.id).tb2:null;
+    return `<label class="tb tb-second"><span><b>Second tiebreaker</b> · ${esc(me.name)}, total points in this game? <small>Used only if the first guess ties too</small></span><input type="number" min="0" max="150" inputmode="numeric" data-tb2="${esc(g.id)}" value="${typeof mine==='number'?mine:''}" placeholder="–" aria-label="Second tiebreaker guess"></label>`;
+  }
+  const guesses=players().map(p=>{const v=pickDoc(w,p.id).tb2;return `<span class="guess"><span class="pip av-${p.id}" style="--c:${esc(p.color)}" title="${esc(p.name)}" aria-label="${esc(p.name)}">${initial(p)}</span>${typeof v==='number'?v:'–'}</span>`}).join('');
+  return `<div class="tb tb-second"><span><b>Second tiebreaker</b>${g.w?` · final total <b class="num">${g.as+g.hs}</b>`:''}</span><div class="dots">${guesses}</div></div>`;
+}
 function tiebreakRow(g,w,me){
   if(!locked(g)){
     const tb=S.parent||isUnlocked(me.id)?pickDoc(w,me.id).tb:null;
@@ -1159,6 +1199,8 @@ function gameCard(g,w,me,mine,isLast){
     <div class="rows">${teamBtn(g,'a',me,mine,pips(g.a.ab))}${teamBtn(g,'h',me,mine,pips(g.h.ab))}</div>`;
   if(isTbd(g))h+='<p class="sealed">Matchup is set once the previous round ends</p>';
   if(isLast)h+=tiebreakRow(g,w,me);
+  const mon=mondayGame(w);
+  if(mon&&mon.id===g.id)h+=secondGuessRow(g,w,me);
   return h+'</article>';
 }
 
@@ -1187,6 +1229,8 @@ function renderAllPicks(app){
   });
   const last=gs[gs.length-1],tbShow=locked(last);
   h+=`<tr class="tbrow"><td class="gcell"><b>Tiebreaker</b><span>Total points, ${esc(last.a.ab)} @ ${esc(last.h.ab)}${last.w?' · final '+(last.as+last.hs):''}</span></td>${ps.map(p=>{const tb=pickDoc(w,p.id).tb;return `<td class="num">${typeof tb!=='number'?'—':tbShow?tb:'✓'}</td>`}).join('')}</tr>`;
+  const mon=mondayGame(w);
+  if(mon)h+=`<tr class="tbrow"><td class="gcell"><b>Second tiebreaker</b><span>Total points, ${esc(mon.a.ab)} @ ${esc(mon.h.ab)}${mon.w?' · final '+(mon.as+mon.hs):''}</span></td>${ps.map(p=>{const v=pickDoc(w,p.id).tb2;return `<td class="num">${typeof v!=='number'?'–':(tb2Open(w)&&!(S.parent||isUnlocked(p.id))?'✓':v)}</td>`}).join('')}</tr>`;
   h+='</tbody></table></div></section>';
   app.innerHTML=h;
 }
@@ -1232,13 +1276,16 @@ function winChances(w){
   const pending=games.filter(g=>!g.w).map(g=>({g,ph:homeWinProb(g)}));
   if(!pending.length)return null;
   const docs=ps.map(p=>pickDoc(w,p.id));
-  const key=JSON.stringify([w,pending.map(x=>[x.g.id,Math.round(x.ph*1000)]),games.filter(g=>g.w).map(g=>g.id+g.w),last.as,last.hs,last.period,last.clock,docs.map(d=>[d.picks,d.tb,d.tbAt])]);
+  const mon=mondayGame(w);
+  const key=JSON.stringify([w,pending.map(x=>[x.g.id,Math.round(x.ph*1000)]),games.filter(g=>g.w).map(g=>g.id+g.w),last.as,last.hs,last.period,last.clock,
+    mon?[mon.id,mon.as,mon.hs,mon.period,mon.clock,mon.w||'']:null,docs.map(d=>[d.picks,d.tb,d.tbAt,d.tb2])]);
   if(chanceCache.key===key)return chanceCache.value;
   const picks=docs.map(d=>d.picks||{});
   const base=ps.map((p,i)=>games.filter(g=>g.w&&g.w!=='TIE'&&picks[i][g.id]===g.w).length);
   const pickIdx=pending.map(({g})=>picks.map(pk=>pk[g.id]===g.h.ab?1:pk[g.id]===g.a.ab?0:-1));
-  const tb=docs.map(d=>typeof d.tb==='number'?d.tb:null),tbAt=docs.map(d=>d.tbAt||'9999');
-  const sampleTotal=totalSampler(last);
+  const tb=docs.map(d=>typeof d.tb==='number'?d.tb:null),tbAt=docs.map(d=>tbMillis(d.tbAt));
+  const tb2=docs.map(d=>typeof d.tb2==='number'?d.tb2:null);
+  const sampleTotal=totalSampler(last),sampleMon=mon?totalSampler(mon):null;
   const wins=new Array(ps.length).fill(0),score=new Array(ps.length);
   for(let n=0;n<SIMS;n++){
     for(let i=0;i<ps.length;i++)score[i]=base[i];
@@ -1246,7 +1293,7 @@ function winChances(w){
       const homeWon=Math.random()<pending[k].ph?1:0,row=pickIdx[k];
       for(let i=0;i<ps.length;i++)if(row[i]===homeWon)score[i]++;
     }
-    const total=sampleTotal();
+    const total=sampleTotal(),total2=sampleMon?sampleMon():0;
     let best=0;
     for(let i=1;i<ps.length;i++){
       let d=score[i]-score[best];
@@ -1257,7 +1304,15 @@ function winChances(w){
           d=Math.abs(tj-total)-Math.abs(ti-total);
           if(!d){const oi=ti>total,oj=tj>total;if(oi!==oj)d=oi?-1:1}
         }
-        if(!d)d=tbAt[i]<tbAt[best]?1:tbAt[i]>tbAt[best]?-1:0;
+        if(!d&&sampleMon){
+          const ui=tb2[i],uj=tb2[best];
+          if((ui===null)!==(uj===null))d=ui===null?-1:1;
+          else if(ui!==null){
+            d=Math.abs(uj-total2)-Math.abs(ui-total2);
+            if(!d){const oi=ui>total2,oj=uj>total2;if(oi!==oj)d=oi?-1:1}
+          }
+        }
+        if(!d)d=tbAt[best]-tbAt[i];
       }
       if(d>0)best=i;
     }
@@ -1984,13 +2039,24 @@ document.addEventListener('change',async(e)=>{
     requirePin(pid,`Enter ${player(pid).name}’s PIN to change their photo.`,()=>saveProfile(pid,{avatar:data},'Photo saved'));
     return;
   }
+  const second=e.target.closest('[data-tb2]');
+  if(second){
+    const w=S.week;
+    if(!tb2Open(w)){toast('The second tiebreaker is closed.');render();return}
+    const me=player(S.me);
+    const v=second.value===''?null:Math.max(0,Math.min(150,Math.round(Number(second.value))));
+    requirePin(me.id,`Enter ${me.name}’s PIN to save a tiebreaker.`,async()=>{
+      if(await writePickDoc(w,me.id,{...pickDoc(w,me.id),week:w,player:me.id,tb2:v,tb2At:serverTimestamp()},'Second tiebreaker didn’t save. Try again.'))toast(v===null?'Second tiebreaker cleared':'Second tiebreaker saved: '+v+' points');
+    });
+    return;
+  }
   const input=e.target.closest('[data-tb]');if(!input)return;
   const g=weekGames(S.week).find(x=>x.id===input.dataset.tb);if(!g)return;
   if(locked(g)){toast('The tiebreaker is locked.');render();return}
   const me=player(S.me),doc=pickDoc(S.week,me.id);
   const v=input.value===''?null:Math.max(0,Math.min(150,Math.round(Number(input.value))));
   requirePin(me.id,`Enter ${me.name}’s PIN to save a tiebreaker.`,async()=>{
-    if(await writePickDoc(S.week,me.id,{...pickDoc(S.week,me.id),week:S.week,player:me.id,tb:v,tbAt:new Date().toISOString()},'Tiebreaker didn’t save. Try again.'))toast(v===null?'Tiebreaker cleared':'Tiebreaker saved: '+v+' points');
+    if(await writePickDoc(S.week,me.id,{...pickDoc(S.week,me.id),week:S.week,player:me.id,tb:v,tbAt:serverTimestamp()},'Tiebreaker didn’t save. Try again.'))toast(v===null?'Tiebreaker cleared':'Tiebreaker saved: '+v+' points');
   });
 });
 

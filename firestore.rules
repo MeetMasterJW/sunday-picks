@@ -17,15 +17,27 @@ service cloud.firestore {
       return exists(lock) && get(lock).data.locked == true;
     }
 
+    // The Monday night guess is a second tiebreaker, and Monday is after the week locks,
+    // so it may be added to a locked week — but only on its own. Picks and the first
+    // guess must come back byte for byte unchanged.
+    function onlySecondGuess() {
+      return resource != null
+        && request.resource.data.picks == resource.data.picks
+        && request.resource.data.week == resource.data.week
+        && request.resource.data.player == resource.data.player
+        && request.resource.data.get('tb', -1) == resource.data.get('tb', -1)
+        && request.resource.data.get('tbAt', '') == resource.data.get('tbAt', '');
+    }
+
     match /picks/{id} {
       allow read: if true;
-      allow create, update: if request.resource.data.keys().hasOnly(['week', 'player', 'picks', 'tb', 'tbAt'])
+      allow create, update: if request.resource.data.keys().hasOnly(['week', 'player', 'picks', 'tb', 'tbAt', 'tb2', 'tb2At'])
         && request.resource.data.week is int
         && request.resource.data.week >= 1 && request.resource.data.week <= 22
         && request.resource.data.player.matches('p[1-8]')
         && id == 'w' + string(request.resource.data.week) + '-' + request.resource.data.player
         && request.resource.data.picks is map
-        && (isParent() || !weekLocked(request.resource.data.week));
+        && (isParent() || !weekLocked(request.resource.data.week) || onlySecondGuess());
     }
 
     // Anyone can lock a week (the lock button and auto-lock); only a parent can unlock.
