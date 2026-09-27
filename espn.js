@@ -111,6 +111,29 @@ export async function fetchClosingLine(id) {
   return { fav: fromDetails < 0 ? side.home : side.away, line: Math.abs(fromDetails) };
 }
 
+// Every play of one drive, trimmed to what the sheet shows. ESPN hands back the
+// drives in the order they happened; the sheet turns them around.
+function drive(d, i) {
+  return {
+    id: String(d.id ?? i),
+    team: ((d.team || {}).abbreviation) || '',
+    desc: d.description || '',
+    result: d.displayResult || d.result || '',
+    scored: !!d.isScore,
+    start: ((d.start || {}).text) || '',
+    plays: (d.plays || []).map((p) => ({
+      id: String(p.id ?? ''),
+      q: (p.period || {}).number || 0,
+      clock: (p.clock || {}).displayValue || '',
+      dd: ((p.start || {}).downDistanceText) || '',
+      text: p.text || '',
+      yards: numberOrNull(p.statYardage),
+      score: p.scoringPlay ? { a: p.awayScore, h: p.homeScore } : null,
+      flag: p.isTurnover ? 'turnover' : p.isPenalty ? 'penalty' : '',
+    })),
+  };
+}
+
 // Box score for one game, trimmed to what the game sheet shows
 const TEAM_STATS = ['totalYards', 'netPassingYards', 'rushingYards', 'turnovers', 'firstDowns', 'thirdDownEff', 'totalPenaltiesYards', 'possessionTime'];
 const LEADER_STATS = ['passingYards', 'rushingYards', 'receivingYards'];
@@ -151,11 +174,17 @@ export async function fetchGameSummary(id) {
     hs: p.homeScore,
   }));
 
+  // A live game's drive in progress arrives separately, and sometimes in both places
+  const dv = s.drives || {};
+  const raw = [...(dv.previous || []), ...(dv.current ? [dv.current] : [])];
+  const seen = new Set();
+  const drives = raw.map(drive).filter((d) => !seen.has(d.id) && seen.add(d.id) && d.plays.length);
+
   const v = (s.gameInfo || {}).venue;
   const venue = v ? [v.fullName, [v.address?.city, v.address?.state].filter(Boolean).join(', ')].filter(Boolean).join(' · ') : '';
   const wp = s.winprobability || [];
   const last = wp[wp.length - 1];
-  return { lines: { a: lines('away'), h: lines('home') }, stats, leaders, plays, venue, homeWinProb: last ? numberOrNull(last.homeWinPercentage) : null };
+  return { lines: { a: lines('away'), h: lines('home') }, stats, leaders, plays, drives, venue, homeWinProb: last ? numberOrNull(last.homeWinPercentage) : null };
 }
 
 // Latest home win probability from ESPN's game detail feed (about 50 KB compressed; call sparingly)

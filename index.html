@@ -321,6 +321,27 @@ dialog.sheet[open]{display:flex;flex-direction:column}
 .bx-text{display:flex;gap:6px;align-items:flex-start;font-size:14px;line-height:1.35}
 .bx-text img{width:18px;height:18px;flex:none;object-fit:contain;margin-top:1px}
 .bx-run{font-family:var(--numeric);font-size:18px;font-weight:700;color:var(--ink-2)}
+/* play by play: newest drive first, and the newest play at the top of it */
+.bx-drives{display:grid;gap:8px}
+.bx-dr{border:1px solid var(--line);border-radius:var(--r2);background:var(--bg);overflow:hidden}
+.bx-dr.scored{border-color:color-mix(in srgb,var(--tc) 45%,var(--line))}
+.bx-dr>summary{display:grid;grid-template-columns:auto auto minmax(0,1fr) auto;gap:4px 8px;align-items:center;padding:9px 12px;cursor:pointer;list-style:none}
+.bx-dr>summary::-webkit-details-marker{display:none}
+.bx-dr>summary::after{content:'';width:7px;height:7px;border-right:2px solid var(--ink-3);border-bottom:2px solid var(--ink-3);transform:rotate(45deg) translate(-2px,-2px);transition:transform .15s ease}
+.bx-dr[open]>summary::after{transform:rotate(225deg) translate(-2px,-2px)}
+.bx-dr summary img{width:18px;height:18px;object-fit:contain}
+.bx-dr-r{font-size:12.5px;font-weight:800;color:var(--ink-2)}
+.bx-dr.scored .bx-dr-r{color:color-mix(in srgb,var(--tc) 65%,var(--ink))}
+.bx-dr summary small{font-size:11.5px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bx-pbp{list-style:none;margin:0;padding:0 12px 10px;display:grid;gap:9px}
+.bx-pbp li{display:grid;grid-template-columns:52px minmax(0,1fr) auto;gap:2px 10px;align-items:baseline;padding-top:9px;border-top:1px solid var(--line)}
+.bx-pbp li.turnover{border-top-color:color-mix(in srgb,var(--bad) 55%,var(--line))}
+.bx-pbp li.penalty{border-top-color:color-mix(in srgb,#F5B400 45%,var(--line))}
+.bx-pclock{font-family:var(--numeric);font-size:13px;color:var(--ink-3);white-space:nowrap}
+.bx-ptxt{font-size:13.5px;line-height:1.4;color:var(--ink-2)}
+.bx-ptxt i{display:block;font-style:normal;font-size:11px;font-weight:600;color:var(--ink-3)}
+.bx-pbp li.turnover .bx-ptxt,.bx-pbp li.penalty .bx-ptxt{color:var(--ink)}
+.bx-pbp .bx-run{font-size:15px}
 .bx-cols{display:grid;grid-template-columns:1fr 1.5fr 1fr;margin-bottom:2px;font-size:12px;font-weight:700;color:var(--ink-3)}
 .bx-cols span:last-child{text-align:right}
 .bx-stat{display:grid;grid-template-columns:1fr 1.5fr 1fr;align-items:center;gap:4px 8px;padding:8px 0;border-top:1px solid var(--line)}
@@ -669,8 +690,8 @@ html.tv .wk b{font-size:22px}
 </dialog>
 
 <script type="module">
-import {firebaseConfig,parentEmail} from './config.js?v=6acbff03';
-import {fetchWeek,fetchWinProb,fetchGameSummary,fetchClosingLine,groupIntoPickWeeks} from './espn.js?v=6acbff03';
+import {firebaseConfig,parentEmail} from './config.js?v=001521f7';
+import {fetchWeek,fetchWinProb,fetchGameSummary,fetchClosingLine,groupIntoPickWeeks} from './espn.js?v=001521f7';
 import {initializeApp} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
 import {getFirestore,doc,collection,setDoc,onSnapshot} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
 import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,signOut} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
@@ -2127,6 +2148,7 @@ function rememberAllLines(){
 const boxCache=new Map();
 let boxOpenId=null,boxTimer=null;
 function gameById(id){for(const games of Object.values(nfl))for(const g of games)if(g.id===id)return g;return null}
+const boxDrives=new Map();
 function openBox(id){
   if(!gameById(id))return;
   boxOpenId=id;renderBox();
@@ -2221,6 +2243,15 @@ function renderBox(){
         return `<li><span class="bx-q">${pl.q>4?'OT':'Q'+pl.q} · ${esc(pl.clock)}</span><span class="bx-type" style="--tc:${esc(t?t.c:'#555555')}">${esc(pl.type||'•')}</span><span class="bx-text">${t&&t.logo?`<img src="${esc(t.logo)}" alt="" width="18" height="18">`:''}<span>${esc(pl.text)}</span></span><span class="bx-run num">${pl.as}–${pl.hs}</span></li>`;
       }).join('')}</ol></section>`;
     }
+    if(d.drives&&d.drives.length){
+      const live=g.st==='in';
+      h+=`<section class="bx-sec"><h4>Play by play</h4><div class="bx-drives">${d.drives.slice().reverse().map((dr,i)=>{
+        const t=dr.team===g.a.ab?g.a:dr.team===g.h.ab?g.h:null,key=g.id+':'+dr.id;
+        // the drive in progress opens itself; after that it is whatever the reader last did
+        const open=boxDrives.has(key)?boxDrives.get(key):(live&&i===0);
+        return `<details class="bx-dr${dr.scored?' scored':''}" data-dr="${esc(key)}" style="--tc:${esc(t?t.c:'#555555')}"${open?' open':''}><summary>${t&&t.logo?`<img src="${esc(t.logo)}" alt="">`:''}<span class="bx-dr-r">${esc(dr.result||'Drive')}</span><small>${esc(dr.desc||dr.start)}</small></summary><ol class="bx-pbp">${dr.plays.slice().reverse().map(pl=>`<li class="${esc(pl.flag)}"><span class="bx-pclock">${esc((pl.q>4?'OT':'Q'+pl.q)+' '+pl.clock)}</span><span class="bx-ptxt">${pl.dd?`<i>${esc(pl.dd)}</i>`:''}${esc(pl.text)}</span>${pl.score?`<span class="bx-run num">${pl.score.a}–${pl.score.h}</span>`:''}</li>`).join('')}</ol></details>`;
+      }).join('')}</div></section>`;
+    }
     if(d.stats.length){
       h+=`<section class="bx-sec"><h4>Team stats</h4><div class="bx-cols"><span>${esc(g.a.ab)}</span><span></span><span>${esc(g.h.ab)}</span></div>${d.stats.map(st=>{
         const na=parseFloat(st.a),nh=parseFloat(st.h),num=Number.isFinite(na)&&Number.isFinite(nh)&&!/Eff$|possession|Penalties/.test(st.key);
@@ -2235,7 +2266,11 @@ function renderBox(){
     if(d.venue)h+=`<p class="bx-venue">${esc(d.venue)}</p>`;
   }
   $('#boxTitle').textContent=`${g.a.name} at ${g.h.name}`;
-  $('#boxBody').innerHTML=h;
+  // a live game redraws every 30s, which must not throw the reader back to the top
+  const body=$('#boxBody'),keep=body.scrollTop;
+  body.innerHTML=h;
+  body.scrollTop=keep;
+  body.querySelectorAll('details[data-dr]').forEach(el=>el.addEventListener('toggle',()=>boxDrives.set(el.dataset.dr,el.open)));
 }
 
 let pollTimer=null;
@@ -2286,7 +2321,7 @@ if(!firebaseConfig||!firebaseConfig.projectId||firebaseConfig.projectId.startsWi
   refresh();
 }
 // Local testing only: lets a preview inspect state without touching the family's data
-if(location.hostname==='localhost')window.__sp={S,sparks,nfl,BADGE,celebrate,player,render,weekScore,seasonStats,recapCard,makeAvatar,hashPin,openProfile,openPin,applyAvatarCss,isUnlocked};
+if(location.hostname==='localhost')window.__sp={S,sparks,nfl,BADGE,celebrate,player,render,weekScore,seasonStats,recapCard,makeAvatar,hashPin,openProfile,openPin,applyAvatarCss,isUnlocked,openBox,renderBox,loadBox};
 </script>
 </body>
 </html>
