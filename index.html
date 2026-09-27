@@ -19,6 +19,8 @@
   /* in progress gets its own colour: a live game and a blown pick used to look identical */
   --live:#28D6F0;
   --r1:8px;--r2:14px;--r3:22px;--radius:var(--r2);
+  /* the scroller's own top padding, which sticky rows have to climb back over */
+  --scroll-pad:14px;
   /* raised things catch a light from above; page furniture stays flat */
   --raise:inset 0 1px 0 rgba(255,255,255,.055),0 12px 26px -20px rgba(0,0,0,.95);
   --font:"Figtree",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
@@ -28,7 +30,10 @@
 }
 *{box-sizing:border-box}
 [hidden]{display:none!important}
-body{margin:0;background:radial-gradient(900px 420px at 50% -180px,color-mix(in srgb,var(--accent) 16%,transparent),transparent 70%) no-repeat,var(--bg);color:var(--ink);font:15px/1.45 var(--font);-webkit-font-smoothing:antialiased;padding-bottom:calc(80px + env(safe-area-inset-bottom))}
+html{height:100%}
+/* app shell: the bars are fixtures and the middle is the only thing that scrolls,
+   so nothing slides behind them and they cannot drift on an overscroll */
+body{margin:0;height:100vh;height:100dvh;display:flex;flex-direction:column;overflow:hidden;background:radial-gradient(900px 420px at 50% -180px,color-mix(in srgb,var(--accent) 16%,transparent),transparent 70%) no-repeat,var(--bg);color:var(--ink);font:15px/1.45 var(--font);-webkit-font-smoothing:antialiased}
 /* grain: near-black reads as material rather than absence, and gradients stop banding */
 body::after{content:"";position:fixed;inset:0;z-index:6;pointer-events:none;opacity:.038;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E")}
 button{font:inherit;color:inherit;cursor:pointer}
@@ -37,7 +42,7 @@ button:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid
 .rec,.sc,.bx-nums,.chance b{font-variant-numeric:tabular-nums}
 
 /* top bar */
-.top{position:sticky;top:0;z-index:5;background:rgba(10,12,15,.8);-webkit-backdrop-filter:saturate(1.5) blur(18px);backdrop-filter:saturate(1.5) blur(18px);border-bottom:1px solid var(--line)}
+.top{flex:none;position:relative;z-index:5;background:radial-gradient(900px 420px at 50% -180px,color-mix(in srgb,var(--accent) 16%,transparent),transparent 70%) no-repeat,var(--bg);border-bottom:1px solid var(--line)}
 .top-in{max-width:760px;margin:0 auto;padding:calc(8px + env(safe-area-inset-top)) 10px 6px;display:grid;gap:4px}
 .topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 6px 2px}
 .brand{display:inline-flex;align-items:center;gap:9px;font-size:17px;font-weight:800;letter-spacing:-.015em;color:var(--ink)}
@@ -68,7 +73,7 @@ button:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid
 .wk span{font-size:12.5px;color:var(--ink-2)}
 
 /* bottom tabs */
-.tabs{position:fixed;left:0;right:0;bottom:0;z-index:5;display:grid;grid-template-columns:repeat(4,1fr);padding:6px 8px calc(6px + env(safe-area-inset-bottom));background:rgba(14,16,20,.86);-webkit-backdrop-filter:saturate(1.5) blur(18px);backdrop-filter:saturate(1.5) blur(18px);border-top:1px solid var(--line)}
+.tabs{flex:none;position:relative;z-index:5;display:grid;grid-template-columns:repeat(4,1fr);padding:6px 8px calc(6px + env(safe-area-inset-bottom));background:#0E1014;border-top:1px solid var(--line)}
 .tabs button{border:0;background:none;display:grid;justify-items:center;gap:2px;padding:6px 0 4px;font-size:11px;font-weight:600;color:var(--ink-3);border-radius:var(--r1)}
 .tabs button[aria-selected="true"]{color:var(--accent)}
 @media (min-width:760px){
@@ -76,7 +81,7 @@ button:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid
   body{padding-bottom:110px}
 }
 
-main{max-width:760px;margin:0 auto;padding:14px 12px 24px;display:grid;gap:12px}
+main{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:var(--scroll-pad) max(12px,calc((100% - 760px)/2)) 24px;display:grid;gap:12px;align-content:start}
 main>*{min-width:0}
 .eyebrow{margin:0;font-size:13px;font-weight:700;color:var(--ink-2)}
 .muted{color:var(--ink-2);font-size:14px;margin:4px 0 0}
@@ -103,7 +108,7 @@ a.toggle{text-decoration:none;color:var(--ink)}
 .pk .jersey{width:32px;height:32px;font-size:14px;opacity:.55;transition:opacity .15s,box-shadow .15s}
 .pk[aria-pressed="true"] .jersey{opacity:1;box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--c)}
 .note,.lockbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--line);border-radius:var(--r2);padding:8px 8px 8px 14px;font-size:14px;color:var(--ink-2);box-shadow:var(--raise)}
-.note.pickbar{position:sticky;top:var(--dock,0px);z-index:4;flex-wrap:nowrap;padding:6px 6px 6px 12px;font-size:13.5px;box-shadow:0 8px 20px -14px rgba(0,0,0,.9)}
+.note.pickbar{position:sticky;top:calc(var(--scroll-pad) * -1);z-index:4;flex-wrap:nowrap;padding:6px 6px 6px 12px;font-size:13.5px;box-shadow:0 8px 20px -14px rgba(0,0,0,.9)}
 .note .num{font-family:var(--numeric);font-size:19px;font-weight:700;color:var(--ink)}
 .note b{color:var(--ink)}
 .lockbar{flex-wrap:nowrap;padding-left:8px}
@@ -197,8 +202,8 @@ td.tot{font-family:var(--numeric);font-weight:700;font-size:21px}
 .allpicks.wide{width:auto;min-width:100%;table-layout:auto}
 .allpicks.wide th,.allpicks.wide td{min-width:52px}
 .allpicks th{vertical-align:top}
-/* the header row docks under the app bar, which sets --dock to its own height */
-.allpicks thead th{position:sticky;top:var(--dock,0px);z-index:3;background:var(--surface);box-shadow:inset 0 -1px 0 var(--line)}
+/* the header row docks flush with the top of the scroller, which starts below the app bar */
+.allpicks thead th{position:sticky;top:calc(var(--scroll-pad) * -1);z-index:3;background:var(--surface);box-shadow:inset 0 -1px 0 var(--line)}
 .allpicks thead th:first-child{z-index:4}
 /* the tick sits under the logo, never beside it, or it shunts the logo off the column's centre */
 .allpicks .mark{display:block;margin:2px 0 0;font-size:10px;text-align:center}
@@ -582,8 +587,7 @@ dialog p{margin:6px 0 0}
 
 /* ---- TV mode: read from the sofa ---- */
 html.tv .tabs,html.tv .weekstrip,html.tv .nowbar,html.tv .me-btn{display:none}
-html.tv body{padding-bottom:0}
-html.tv main{max-width:none;padding:14px 18px 18px}
+html.tv main{padding:14px 18px 18px}
 html.tv .top-in{max-width:none}
 html.tv .wk b{font-size:22px}
 .tv-wrap{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:16px;align-items:start}
@@ -649,13 +653,13 @@ html.tv .wk b{font-size:22px}
     </div>
   </div>
 </header>
+<main id="app"><div class="empty">Loading…</div></main>
 <nav class="tabs" role="tablist" aria-label="Sections">
   <button role="tab" data-tab="picks" aria-selected="true"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M8 12.5l2.7 2.7L16 9.5"/></svg><span>Picks</span></button>
   <button role="tab" data-tab="all" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="2"/><rect x="13" y="4" width="7" height="7" rx="2"/><rect x="4" y="13" width="7" height="7" rx="2"/><rect x="13" y="13" width="7" height="7" rx="2"/></svg><span>All picks</span></button>
   <button role="tab" data-tab="standings" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 20h8M12 16v4M7 4h10v5a5 5 0 01-10 0V4zM7 6H4.5a2.5 2.5 0 002.8 3.6M17 6h2.5a2.5 2.5 0 01-2.8 3.6"/></svg><span>Standings</span></button>
   <button role="tab" data-tab="family" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.3"/><path d="M3 19.5a6 6 0 0112 0"/><circle cx="17" cy="9" r="2.4"/><path d="M16.2 14a4.6 4.6 0 015.3 5.5"/></svg><span>Family</span></button>
 </nav>
-<main id="app"><div class="empty">Loading…</div></main>
 <div class="alert" id="alert" role="status" aria-live="polite" hidden></div>
 <dialog id="boxDlg" class="sheet" aria-labelledby="boxTitle">
   <div class="box-head"><h3 id="boxTitle">Box score</h3><button type="button" class="box-close" data-box-close aria-label="Close box score"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
@@ -1886,19 +1890,20 @@ document.addEventListener('click',(e)=>{
   if(prof&&!e.target.closest('input')){openProfile(prof.dataset.profile);return}
   if(e.target.closest('[data-retry]')){toast('Loading the schedule…');refresh();return}
   const tab=e.target.closest('[data-tab]');
-  if(tab){S.fillShown={};S.tab=tab.dataset.tab;S.results=false;store.set('tab',S.tab);withTransition(render);window.scrollTo(0,0);return}
+  if(tab){S.fillShown={};S.tab=tab.dataset.tab;S.results=false;store.set('tab',S.tab);withTransition(render);$('#app').scrollTop=0;return}
   const pk=e.target.closest('[data-picker]');
   if(pk){S.me=pk.dataset.picker;store.set('picker',S.me);render();return}
   if(e.target.closest('#resToggle')){S.results=!S.results;render();return}
   const wkBtn=e.target.closest('#weekStrip [data-week]');
-  if(wkBtn){const k=+wkBtn.dataset.week;if(k!==S.week){S.week=k;S.results=false;withTransition(render);window.scrollTo(0,0)}return}
+  if(wkBtn){const k=+wkBtn.dataset.week;if(k!==S.week){S.week=k;S.results=false;withTransition(render);$('#app').scrollTop=0}return}
   if(e.target.closest('[data-jump]')){
     // Jump to the first game still waiting on a pick, rather than hunting the week for it
     const w=S.week,mine=picksFor(w,S.me),next=weekGames(w).find(g=>!locked(g)&&!isTbd(g)&&!mine[g.id]);
     const card=next&&document.querySelector(`.game[data-card="${next.id}"]`);
     if(card){
-      const top=card.getBoundingClientRect().top+window.scrollY-(($('.top').getBoundingClientRect().height||0)+($('.pickbar')?.getBoundingClientRect().height||0)+18);
-      window.scrollTo({top,behavior:'smooth'});
+      const sc=$('#app');
+      const top=card.getBoundingClientRect().top-sc.getBoundingClientRect().top+sc.scrollTop-(($('.pickbar')?.getBoundingClientRect().height||0)+18);
+      sc.scrollTo({top,behavior:'smooth'});
       card.classList.remove('flash');void card.offsetWidth;card.classList.add('flash');
     }
     return}
@@ -2300,10 +2305,6 @@ async function refresh(){
   pollTimer=setTimeout(refresh,activeNflWeeks().length?30e3:10*60e3);
 }
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&S.updatedAt&&Date.now()-S.updatedAt>60e3)refresh()});
-
-// The app bar is sticky and its height changes with the week nav, so the all-picks
-// header row is told how far down to dock.
-new ResizeObserver(([e])=>document.documentElement.style.setProperty('--dock',Math.round(e.target.getBoundingClientRect().height)+'px')).observe($('.top'));
 
 render();
 if(!firebaseConfig||!firebaseConfig.projectId||firebaseConfig.projectId.startsWith('YOUR')){
