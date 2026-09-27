@@ -203,6 +203,7 @@ td.tot{font-family:var(--numeric);font-weight:700;font-size:21px}
 /* the tick sits under the logo, never beside it, or it shunts the logo off the column's centre */
 .allpicks .mark{display:block;margin:2px 0 0;font-size:10px;text-align:center}
 .scroll.dock{overflow:visible}
+.scroll:not(.dock) .allpicks thead th{top:auto}
 .allpicks th:first-child{vertical-align:bottom}
 .allpicks th small{display:block;font-size:12px;color:var(--ink-2)}
 .allpicks .jersey{width:28px;height:28px;font-size:13px;margin:0 auto 4px;display:grid}
@@ -1061,11 +1062,12 @@ function gameCard(g,w,me,mine,isLast){
 
 const fmtKick=new Intl.DateTimeFormat('en-US',{weekday:'short',hour:'numeric',minute:'2-digit'});
 function renderAllPicks(app){
-  const w=S.week,gs=weekGames(w),ps=players(),sc=weekScore(w);
+  // the same roster the week was scored against, or the header asks for a row that isn't there
+  const w=S.week,gs=weekGames(w),ps=rosterFor(w),sc=weekScore(w);
   const rec=Object.fromEntries(sc.rows.map(r=>[r.p.id,r]));
   const anyOpen=gs.some(g=>!locked(g));
   let h=`<div class="note"><span>${anyOpen?'Open games show as ✓ until they lock':'Every game is locked · all picks show'}</span><span style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">${lockButton(w)}</span></div>`;
-  h+=`<section class="card"><p class="legend"><span class="lg ok">✓ Right</span><span class="lg up">▲ Winning now</span><span class="lg down">▼ Losing now</span><span class="lg no">✗ Wrong</span></p><div class="scroll${ps.length>5?'':' dock'}"><table class="allpicks${ps.length>5?' wide':''}"><thead><tr><th>Game</th>${ps.map(p=>`<th class="${rec[p.id].right>0&&rec[p.id].right===Math.max(...sc.rows.map(x=>x.right))?'lead':''}" style="--c:${esc(p.color)}"><span class="jersey av-${p.id}">${initial(p)}</span><span class="pname">${esc(p.name)}</span><small class="num">${rec[p.id].right}–${rec[p.id].wrong}${rec[p.id].up?`<span class="upct"> · ${rec[p.id].up} ▲</span>`:''}</small></th>`).join('')}</tr></thead><tbody>`;
+  h+=`<section class="card"><p class="legend"><span class="lg ok">✓ Right</span><span class="lg up">▲ Winning now</span><span class="lg down">▼ Losing now</span><span class="lg no">✗ Wrong</span></p><div class="scroll${ps.length>6?'':' dock'}"><table class="allpicks${ps.length>6?' wide':''}"><thead><tr><th>Game</th>${ps.map(p=>`<th class="${rec[p.id].right>0&&rec[p.id].right===Math.max(...sc.rows.map(x=>x.right))?'lead':''}" style="--c:${esc(p.color)}"><span class="jersey av-${p.id}">${initial(p)}</span><span class="pname">${esc(p.name)}</span><small class="num">${rec[p.id].right}–${rec[p.id].wrong}${rec[p.id].up?`<span class="upct"> · ${rec[p.id].up} ▲</span>`:''}</small></th>`).join('')}</tr></thead><tbody>`;
   gs.forEach(g=>{
     const show=locked(g);
     const status=g.w?(g.w==='TIE'?`Final · tie ${g.as}–${g.hs}`:`Final ${g.as}–${g.hs}`):g.st==='in'?`Live ${g.as}–${g.hs}${g.d?' · '+g.d:''}`:g.tbd?'Time TBD':fmtKick.format(new Date(g.t));
