@@ -43,7 +43,7 @@ button:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid
 
 /* top bar */
 .top{flex:none;position:relative;z-index:5;background:radial-gradient(900px 420px at 50% -180px,color-mix(in srgb,var(--accent) 16%,transparent),transparent 70%) no-repeat,var(--bg);border-bottom:1px solid var(--line)}
-.top-in{max-width:760px;margin:0 auto;padding:calc(8px + env(safe-area-inset-top)) 10px 6px;display:grid;gap:4px}
+.top-in{max-width:880px;margin:0 auto;padding:calc(8px + env(safe-area-inset-top)) 10px 6px;display:grid;gap:4px}
 .topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 6px 2px}
 .brand{display:inline-flex;align-items:center;gap:9px;font-size:17px;font-weight:800;letter-spacing:-.015em;color:var(--ink)}
 .brand .mark{width:28px;height:28px;flex:none;filter:drop-shadow(0 4px 10px rgba(255,106,43,.35))}
@@ -77,11 +77,12 @@ button:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid
 .tabs button{border:0;background:none;display:grid;justify-items:center;gap:2px;padding:6px 0 4px;font-size:11px;font-weight:600;color:var(--ink-3);border-radius:var(--r1)}
 .tabs button[aria-selected="true"]{color:var(--accent)}
 @media (min-width:760px){
+  /* the pill floats free of the edge; main's flex:1 already stops short of it,
+     so no body padding is needed to keep it clear of scrolled content */
   .tabs{left:50%;right:auto;width:480px;transform:translateX(-50%);bottom:16px;border:1px solid var(--line);border-radius:var(--r3);padding:6px}
-  body{padding-bottom:110px}
 }
 
-main{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:var(--scroll-pad) max(12px,calc((100% - 760px)/2)) 24px;display:grid;gap:12px;align-content:start}
+main{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:var(--scroll-pad) max(12px,calc((100% - 880px)/2)) 24px;display:grid;gap:12px;align-content:start}
 main>*{min-width:0}
 .eyebrow{margin:0;font-size:13px;font-weight:700;color:var(--ink-2)}
 .muted{color:var(--ink-2);font-size:14px;margin:4px 0 0}
@@ -587,6 +588,7 @@ dialog p{margin:6px 0 0}
 
 /* ---- TV mode: read from the sofa ---- */
 html.tv .tabs,html.tv .weekstrip,html.tv .nowbar,html.tv .me-btn{display:none}
+html.nocursor,html.nocursor *{cursor:none}
 html.tv main{padding:14px 18px 18px}
 html.tv .top-in{max-width:none}
 html.tv .wk b{font-size:22px}
@@ -632,6 +634,17 @@ html.tv .wk b{font-size:22px}
 .tv-wrap.solo .tv-field .bx-poss{font-size:15px}
 .tv-wrap.solo .tv-field .bx-poss img{width:22px;height:22px}
 .tv-wrap.solo .tv-game header{font-size:16px}
+/* a card worth looking up at: red zone burns, an underdog in front glows */
+.tv-game.rz{border-color:color-mix(in srgb,var(--bad) 60%,transparent);box-shadow:var(--raise),0 0 42px -14px var(--bad)}
+.tv-game.upset{border-color:color-mix(in srgb,#B388FF 55%,transparent);box-shadow:var(--raise),0 0 38px -16px #B388FF}
+.tv-game.rz.upset{box-shadow:var(--raise),0 0 42px -14px var(--bad),0 0 38px -16px #B388FF}
+.upflag{flex:none;padding:1px 8px;border-radius:999px;background:rgba(179,136,255,.2);color:#C9A8FF;font-size:10.5px;font-weight:800;letter-spacing:.05em;white-space:nowrap}
+.upflag.done{background:rgba(179,136,255,.14);color:#A98BE0}
+@media (prefers-reduced-motion:no-preference){
+  .tv-game.rz .rzflag{animation:rzpulse 1.6s ease-in-out infinite}
+  .tv-game.upset .upflag{animation:rzpulse 2.2s ease-in-out infinite}
+}
+@keyframes rzpulse{50%{opacity:.45}}
 .tv-board{position:sticky;top:8px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r2);padding:12px;box-shadow:var(--raise)}
 .tv-board h2{margin:0 0 8px;font-family:var(--numeric);font-size:16px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-2)}
 .tv-rank{display:grid;grid-template-columns:18px 30px minmax(0,1fr) auto auto;align-items:center;gap:9px;padding:7px 2px;border-top:1px solid var(--line)}
@@ -639,7 +652,7 @@ html.tv .wk b{font-size:22px}
 .tv-rank .jersey{width:30px;height:30px;font-size:13px}
 .tv-rank b{font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tv-rec{font-family:var(--numeric);font-size:22px;font-weight:700}
-.tv-ch{font-family:var(--numeric);font-size:14px;font-weight:700;color:var(--accent);min-width:42px;text-align:right}
+.tv-ch{font-family:var(--numeric);font-size:26px;font-weight:700;color:var(--accent);min-width:64px;text-align:right;line-height:1}
 @media (max-width:900px){.tv-wrap{grid-template-columns:minmax(0,1fr)}.tv-board{position:static}}
 /* a television sits across the room, so everything grows with the screen */
 @media (min-width:1280px){
@@ -656,8 +669,8 @@ html.tv .wk b{font-size:22px}
   html.tv .tv-rank{grid-template-columns:22px 38px minmax(0,1fr) auto auto;padding:10px 2px}
   html.tv .tv-rank .jersey{width:38px;height:38px;font-size:16px}
   html.tv .tv-rank b{font-size:19px}
-  html.tv .tv-rec{font-size:28px}
-  html.tv .tv-ch{font-size:17px}
+  html.tv .tv-rec{font-size:30px}
+  html.tv .tv-ch{font-size:40px;min-width:96px}
   html.tv .wk b{font-size:26px}
   html.tv .pip{width:26px;height:26px;font-size:12px}
   html.tv .tv-pips .pip{width:40px;height:40px;font-size:17px}
@@ -1254,8 +1267,19 @@ function chanceHtml(ch,r){
 // Live games come first, then the ones about to start, then the finals.
 function renderTv(app){
   const w=S.week,gs=weekGames(w),sc=weekScore(w),chances=sc.complete?null:winChances(w);
-  const rank=(g)=>g.st==='in'?0:g.w?2:1;
+  // live first, and inside that a team in the red zone goes to the front
+  const inRz=(g)=>g.st==='in'&&g.sit&&g.sit.rz&&!!g.sit.pos;
+  const rank=(g)=>g.st==='in'?(inRz(g)?-1:0):g.w?2:1;
   const order=[...gs].sort((a,b)=>rank(a)-rank(b)||a.t.localeCompare(b.t));
+  // the underdog is ahead, or got there: the reason to look up from your phone
+  const lines=S.lines['w'+w]||{};
+  const upset=(g)=>{
+    const f=lines[g.id];
+    if(!f||!f.fav||g.st==='pre')return null;
+    const dog=f.fav===g.h.ab?g.a:g.h,ds=f.fav===g.h.ab?g.as:g.hs,fs=f.fav===g.h.ab?g.hs:g.as;
+    if(g.w)return g.w===dog.ab?{dog,line:f.line,done:true}:null;
+    return ds>fs?{dog,line:f.line,done:false}:null;
+  };
   const side=(g,k)=>{
     const t=g[k],score=k==='a'?g.as:g.hs,other=k==='a'?g.hs:g.as;
     const lead=(g.st!=='pre'||g.w)&&score>other;
@@ -1275,8 +1299,10 @@ function renderTv(app){
   let h=`<div class="tv-wrap${solo?' solo':''}"><div class="tv-games">`;
   h+=shown.map(g=>{
     const state=g.w?(g.w==='TIE'?'Final · tie':'Final'):g.st==='in'?(g.d||'Live'):fmtKick.format(new Date(g.t));
-    const rz=g.st==='in'&&g.sit&&g.sit.rz&&g.sit.pos?`<span class="rzflag">${esc(g[g.sit.pos].ab)} RED ZONE</span>`:'';
-    return `<article class="tv-game${g.st==='in'?' on':''}"><header><span class="${g.st==='in'?'st live':'st'}">${esc(state)}</span>${rz}</header><div class="tv-row">${side(g,'a')}<span class="tv-at">–</span>${side(g,'h')}</div>${g.st==='in'?`<div class="tv-field">${fieldView(g)}</div>`:''}</article>`;
+    const rz=inRz(g)?`<span class="rzflag">${esc(g[g.sit.pos].ab)} RED ZONE</span>`:'';
+    const up=upset(g);
+    const flag=up?`<span class="upflag${up.done?' done':''}">${esc(up.dog.ab)} ${up.done?'UPSET':'UPSET ALERT'}${up.line?` · +${up.line}`:''}</span>`:'';
+    return `<article class="tv-game${g.st==='in'?' on':''}${inRz(g)?' rz':''}${up&&!up.done?' upset':''}"><header><span class="${g.st==='in'?'st live':'st'}">${esc(state)}</span>${flag}${rz}</header><div class="tv-row">${side(g,'a')}<span class="tv-at">–</span>${side(g,'h')}</div>${g.st==='in'?`<div class="tv-field">${fieldView(g)}</div>`:''}</article>`;
   }).join('');
   h+=`</div><aside class="tv-board"><h2>${esc(weekName(w))} · ${sc.complete?'Final':`${sc.done}/${sc.total} final`}</h2>`;
   h+=`<button type="button" class="tv-only${S.tvLive?' on':''}" data-tvlive aria-pressed="${S.tvLive}">${S.tvLive?`Live games only${playing.length?` · ${playing.length}`:''}`:'Show live games only'}</button>`;
@@ -2349,6 +2375,19 @@ async function refresh(){
   pollTimer=setTimeout(refresh,activeNflWeeks().length?30e3:10*60e3);
 }
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&S.updatedAt&&Date.now()-S.updatedAt>60e3)refresh()});
+
+// A television shouldn't fall asleep mid-drive, and a mouse pointer has no business
+// parked on the living room screen. Neither is essential, so both fail quietly.
+if(S.tv){
+  let lock=null;
+  const keepAwake=async()=>{try{lock=await navigator.wakeLock.request('screen')}catch{}};
+  keepAwake();
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&(!lock||lock.released))keepAwake()});
+  let idle;
+  const stir=()=>{document.documentElement.classList.remove('nocursor');clearTimeout(idle);idle=setTimeout(()=>document.documentElement.classList.add('nocursor'),4000)};
+  ['mousemove','mousedown','keydown','touchstart'].forEach(ev=>document.addEventListener(ev,stir,{passive:true}));
+  stir();
+}
 
 render();
 if(!firebaseConfig||!firebaseConfig.projectId||firebaseConfig.projectId.startsWith('YOUR')){
