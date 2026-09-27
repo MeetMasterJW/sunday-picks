@@ -634,7 +634,19 @@ html.tv .wk b{font-size:22px}
 .tv-wrap.solo .tv-field .bx-poss{font-size:15px}
 .tv-wrap.solo .tv-field .bx-poss img{width:22px;height:22px}
 .tv-wrap.solo .tv-game header{font-size:16px}
-/* a card worth looking up at: red zone burns, an underdog in front glows */
+/* a card worth looking up at: one score late, the red zone, an underdog in front */
+.tv-game.tight{border-color:color-mix(in srgb,var(--live) 65%,transparent);box-shadow:var(--raise),0 0 44px -12px var(--live)}
+.closeflag{flex:none;padding:1px 8px;border-radius:999px;background:color-mix(in srgb,var(--live) 22%,transparent);color:var(--live);font-size:10.5px;font-weight:800;letter-spacing:.05em;white-space:nowrap}
+@media (prefers-reduced-motion:no-preference){.tv-game.tight .closeflag{animation:rzpulse 1.2s ease-in-out infinite}}
+.tv-swing{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:8px;margin-top:10px;padding:8px 10px;border-radius:var(--r1);background:var(--raised);border:1px solid var(--line-2)}
+.tv-swing .jersey{width:30px;height:30px;font-size:13px}
+.tv-swing .sw-t{display:flex;align-items:baseline;gap:5px;font-size:14px;min-width:0}
+.tv-swing .sw-t b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tv-swing .sw-n{font-family:var(--numeric);font-size:24px;font-weight:700}
+.tv-swing.up{color:var(--good)}
+.tv-swing.down{color:var(--bad)}
+.tv-swing small{font-size:11px;color:var(--ink-3);white-space:nowrap}
+
 .tv-game.rz{border-color:color-mix(in srgb,var(--bad) 60%,transparent);box-shadow:var(--raise),0 0 42px -14px var(--bad)}
 .tv-game.upset{border-color:color-mix(in srgb,#B388FF 55%,transparent);box-shadow:var(--raise),0 0 38px -16px #B388FF}
 .tv-game.rz.upset{box-shadow:var(--raise),0 0 42px -14px var(--bad),0 0 38px -16px #B388FF}
@@ -684,6 +696,12 @@ html.tv .wk b{font-size:22px}
   html.tv .tv-wrap.solo .tv-field .bx-field{height:56px}
   html.tv .tv-wrap.solo .tv-field .bx-poss{font-size:19px}
   html.tv .tv-only{font-size:15px;padding:10px 12px}
+  html.tv .tv-swing{gap:11px;padding:11px 13px}
+  html.tv .tv-swing .jersey{width:40px;height:40px;font-size:17px}
+  html.tv .tv-swing .sw-t{font-size:19px}
+  html.tv .tv-swing .sw-n{font-size:36px}
+  html.tv .tv-swing small{font-size:14px}
+  html.tv .closeflag,html.tv .upflag,html.tv .rzflag{font-size:14px;padding:2px 11px}
 }
 </style>
 </head>
@@ -754,7 +772,7 @@ import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,signOut} from 'htt
 const COLORS=['#E8641E','#2E6FD8','#C23B6B','#1E9E8A','#7B4FC9','#D9432B','#B71C1C','#AD1457','#E0457B','#A43BB5','#5B5BD6','#1565C0','#1B8FD1','#0F8C9E','#2F8F3A','#558B2F','#8A7A12','#C9A200','#D98200','#A0522D','#6D4C41','#4A5560','#37474F','#2B2F36'];
 const MAX_PLAYERS=8;
 const DEFAULT_FAMILY={players:[1,2,3,4,5].map((i)=>({id:'p'+i,name:'Player '+i,color:COLORS[i-1]}))};
-const S={db:null,auth:null,parent:false,liveProb:{},profiles:{},lines:{},fillShown:{},family:DEFAULT_FAMILY,weeks:{},picks:{},locks:{},week:null,me:'p1',tab:'picks',results:false,ready:false,offline:false};
+const S={db:null,auth:null,parent:false,liveProb:{},chanceLog:{},profiles:{},lines:{},fillShown:{},family:DEFAULT_FAMILY,weeks:{},picks:{},locks:{},week:null,me:'p1',tab:'picks',results:false,ready:false,offline:false};
 const $=(s)=>document.querySelector(s);
 const esc=(v)=>String(v??'').replace(/[&<>"']/g,(c)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const store={get(k){try{return localStorage.getItem(k)}catch{return null}},set(k,v){try{localStorage.setItem(k,v)}catch{}}};
@@ -801,6 +819,7 @@ function isSundayDay(g){
   const p=Object.fromEntries(etParts.formatToParts(new Date(g.t)).map(x=>[x.type,x.value]));
   return p.weekday==='Sun'&&+p.hour<20;
 }
+const clockText=(sec)=>`${Math.floor(sec/60)}:${String(Math.floor(sec%60)).padStart(2,'0')}`;
 function slotLabel(g){
   if(g.tbd)return '';
   const p=Object.fromEntries(etParts.formatToParts(new Date(g.t)).map(x=>[x.type,x.value]));
@@ -1250,6 +1269,28 @@ function winChances(w){
   chanceCache={key,value};
   return value;
 }
+// A running log of win chances, sampled as the scores come in, so the board can say
+// who has been climbing. Anything older than twelve minutes is dropped.
+function logChances(w,ch){
+  if(!ch)return;
+  const log=S.chanceLog['w'+w]||(S.chanceLog['w'+w]=[]),now=Date.now(),last=log[log.length-1];
+  if(!last||now-last.at>=25e3)log.push({at:now,p:{...ch.p}});
+  while(log.length>2&&now-log[0].at>12*6e4)log.shift();
+}
+// The biggest move since the oldest sample still in the log. The simulation carries a
+// little sampling noise of its own, so small drifts are not worth announcing.
+function swingNow(w,ch){
+  const log=S.chanceLog['w'+w]||[];
+  if(!ch||log.length<2)return null;
+  const base=log[0];let best=null;
+  for(const [id,v] of Object.entries(ch.p)){
+    if(base.p[id]==null)continue;
+    const d=v-base.p[id];
+    if(!best||Math.abs(d)>Math.abs(best.d))best={id,d};
+  }
+  if(!best||Math.abs(best.d)<.04)return null;
+  return {...best,mins:Math.max(1,Math.round((Date.now()-base.at)/6e4))};
+}
 function chanceLabel(ch,id){
   if(isOut(ch,id))return 'Out';
   const v=ch.p[id];
@@ -1267,9 +1308,11 @@ function chanceHtml(ch,r){
 // Live games come first, then the ones about to start, then the finals.
 function renderTv(app){
   const w=S.week,gs=weekGames(w),sc=weekScore(w),chances=sc.complete?null:winChances(w);
-  // live first, and inside that a team in the red zone goes to the front
+  logChances(w,chances);
+  // live first, and inside that the games about to turn: one score late, then the red zone
   const inRz=(g)=>g.st==='in'&&g.sit&&g.sit.rz&&!!g.sit.pos;
-  const rank=(g)=>g.st==='in'?(inRz(g)?-1:0):g.w?2:1;
+  const tight=(g)=>g.st==='in'&&g.period>=4&&g.clock>0&&g.clock<=120&&Math.abs(g.as-g.hs)<=8;
+  const rank=(g)=>g.st==='in'?(tight(g)?-2:inRz(g)?-1:0):g.w?2:1;
   const order=[...gs].sort((a,b)=>rank(a)-rank(b)||a.t.localeCompare(b.t));
   // the underdog is ahead, or got there: the reason to look up from your phone
   const lines=S.lines['w'+w]||{};
@@ -1301,12 +1344,18 @@ function renderTv(app){
     const state=g.w?(g.w==='TIE'?'Final · tie':'Final'):g.st==='in'?(g.d||'Live'):fmtKick.format(new Date(g.t));
     const rz=inRz(g)?`<span class="rzflag">${esc(g[g.sit.pos].ab)} RED ZONE</span>`:'';
     const up=upset(g);
+    const close=tight(g)?`<span class="closeflag">${g.as===g.hs?'TIED':'ONE SCORE'} · ${esc(clockText(g.clock))}</span>`:'';
     const flag=up?`<span class="upflag${up.done?' done':''}">${esc(up.dog.ab)} ${up.done?'UPSET':'UPSET ALERT'}${up.line?` · +${up.line}`:''}</span>`:'';
-    return `<article class="tv-game${g.st==='in'?' on':''}${inRz(g)?' rz':''}${up&&!up.done?' upset':''}"><header><span class="${g.st==='in'?'st live':'st'}">${esc(state)}</span>${flag}${rz}</header><div class="tv-row">${side(g,'a')}<span class="tv-at">–</span>${side(g,'h')}</div>${g.st==='in'?`<div class="tv-field">${fieldView(g)}</div>`:''}</article>`;
+    return `<article class="tv-game${g.st==='in'?' on':''}${inRz(g)?' rz':''}${up&&!up.done?' upset':''}${tight(g)?' tight':''}"><header><span class="${g.st==='in'?'st live':'st'}">${esc(state)}</span>${close}${flag}${rz}</header><div class="tv-row">${side(g,'a')}<span class="tv-at">–</span>${side(g,'h')}</div>${g.st==='in'?`<div class="tv-field">${fieldView(g)}</div>`:''}</article>`;
   }).join('');
   h+=`</div><aside class="tv-board"><h2>${esc(weekName(w))} · ${sc.complete?'Final':`${sc.done}/${sc.total} final`}</h2>`;
   h+=`<button type="button" class="tv-only${S.tvLive?' on':''}" data-tvlive aria-pressed="${S.tvLive}">${S.tvLive?`Live games only${playing.length?` · ${playing.length}`:''}`:'Show live games only'}</button>`;
   if(S.tvLive&&!playing.length)h+='<p class="tv-note">Nothing is being played right now, so here is the whole week.</p>';
+  const sw=swingNow(w,chances);
+  if(sw){
+    const p=player(sw.id),pts=Math.round(Math.abs(sw.d)*100);
+    h+=`<div class="tv-swing ${sw.d>0?'up':'down'}"><span class="jersey av-${sw.id}" style="--c:${esc(p.color)}">${initial(p)}</span><span class="sw-t"><b>${esc(p.name)}</b> ${sw.d>0?'▲':'▼'}<b class="sw-n num">${pts}</b></span><small>last ${sw.mins} min</small></div>`;
+  }
   h+=sc.rows.map((r,i)=>`<div class="tv-rank" style="--c:${esc(r.p.color)}"><span class="num">${i+1}</span><span class="jersey av-${r.p.id}">${initial(r.p)}</span><b>${esc(r.p.name)}</b><span class="tv-rec num">${r.right}–${r.wrong}</span><span class="tv-ch num">${chances?chanceLabel(chances,r.p.id):`+${r.pts}`}</span></div>`).join('');
   h+='</aside></div>';
   app.innerHTML=h;
