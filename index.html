@@ -595,19 +595,43 @@ html.tv .wk b{font-size:22px}
 .tv-game{background:var(--surface);border:1px solid var(--line);border-radius:var(--r2);padding:10px 12px 12px;box-shadow:var(--raise)}
 .tv-game.on{border-color:color-mix(in srgb,var(--live) 45%,transparent);box-shadow:var(--raise),0 0 34px -18px var(--live)}
 .tv-game header{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:13px;margin-bottom:6px}
-.tv-row{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:8px}
+/* both sides match height even when one of them collected all the faces */
+.tv-row{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:stretch;gap:8px}
+.tv-at{align-self:center}
 .tv-at{font-family:var(--numeric);font-size:26px;color:var(--ink-3)}
-.tv-side{display:grid;grid-template-columns:54px minmax(0,1fr);grid-template-rows:auto auto;gap:2px 10px;align-items:center;padding:6px 8px;border-radius:var(--r1);background:linear-gradient(90deg,color-mix(in srgb,var(--tc) 22%,var(--raised)),var(--raised) 78%)}
+.tv-side{position:relative;display:grid;grid-template-columns:54px minmax(0,1fr) auto;gap:4px 10px;align-items:center;padding:6px 8px;border-radius:var(--r1);background:linear-gradient(90deg,color-mix(in srgb,var(--tc) 22%,var(--raised)),var(--raised) 78%)}
 .tv-side.lead{background:linear-gradient(90deg,color-mix(in srgb,var(--tc) 46%,var(--raised)),color-mix(in srgb,var(--tc) 10%,var(--raised)) 80%)}
-.tv-logo{grid-row:1/3;display:grid;place-items:center;width:54px;height:54px}
+.tv-logo{grid-area:1/1;display:grid;place-items:center;width:54px;height:54px}
 .tv-logo img{width:50px;height:50px;object-fit:contain;filter:drop-shadow(0 2px 4px rgba(0,0,0,.5))}
-.tv-side b{font-family:var(--numeric);font-size:21px;letter-spacing:.08em}
-.tv-sc{position:absolute;right:0}
-.tv-side{position:relative}
-.tv-sc{position:static;grid-row:1/3;grid-column:3;font-family:var(--numeric);font-size:50px;font-weight:700;line-height:.9;text-align:right;color:var(--ink-3);font-variant-numeric:tabular-nums}
-.tv-side{grid-template-columns:54px minmax(0,1fr) auto}
+.tv-side b{grid-area:1/2;font-family:var(--numeric);font-size:21px;letter-spacing:.08em}
+.tv-sc{grid-area:1/3;font-family:var(--numeric);font-size:50px;font-weight:700;line-height:.9;text-align:right;color:var(--ink-3);font-variant-numeric:tabular-nums}
 .tv-side.lead .tv-sc{color:var(--ink)}
-.tv-pips{display:flex;gap:3px;grid-column:2}
+.tv-pips{grid-area:2/1/3/4;display:flex;flex-wrap:wrap;gap:5px;min-height:0}
+/* across a room an initial in a 24px dot is unreadable, so the faces grow with the set */
+.tv-pips .pip{flex:none;width:32px;height:32px;font-size:14px;box-shadow:0 0 0 2px var(--raised),0 0 0 3.5px var(--c)}
+.tv-field{margin-top:9px}
+.tv-field .bx-drive{gap:5px}
+.tv-field .bx-field{height:30px}
+.tv-field .bx-poss{font-size:12px}
+.tv-field .bx-poss img{width:17px;height:17px}
+.tv-field .bx-to{font-size:10.5px}
+.tv-field .rzflag{display:none}
+.tv-only{width:100%;margin-top:10px;padding:8px 10px;border:1px solid var(--line-2);border-radius:var(--r1);background:var(--raised);color:var(--ink-2);font:700 12.5px/1.2 var(--font);letter-spacing:.04em}
+.tv-only.on{background:color-mix(in srgb,var(--live) 22%,var(--raised));border-color:color-mix(in srgb,var(--live) 60%,transparent);color:var(--ink)}
+.tv-note{margin:8px 0 0;font-size:12px;color:var(--ink-3)}
+/* live-only: fewer games on the screen, so each one can be read from the sofa */
+.tv-wrap.solo .tv-games{grid-template-columns:repeat(auto-fit,minmax(min(100%,520px),1fr));gap:18px}
+.tv-wrap.solo .tv-game{padding:14px 16px 16px}
+.tv-wrap.solo .tv-sc{font-size:72px}
+.tv-wrap.solo .tv-side b{font-size:28px}
+.tv-wrap.solo .tv-side{grid-template-columns:78px minmax(0,1fr) auto;padding:10px 12px}
+.tv-wrap.solo .tv-logo{width:78px;height:78px}
+.tv-wrap.solo .tv-logo img{width:72px;height:72px}
+.tv-wrap.solo .tv-pips .pip{width:40px;height:40px;font-size:17px}
+.tv-wrap.solo .tv-field .bx-field{height:44px}
+.tv-wrap.solo .tv-field .bx-poss{font-size:15px}
+.tv-wrap.solo .tv-field .bx-poss img{width:22px;height:22px}
+.tv-wrap.solo .tv-game header{font-size:16px}
 .tv-board{position:sticky;top:8px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r2);padding:12px;box-shadow:var(--raise)}
 .tv-board h2{margin:0 0 8px;font-family:var(--numeric);font-size:16px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-2)}
 .tv-rank{display:grid;grid-template-columns:18px 30px minmax(0,1fr) auto auto;align-items:center;gap:9px;padding:7px 2px;border-top:1px solid var(--line)}
@@ -620,7 +644,7 @@ html.tv .wk b{font-size:22px}
 /* a television sits across the room, so everything grows with the screen */
 @media (min-width:1280px){
   html.tv .tv-wrap{grid-template-columns:minmax(0,1fr) 380px;gap:22px}
-  html.tv .tv-games{grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:16px}
+  html.tv .tv-games{grid-template-columns:repeat(auto-fill,minmax(400px,1fr));gap:16px}
   html.tv .tv-sc{font-size:64px}
   html.tv .tv-side b{font-size:26px}
   html.tv .tv-logo,html.tv .tv-side{--s:68px}
@@ -636,6 +660,17 @@ html.tv .wk b{font-size:22px}
   html.tv .tv-ch{font-size:17px}
   html.tv .wk b{font-size:26px}
   html.tv .pip{width:26px;height:26px;font-size:12px}
+  html.tv .tv-pips .pip{width:40px;height:40px;font-size:17px}
+  html.tv .tv-wrap.solo .tv-pips .pip{width:52px;height:52px;font-size:21px}
+  html.tv .tv-wrap.solo .tv-sc{font-size:92px}
+  html.tv .tv-wrap.solo .tv-side b{font-size:34px}
+  html.tv .tv-wrap.solo .tv-games{grid-template-columns:repeat(auto-fit,minmax(min(100%,640px),1fr))}
+  html.tv .tv-wrap.solo .tv-logo{width:92px;height:92px}
+  html.tv .tv-wrap.solo .tv-logo img{width:86px;height:86px}
+  html.tv .tv-wrap.solo .tv-side{grid-template-columns:92px minmax(0,1fr) auto}
+  html.tv .tv-wrap.solo .tv-field .bx-field{height:56px}
+  html.tv .tv-wrap.solo .tv-field .bx-poss{font-size:19px}
+  html.tv .tv-only{font-size:15px;padding:10px 12px}
 }
 </style>
 </head>
@@ -713,6 +748,7 @@ const store={get(k){try{return localStorage.getItem(k)}catch{return null}},set(k
 S.me=store.get('picker')||'p1';S.tab=store.get('tab')||'picks';
 // Sunday Picks on the living room screen: ?tv drops the chrome and blows the scores up
 S.tv=new URLSearchParams(location.search).has('tv');
+S.tvLive=store.get('tvlive')==='1';
 if(S.tv){document.documentElement.classList.add('tv');S.tab='picks'}
 
 function toast(msg){const t=$('#toast');t.textContent=msg;t.hidden=false;clearTimeout(toast._t);toast._t=setTimeout(()=>t.hidden=true,2400)}
@@ -1228,16 +1264,23 @@ function renderTv(app){
       <span class="tv-logo">${t.logo?`<img src="${esc(t.logo)}" alt="" width="54" height="54">`:esc(t.ab)}</span>
       <b>${esc(t.ab)}</b>
       <span class="tv-sc num">${g.st==='pre'&&!g.w?'':score}</span>
-      <span class="tv-pips">${who.map(p=>`<span class="pip av-${p.id}" style="--c:${esc(p.color)}" aria-label="${esc(p.name)}">${initial(p)}</span>`).join('')}</span>
+      <span class="tv-pips">${who.map(p=>`<span class="pip av-${p.id}" style="--c:${esc(p.color)}" title="${esc(p.name)}" aria-label="${esc(p.name)}">${initial(p)}</span>`).join('')}</span>
     </div>`;
   };
-  let h=`<div class="tv-wrap"><div class="tv-games">`;
-  h+=order.map(g=>{
+  // Live-only is a view, not a filter that can empty the screen: with nothing being
+  // played it shows the whole week and says so.
+  const playing=order.filter(g=>g.st==='in');
+  const solo=S.tvLive&&playing.length>0;
+  const shown=solo?playing:order;
+  let h=`<div class="tv-wrap${solo?' solo':''}"><div class="tv-games">`;
+  h+=shown.map(g=>{
     const state=g.w?(g.w==='TIE'?'Final · tie':'Final'):g.st==='in'?(g.d||'Live'):fmtKick.format(new Date(g.t));
     const rz=g.st==='in'&&g.sit&&g.sit.rz&&g.sit.pos?`<span class="rzflag">${esc(g[g.sit.pos].ab)} RED ZONE</span>`:'';
-    return `<article class="tv-game${g.st==='in'?' on':''}"><header><span class="${g.st==='in'?'st live':'st'}">${esc(state)}</span>${rz}</header><div class="tv-row">${side(g,'a')}<span class="tv-at">–</span>${side(g,'h')}</div></article>`;
+    return `<article class="tv-game${g.st==='in'?' on':''}"><header><span class="${g.st==='in'?'st live':'st'}">${esc(state)}</span>${rz}</header><div class="tv-row">${side(g,'a')}<span class="tv-at">–</span>${side(g,'h')}</div>${g.st==='in'?`<div class="tv-field">${fieldView(g)}</div>`:''}</article>`;
   }).join('');
   h+=`</div><aside class="tv-board"><h2>${esc(weekName(w))} · ${sc.complete?'Final':`${sc.done}/${sc.total} final`}</h2>`;
+  h+=`<button type="button" class="tv-only${S.tvLive?' on':''}" data-tvlive aria-pressed="${S.tvLive}">${S.tvLive?`Live games only${playing.length?` · ${playing.length}`:''}`:'Show live games only'}</button>`;
+  if(S.tvLive&&!playing.length)h+='<p class="tv-note">Nothing is being played right now, so here is the whole week.</p>';
   h+=sc.rows.map((r,i)=>`<div class="tv-rank" style="--c:${esc(r.p.color)}"><span class="num">${i+1}</span><span class="jersey av-${r.p.id}">${initial(r.p)}</span><b>${esc(r.p.name)}</b><span class="tv-rec num">${r.right}–${r.wrong}</span><span class="tv-ch num">${chances?chanceLabel(chances,r.p.id):`+${r.pts}`}</span></div>`).join('');
   h+='</aside></div>';
   app.innerHTML=h;
@@ -1871,6 +1914,7 @@ document.addEventListener('click',(e)=>{
   if(bx){openBox(bx.dataset.box);return}
   if(e.target.closest('[data-box-close]')){closeBox();return}
   if(e.target.closest('[data-box-retry]')){loadBox(boxOpenId,true);return}
+  if(e.target.closest('[data-tvlive]')){S.tvLive=!S.tvLive;store.set('tvlive',S.tvLive?'1':'0');render();return}
   const bt=e.target.closest('[data-boxtab]');
   if(bt){boxTab=bt.dataset.boxtab;renderBox();$('#boxBody').scrollTop=0;return}
   const key=e.target.closest('[data-key]');
