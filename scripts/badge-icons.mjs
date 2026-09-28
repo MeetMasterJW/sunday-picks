@@ -51,12 +51,12 @@ async function emblem(path) {
   return art;
 }
 
-let html = await readFile('index.html', 'utf8');
+let code = await readFile('app.js', 'utf8');
 for (const [key, path] of Object.entries(ICONS)) {
   const art = await emblem(path);
   const re = new RegExp(`(\\b${key}:\\{[^}]*?icon:')(.*?)(')`);
-  if (!re.test(html)) throw new Error(`badge ${key} not found in index.html`);
-  html = html.replace(re, (_m, before, _old, after) => `${before}${art}${after}`);
+  if (!re.test(code)) throw new Error(`badge ${key} not found in app.js`);
+  code = code.replace(re, (_m, before, _old, after) => `${before}${art}${after}`);
   console.log(`${key} → ${path}`);
 }
-await writeFile('index.html', html);
+await writeFile('app.js', code);

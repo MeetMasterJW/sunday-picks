@@ -31,11 +31,16 @@ python3 -m http.server 8080
 
 Then open http://localhost:8080. The page is ES modules, so it needs to be served over http rather than opened as a file.
 
+Before pushing, run `npm test` for the scoring rules, then `npm run stamp` so browsers pick up the new `app.js`, `styles.css` and modules instead of a cached copy.
+
 ## Files
 
 | File | What it does |
 |---|---|
-| `index.html` | The whole app: picks, all-picks grid, standings, family names |
+| `index.html` | The page itself: top bar, tabs and dialogs |
+| `app.js` | The app: picks, all-picks grid, standings, family, alerts, TV mode |
+| `styles.css` | All of the styling |
+| `scoring.js` | How a week is ranked: correct picks, then the tiebreakers (tested by `npm test`) |
 | `espn.js` | Fetches ESPN weeks and regroups them into Sunday-to-Saturday pick weeks |
 | `config.js` | Firebase web settings |
 | `firestore.rules` | Who can write what (anyone with the link; no deletes) |
