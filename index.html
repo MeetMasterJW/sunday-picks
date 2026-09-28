@@ -180,6 +180,10 @@ a.toggle{text-decoration:none;color:var(--ink)}
 .sealed{margin:0 6px 2px;font-size:12px;color:var(--ink-3)}
 .tb{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;border-top:1px solid var(--line);margin-top:2px;padding:10px 6px 4px;font-size:14px;color:var(--ink-2)}
 .tb b{color:var(--ink)}
+.tb-in{display:grid;justify-items:center;gap:4px}
+.tb-state{font-size:11px;font-weight:700;letter-spacing:.03em;color:var(--ink-3)}
+.tb-state.ok{color:var(--good)}
+.tb-state.ok::before{content:"✓ "}
 .tb-second{border-top-style:dashed}
 .tb-second small{display:block;font-size:11.5px;color:var(--ink-3)}
 .tb input{width:84px;font:700 26px var(--numeric);text-align:center;padding:8px;border-radius:var(--r1);border:1px solid var(--line-2);background:var(--bg);color:var(--ink)}
@@ -1151,16 +1155,20 @@ function teamBtn(g,side,me,mine,pips){
 // week, so it is the one thing on a locked card that can still be typed into.
 function secondGuessRow(g,w,me){
   if(tb2Open(w)){
-    const mine=S.parent||isUnlocked(me.id)?pickDoc(w,me.id).tb2:null;
-    return `<label class="tb tb-second"><span><b>Second tiebreaker</b> · ${esc(me.name)}, total points in this game? <small>Used only if the first guess ties too</small></span><input type="number" min="0" max="150" inputmode="numeric" data-tb2="${esc(g.id)}" value="${typeof mine==='number'?mine:''}" placeholder="–" aria-label="Second tiebreaker guess"></label>`;
+    const ps=players(),inCount=ps.filter(p=>typeof pickDoc(w,p.id).tb2==='number').length;
+    const saved=typeof pickDoc(w,me.id).tb2==='number',canSee=S.parent||isUnlocked(me.id);
+    // A guess that is in but hidden used to render as an empty box, which reads as lost
+    const state=saved?(canSee?'Saved':'Saved · hidden'):'Not in yet';
+    return `<label class="tb tb-second"><span><b>Second tiebreaker</b> · ${esc(me.name)}, total points in this game? <small>Used only if the first guess ties too · <b class="num">${inCount}</b> of ${ps.length} in</small></span><span class="tb-in"><input type="number" min="0" max="150" inputmode="numeric" data-tb2="${esc(g.id)}" value="${saved&&canSee?pickDoc(w,me.id).tb2:''}" placeholder="${saved?'••':'–'}" aria-label="Second tiebreaker guess"><span class="tb-state${saved?' ok':''}">${esc(state)}</span></span></label>`;
   }
   const guesses=players().map(p=>{const v=pickDoc(w,p.id).tb2;return `<span class="guess"><span class="pip av-${p.id}" style="--c:${esc(p.color)}" title="${esc(p.name)}" aria-label="${esc(p.name)}">${initial(p)}</span>${typeof v==='number'?v:'–'}</span>`}).join('');
   return `<div class="tb tb-second"><span><b>Second tiebreaker</b>${g.w?` · final total <b class="num">${g.as+g.hs}</b>`:''}</span><div class="dots">${guesses}</div></div>`;
 }
 function tiebreakRow(g,w,me){
   if(!locked(g)){
-    const tb=S.parent||isUnlocked(me.id)?pickDoc(w,me.id).tb:null;
-    return `<label class="tb"><span><b>Tiebreaker</b> · ${esc(me.name)}, how many total points will both teams score?</span><input type="number" min="0" max="150" inputmode="numeric" data-tb="${esc(g.id)}" value="${typeof tb==='number'?tb:''}" aria-label="Tiebreaker guess for ${esc(me.name)}"></label>`;
+    const saved=typeof pickDoc(w,me.id).tb==='number',canSee=S.parent||isUnlocked(me.id);
+    const tb=canSee?pickDoc(w,me.id).tb:null;
+    return `<label class="tb"><span><b>Tiebreaker</b> · ${esc(me.name)}, how many total points will both teams score?</span><span class="tb-in"><input type="number" min="0" max="150" inputmode="numeric" data-tb="${esc(g.id)}" value="${typeof tb==='number'?tb:''}" placeholder="${saved?'••':'–'}" aria-label="Tiebreaker guess for ${esc(me.name)}"><span class="tb-state${saved?' ok':''}">${saved?(canSee?'Saved':'Saved · hidden'):'Not in yet'}</span></span></label>`;
   }
   const guesses=players().map(p=>{const tb=pickDoc(w,p.id).tb;return `<span class="guess"><span class="pip av-${p.id}" style="--c:${esc(p.color)}" title="${esc(p.name)}" aria-label="${esc(p.name)}">${initial(p)}</span>${typeof tb==='number'?tb:'–'}</span>`}).join('');
   return `<div class="tb"><span><b>Tiebreaker guesses</b>${g.w?` · final total <b class="num">${g.as+g.hs}</b>`:''}</span><div class="dots">${guesses}</div></div>`;
