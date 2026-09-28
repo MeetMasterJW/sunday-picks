@@ -951,6 +951,7 @@ function render(){
   const rowsWere=takeRowPositions();
   paint();
   playRowMoves(rowsWere);
+  nudgeSecondGuess();
 }
 // The week strip is rebuilt only when the schedule itself changes, so a flick keeps its place
 let stripKey='';
@@ -2234,6 +2235,16 @@ function detectEvents(){
 }
 
 const alertQueue=[];let alertShowing=false,alertTimer=null;
+// One nudge per person per week, so nobody loses a tie by never noticing the second guess
+const nudged=new Set();
+function nudgeSecondGuess(){
+  const w=S.week;if(!S.ready||!tb2Open(w))return;
+  const me=player(S.me);if(!me)return;
+  const key=w+':'+me.id;if(nudged.has(key))return;
+  if(typeof pickDoc(w,me.id).tb2==='number')return;
+  nudged.add(key);
+  queueAlert({kind:'tb2',who:me,g:mondayGame(w)});
+}
 function queueAlert(ev){
   if(!alertsOn())return;
   ev.at=Date.now();
@@ -2249,6 +2260,14 @@ function alertView(ev){
     return {tc:t.color,tc2:'rgba(0,0,0,.25)',tx:'#fff',title:ev.badge.name,meta:t.label+' badge',
       score:`<span>${esc(ev.who.name)}</span>`,people:`<span>${esc(ev.badge.desc)}</span>`,
       plain:`${ev.who.name} unlocked ${ev.badge.name} (${t.label})`};
+  }
+  if(ev.kind==='tb2'){
+    const g=ev.g;
+    return {tc:'#FF6A2B',tc2:'rgba(0,0,0,.25)',tx:'#fff',title:'Monday night tiebreaker',
+      meta:`${g.a.ab} @ ${g.h.ab} · ${fmtTime.format(new Date(g.t))}`,
+      score:`<span>${esc(ev.who.name)}</span>`,
+      people:'<span>Open the Monday game and guess the total points</span>',
+      plain:`${ev.who.name}: enter your Monday night tiebreaker guess`};
   }
   if(ev.kind==='week'){
     const r=ev.sc.winner;
