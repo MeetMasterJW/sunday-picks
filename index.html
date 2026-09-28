@@ -14,7 +14,7 @@
 <style>
 :root{
   --bg:#0A0C0F;--surface:#14171C;--raised:#1C2027;--line:#242933;--line-2:#323946;
-  --ink:#F4F6F8;--ink-2:#A8B0BC;--ink-3:#7C8797;
+  --ink:#F4F6F8;--ink-2:#A8B0BC;--ink-3:#8B96A6;
   --accent:#FF6A2B;--good:#30D158;--bad:#FF453A;
   /* in progress gets its own colour: a live game and a blown pick used to look identical */
   --live:#28D6F0;
@@ -47,7 +47,7 @@ button:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid
 .topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 6px 2px}
 .brand{display:inline-flex;align-items:center;gap:9px;font-size:17px;font-weight:800;letter-spacing:-.015em;color:var(--ink)}
 .brand .mark{width:28px;height:28px;flex:none;filter:drop-shadow(0 4px 10px rgba(255,106,43,.35))}
-.me-btn{border:0;background:none;padding:3px;border-radius:50%;display:grid;place-items:center}
+.me-btn{border:0;background:none;padding:6px;margin:-3px;border-radius:50%;display:grid;place-items:center}
 .me-btn .jersey{width:32px;height:32px;font-size:14px;box-shadow:0 0 0 2px var(--bg),0 0 0 3.5px var(--line-2)}
 .me-btn.unlocked .jersey{box-shadow:0 0 0 2px var(--bg),0 0 0 3.5px var(--good)}
 .linkbtn.sm{font-size:12.5px;padding:0 0 0 6px}
@@ -56,7 +56,7 @@ button:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid
 .weekstrip{display:flex;gap:5px;overflow-x:auto;scroll-behavior:smooth;scrollbar-width:none;padding:1px 2px 2px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch}
 .weekstrip::-webkit-scrollbar{display:none}
 .wkchip{flex:none;scroll-snap-align:center;min-width:38px;padding:4px 9px 5px;border:1px solid var(--line);background:var(--surface);color:var(--ink-3);border-radius:var(--r1);font:700 14px/1 var(--numeric);letter-spacing:.06em;transition:color .15s,border-color .15s,background .15s}
-.wkchip small{display:block;margin-top:2px;font:700 8.5px/1 var(--font);letter-spacing:.06em;color:var(--ink-3);opacity:.85}
+.wkchip small{display:block;margin-top:2px;font:700 11px/1 var(--font);letter-spacing:.06em;color:var(--ink-3)}
 .wkchip[aria-selected="true"]{background:color-mix(in srgb,var(--accent) 22%,var(--surface));border-color:color-mix(in srgb,var(--accent) 70%,transparent);color:var(--ink)}
 .wkchip[aria-selected="true"] small{color:var(--accent)}
 .wkchip.live{border-color:color-mix(in srgb,var(--live) 60%,transparent)}
@@ -74,7 +74,7 @@ button:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid
 
 /* bottom tabs */
 .tabs{flex:none;position:relative;z-index:5;display:grid;grid-template-columns:repeat(4,1fr);padding:6px 8px calc(6px + env(safe-area-inset-bottom));background:#0E1014;border-top:1px solid var(--line)}
-.tabs button{border:0;background:none;display:grid;justify-items:center;gap:2px;padding:6px 0 4px;font-size:11px;font-weight:600;color:var(--ink-3);border-radius:var(--r1)}
+.tabs button{border:0;background:none;display:grid;justify-items:center;gap:2px;padding:6px 0 4px;font-size:12px;font-weight:600;color:var(--ink-3);border-radius:var(--r1)}
 .tabs button[aria-selected="true"]{color:var(--accent)}
 @media (min-width:760px){
   /* the pill floats free of the edge; main's flex:1 already stops short of it,
@@ -105,8 +105,8 @@ a.toggle{text-decoration:none;color:var(--ink)}
 .viewer-sum{font-size:13.5px;font-weight:600;color:var(--ink-2)}
 .viewer-sum .num{font-family:var(--numeric);font-size:19px;font-weight:700;color:var(--ink)}
 .pickers{display:flex;flex-wrap:wrap;gap:6px}
-.pk{border:0;background:none;padding:2px;border-radius:50%;line-height:0}
-.pk .jersey{width:32px;height:32px;font-size:14px;opacity:.55;transition:opacity .15s,box-shadow .15s}
+.pk{border:0;background:none;padding:4px;border-radius:50%;line-height:0}
+.pk .jersey{width:36px;height:36px;font-size:15px;opacity:.55;transition:opacity .15s,box-shadow .15s}
 .pk[aria-pressed="true"] .jersey{opacity:1;box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--c)}
 .note,.lockbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--line);border-radius:var(--r2);padding:8px 8px 8px 14px;font-size:14px;color:var(--ink-2);box-shadow:var(--raise)}
 .note.pickbar{position:sticky;top:calc(var(--scroll-pad) * -1);z-index:4;flex-wrap:nowrap;padding:6px 6px 6px 12px;font-size:13.5px;box-shadow:0 8px 20px -14px rgba(0,0,0,.9)}
@@ -115,10 +115,10 @@ a.toggle{text-decoration:none;color:var(--ink)}
 .lockbar{flex-wrap:nowrap;padding-left:8px}
 .lockbar .lb-text{flex:1}
 .lockbar .toggle,.note .toggle{padding:6px 12px}
-.iconbtn{width:32px;height:32px;flex:none;display:grid;place-items:center;border:0;background:none;border-radius:50%;color:var(--ink-3)}
+.iconbtn{width:44px;height:44px;margin:-6px;flex:none;display:grid;place-items:center;border:0;background:none;border-radius:50%;color:var(--ink-3)}
 .iconbtn svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
 @media (hover:hover){.iconbtn:hover{color:var(--ink);background:var(--raised)}}
-.pill{font-size:11px;font-weight:700;background:var(--raised);color:var(--ink);border:1px solid var(--line-2);border-radius:999px;padding:3px 9px}
+.pill{font-size:12px;font-weight:700;background:var(--raised);color:var(--ink);border:1px solid var(--line-2);border-radius:999px;padding:3px 9px}
 
 /* games */
 .day{display:grid;gap:10px}
@@ -127,7 +127,7 @@ a.toggle{text-decoration:none;color:var(--ink)}
 .dayhead h2::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--line-2),transparent)}
 .slothead{display:flex;align-items:center;gap:6px;margin:8px 4px -2px;font-family:var(--numeric);font-size:14px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:.12em}
 .pcount{font-family:var(--numeric);font-size:13px;font-weight:700;color:var(--ink-3)}
-.slot{font-size:10px;font-weight:800;background:var(--raised);color:var(--ink-2);border:1px solid var(--line-2);border-radius:var(--r1);padding:1px 5px;margin-left:4px;vertical-align:1px}
+.slot{font-size:11px;font-weight:800;background:var(--raised);color:var(--ink-2);border:1px solid var(--line-2);border-radius:var(--r1);padding:1px 5px;margin-left:4px;vertical-align:1px}
 .game{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:7px;display:grid;gap:5px;box-shadow:var(--raise)}
 .game.flash{animation:flash 2.4s ease-out}
 @keyframes flash{0%,35%{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 35%,transparent)}}
@@ -136,7 +136,7 @@ a.toggle{text-decoration:none;color:var(--ink)}
 .st{font-weight:600;color:var(--ink-2)}
 .st.final{color:var(--ink)}
 .st.live{color:var(--live)}
-.rzflag{flex:none;padding:1px 7px;border-radius:999px;background:rgba(255,69,58,.22);color:var(--bad);font-size:10.5px;font-weight:800;letter-spacing:.04em;white-space:nowrap}
+.rzflag{flex:none;padding:1px 7px;border-radius:999px;background:rgba(255,69,58,.22);color:var(--bad);font-size:11px;font-weight:800;letter-spacing:.04em;white-space:nowrap}
 .st.live::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:currentColor;box-shadow:0 0 8px 1px currentColor;margin-right:6px;vertical-align:1px;animation:pulse 1.6s ease-in-out infinite}
 @keyframes pulse{50%{opacity:.3}}
 .rows{display:grid;gap:4px}
@@ -181,11 +181,11 @@ a.toggle{text-decoration:none;color:var(--ink)}
 .tb{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;border-top:1px solid var(--line);margin-top:2px;padding:10px 6px 4px;font-size:14px;color:var(--ink-2)}
 .tb b{color:var(--ink)}
 .tb-in{display:grid;justify-items:center;gap:4px}
-.tb-state{font-size:11px;font-weight:700;letter-spacing:.03em;color:var(--ink-3)}
+.tb-state{font-size:12px;font-weight:700;letter-spacing:.03em;color:var(--ink-3)}
 .tb-state.ok{color:var(--good)}
 .tb-state.ok::before{content:"✓ "}
 .tb-second{border-top-style:dashed}
-.tb-second small{display:block;font-size:11.5px;color:var(--ink-3)}
+.tb-second small{display:block;font-size:12px;color:var(--ink-3)}
 .tb input{width:84px;font:700 26px var(--numeric);text-align:center;padding:8px;border-radius:var(--r1);border:1px solid var(--line-2);background:var(--bg);color:var(--ink)}
 .tb input:focus{outline:none;border-color:var(--accent)}
 .dots{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
@@ -213,7 +213,7 @@ td.tot{font-family:var(--numeric);font-weight:700;font-size:21px}
 .allpicks thead th{position:sticky;top:calc(var(--scroll-pad) * -1);z-index:3;background:var(--surface);box-shadow:inset 0 -1px 0 var(--line)}
 .allpicks thead th:first-child{z-index:4}
 /* the tick sits under the logo, never beside it, or it shunts the logo off the column's centre */
-.allpicks .mark{display:block;margin:2px 0 0;font-size:10px;text-align:center}
+.allpicks .mark{display:block;margin:2px 0 0;font-size:12px;text-align:center}
 .scroll.dock{overflow:visible}
 .scroll:not(.dock) .allpicks thead th{top:auto}
 .allpicks th:first-child{vertical-align:bottom}
@@ -233,7 +233,7 @@ td.ok .plogo{box-shadow:0 0 0 1px color-mix(in srgb,var(--good) 55%,transparent)
 td.up .plogo{animation:chipGlow 2.4s ease-in-out infinite}
 @keyframes chipGlow{0%,100%{box-shadow:0 0 0 1px color-mix(in srgb,var(--good) 35%,transparent)}50%{box-shadow:0 0 0 1px color-mix(in srgb,var(--good) 65%,transparent),0 0 16px -2px color-mix(in srgb,var(--good) 75%,transparent)}}
 .allpicks th.lead .jersey{box-shadow:0 0 0 2px var(--surface),0 0 0 3.5px var(--c),0 0 18px 2px color-mix(in srgb,var(--c) 70%,transparent)}
-.mark{font-style:normal;font-weight:800;margin-left:4px;font-size:11px}
+.mark{font-style:normal;font-weight:800;margin-left:4px;font-size:12px}
 td.ok .mark,td.up .mark{color:var(--good)}
 td.no .mark,td.down .mark{color:var(--bad)}
 td.none,td.sealedc{color:var(--ink-3)}
@@ -268,7 +268,7 @@ td.none,td.sealedc{color:var(--ink-3)}
 .who>b{display:flex;align-items:center;gap:6px;min-width:0;font-weight:700;font-size:16px}
 .who span{display:block;font-size:12.5px;color:var(--ink-3);min-height:1.4em}
 .rec{font-family:var(--numeric);font-size:32px;font-weight:700;text-align:right;line-height:1}
-.rec small{display:block;font-family:var(--font);font-size:11px;font-weight:600;color:var(--ink-3);margin-top:3px}
+.rec small{display:block;font-family:var(--font);font-size:12px;font-weight:600;color:var(--ink-3);margin-top:3px}
 .ptsb{color:var(--accent);font-weight:800;font-size:12px}
 button.gmeta{width:100%;border:0;background:none;text-align:left;cursor:pointer;border-radius:var(--r1);padding:4px 6px 2px}
 .gmeta .line{display:inline-flex;align-items:center;gap:2px}
@@ -281,7 +281,7 @@ dialog.sheet[open]{display:flex;flex-direction:column}
 @keyframes sheetIn{from{transform:translateY(28px);opacity:0}}
 .box-head{display:flex;align-items:center;gap:10px;padding:14px 14px 12px 18px;border-bottom:1px solid var(--line)}
 .box-head h3{margin:0;flex:1;font-family:var(--display);font-size:14px;font-weight:700;line-height:1.3}
-.box-close{width:34px;height:34px;flex:none;border-radius:50%;border:0;background:var(--raised);display:grid;place-items:center;color:var(--ink)}
+.box-close{width:44px;height:44px;margin:-5px;flex:none;border-radius:50%;border:0;background:var(--raised);display:grid;place-items:center;color:var(--ink)}
 .box-close svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round}
 #boxBody,#profBody{overflow-y:auto;overscroll-behavior:contain;padding:16px 16px calc(20px + env(safe-area-inset-bottom));display:grid;gap:18px}
 .bx-hero{position:relative;margin:-16px -16px 0;padding:18px 16px 14px;background:linear-gradient(100deg,color-mix(in srgb,var(--ca) 42%,var(--surface)),var(--surface) 46%,var(--surface) 54%,color-mix(in srgb,var(--ch) 42%,var(--surface)))}
@@ -317,7 +317,7 @@ dialog.sheet[open]{display:flex;flex-direction:column}
 .bx-los{left:var(--ball);width:2px;background:rgba(255,255,255,.85)}
 .bx-mark{position:absolute;left:var(--ball);top:50%;transform:translate(-50%,-50%);width:19px;height:15px;filter:drop-shadow(0 1px 3px rgba(0,0,0,.55))}
 .bx-mark path{stroke:#fff;stroke-width:1.75;stroke-linejoin:round}
-.bx-to{display:flex;justify-content:space-between;font-size:11.5px;font-weight:600;color:var(--ink-3)}
+.bx-to{display:flex;justify-content:space-between;font-size:12px;font-weight:600;color:var(--ink-3)}
 .bx-to span{display:inline-flex;align-items:center;gap:4px}
 .bx-to i{width:6px;height:6px;border-radius:50%;background:var(--ink-3);opacity:.35}
 .bx-to i.on{opacity:1;background:var(--ink-2)}
@@ -328,8 +328,8 @@ dialog.sheet[open]{display:flex;flex-direction:column}
 .bx-lines td.tot{font-family:var(--numeric);font-size:19px}
 .bx-plays{list-style:none;margin:0;padding:0;display:grid;gap:12px}
 .bx-plays li{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:3px 10px;align-items:start}
-.bx-q{grid-column:1/-1;font-size:11.5px;font-weight:600;color:var(--ink-3)}
-.bx-type{margin-top:1px;padding:2px 6px;border-radius:var(--r1);background:color-mix(in srgb,var(--tc) 70%,#000);color:#fff;font-size:10.5px;font-weight:800}
+.bx-q{grid-column:1/-1;font-size:12px;font-weight:600;color:var(--ink-3)}
+.bx-type{margin-top:1px;padding:2px 6px;border-radius:var(--r1);background:color-mix(in srgb,var(--tc) 70%,#000);color:#fff;font-size:11px;font-weight:800}
 .bx-text{display:flex;gap:6px;align-items:flex-start;font-size:14px;line-height:1.35}
 .bx-text img{width:18px;height:18px;flex:none;object-fit:contain;margin-top:1px}
 .bx-run{font-family:var(--numeric);font-size:18px;font-weight:700;color:var(--ink-2)}
@@ -348,14 +348,14 @@ dialog.sheet[open]{display:flex;flex-direction:column}
 .bx-dr summary img{width:18px;height:18px;object-fit:contain}
 .bx-dr-r{font-size:12.5px;font-weight:800;color:var(--ink-2)}
 .bx-dr.scored .bx-dr-r{color:color-mix(in srgb,var(--tc) 65%,var(--ink))}
-.bx-dr summary small{font-size:11.5px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bx-dr summary small{font-size:12px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .bx-pbp{list-style:none;margin:0;padding:0 12px 10px;display:grid;gap:9px}
 .bx-pbp li{display:grid;grid-template-columns:52px minmax(0,1fr) auto;gap:2px 10px;align-items:baseline;padding-top:9px;border-top:1px solid var(--line)}
 .bx-pbp li.turnover{border-top-color:color-mix(in srgb,var(--bad) 55%,var(--line))}
 .bx-pbp li.penalty{border-top-color:color-mix(in srgb,#F5B400 45%,var(--line))}
 .bx-pclock{font-family:var(--numeric);font-size:13px;color:var(--ink-3);white-space:nowrap}
 .bx-ptxt{font-size:13.5px;line-height:1.4;color:var(--ink-2)}
-.bx-ptxt i{display:block;font-style:normal;font-size:11px;font-weight:600;color:var(--ink-3)}
+.bx-ptxt i{display:block;font-style:normal;font-size:12px;font-weight:600;color:var(--ink-3)}
 .bx-pbp li.turnover .bx-ptxt,.bx-pbp li.penalty .bx-ptxt{color:var(--ink)}
 .bx-pbp .bx-run{font-size:15px}
 .bx-cols{display:grid;grid-template-columns:1fr 1.5fr 1fr;margin-bottom:2px;font-size:12px;font-weight:700;color:var(--ink-3)}
@@ -375,7 +375,7 @@ dialog.sheet[open]{display:flex;flex-direction:column}
 .bx-msg,.bx-venue{margin:0;text-align:center;font-size:13px;color:var(--ink-3)}
 .chance{display:grid;justify-items:end;gap:3px;min-width:48px}
 .chance b{font-family:var(--numeric);font-size:22px;font-weight:700;line-height:1;color:var(--ink)}
-.chance small{font-size:10.5px;font-weight:600;color:var(--ink-2);line-height:1}
+.chance small{font-size:12px;font-weight:600;color:var(--ink-2);line-height:1}
 .chance.out b{color:var(--ink-3)}
 .crown{color:var(--accent)}
 .rules{padding:0 4px}
@@ -448,7 +448,7 @@ dialog.sheet[open]{display:flex;flex-direction:column}
 .chart{position:relative;margin-top:8px}
 .chart-svg{display:block;max-width:100%;height:auto;touch-action:pan-y}
 .chart-svg .grid{stroke:var(--line);stroke-width:1.75}
-.chart-svg .axis{fill:var(--ink-3);font:11px var(--font)}
+.chart-svg .axis{fill:var(--ink-3);font:12px var(--font)}
 .chart-svg .cross{stroke:var(--ink-3);stroke-width:1.75;stroke-dasharray:3 3}
 .chart-svg .dot{stroke:var(--surface);stroke-width:1.75}
 .chart-svg .leader{stroke:var(--ink-3);stroke-width:1.75}
@@ -481,13 +481,13 @@ dialog.sheet[open]{display:flex;flex-direction:column}
 .pf-tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
 .pf-tiles div{display:grid;justify-items:center;gap:3px;padding:10px 4px;border-radius:var(--r2);background:var(--raised)}
 .pf-tiles b{font-family:var(--numeric);font-size:26px;line-height:1}
-.pf-tiles span{font-size:11px;font-weight:600;color:var(--ink-3);text-align:center}
+.pf-tiles span{font-size:12px;font-weight:600;color:var(--ink-3);text-align:center}
 .badges{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 .badge{align-items:center}
 .badge{position:relative;overflow:hidden;display:flex;align-items:flex-start;gap:10px;padding:10px;border-radius:var(--r2);background:var(--raised);min-width:0}
 .badge b{display:block;font-size:13.5px;line-height:1.25;margin-top:2px}
-.badge small{display:block;font-size:11.5px;line-height:1.3;color:var(--ink-3)}
-.badge .tier{display:block;margin-top:4px;font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--tc)}
+.badge small{display:block;font-size:12px;line-height:1.3;color:var(--ink-3)}
+.badge .tier{display:block;margin-top:4px;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--tc)}
 .t-common{--tc:#8A93A3}.t-rare{--tc:#4DB3FF}.t-epic{--tc:#A983FF}.t-legendary{--tc:#F5B400}
 .badge.epic:not(.dim){box-shadow:inset 0 0 0 1px color-mix(in srgb,#A983FF 42%,transparent)}
 .badge.legendary:not(.dim){background:linear-gradient(135deg,color-mix(in srgb,#F5B400 18%,var(--raised)),var(--raised) 62%);box-shadow:inset 0 0 0 1px color-mix(in srgb,#F5B400 48%,transparent)}
@@ -581,14 +581,14 @@ dialog p{margin:6px 0 0}
   .allpicks th,.allpicks td{padding:6px 2px;white-space:normal}
   .allpicks th:first-child,.allpicks td:first-child{width:86px;padding-left:0}
   .allpicks .pname{display:none}
-  .allpicks th small{font-size:10px}
+  .allpicks th small{font-size:12px}
   .allpicks th .upct{display:block}
   .allpicks .jersey{width:24px;height:24px;font-size:12px}
   .gcell b{font-size:15px}
-  .gcell span{font-size:10px;line-height:1.25}
+  .gcell span{font-size:12px;line-height:1.25}
   .plogo{width:34px;height:34px}
   .plogo img{width:24px;height:24px}
-  .allpicks .mark{margin-top:1px;font-size:9px}
+  .allpicks .mark{margin-top:1px;font-size:12px}
 }
 @media (prefers-reduced-motion:reduce){.alert.in,.alert.in::after,.sc.bump,.game.flash,.st.live::before,.pin-dots.shake,td.up .plogo{animation:none}}
 
@@ -622,7 +622,7 @@ html.tv .wk b{font-size:22px}
 .tv-field .bx-field{height:30px}
 .tv-field .bx-poss{font-size:12px}
 .tv-field .bx-poss img{width:17px;height:17px}
-.tv-field .bx-to{font-size:10.5px}
+.tv-field .bx-to{font-size:12px}
 .tv-field .rzflag{display:none}
 .tv-only{width:100%;margin-top:10px;padding:8px 10px;border:1px solid var(--line-2);border-radius:var(--r1);background:var(--raised);color:var(--ink-2);font:700 12.5px/1.2 var(--font);letter-spacing:.04em}
 .tv-only.on{background:color-mix(in srgb,var(--live) 22%,var(--raised));border-color:color-mix(in srgb,var(--live) 60%,transparent);color:var(--ink)}
@@ -642,10 +642,10 @@ html.tv .wk b{font-size:22px}
 .tv-wrap.solo .tv-game header{font-size:16px}
 /* a card worth looking up at: one score late, the red zone, an underdog in front */
 .tv-game.tight{border-color:color-mix(in srgb,var(--live) 65%,transparent);box-shadow:var(--raise),0 0 44px -12px var(--live)}
-.closeflag{flex:none;padding:1px 8px;border-radius:999px;background:color-mix(in srgb,var(--live) 22%,transparent);color:var(--live);font-size:10.5px;font-weight:800;letter-spacing:.05em;white-space:nowrap}
+.closeflag{flex:none;padding:1px 8px;border-radius:999px;background:color-mix(in srgb,var(--live) 22%,transparent);color:var(--live);font-size:11px;font-weight:800;letter-spacing:.05em;white-space:nowrap}
 @media (prefers-reduced-motion:no-preference){.tv-game.tight .closeflag{animation:rzpulse 1.2s ease-in-out infinite}}
 .tv-swing{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:4px 9px;margin-top:10px;padding:9px 11px;border-radius:var(--r1);background:var(--raised);border:1px solid var(--line-2)}
-.sw-head{grid-column:1/-1;margin:0;font-size:10.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3)}
+.sw-head{grid-column:1/-1;margin:0;font-size:11px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3)}
 .tv-swing .jersey{width:30px;height:30px;font-size:13px}
 .sw-who{font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 /* the move spelled out, so the number cannot be mistaken for points or games */
@@ -659,7 +659,7 @@ html.tv .wk b{font-size:22px}
 .tv-game.rz{border-color:color-mix(in srgb,var(--bad) 60%,transparent);box-shadow:var(--raise),0 0 42px -14px var(--bad)}
 .tv-game.upset{border-color:color-mix(in srgb,#B388FF 55%,transparent);box-shadow:var(--raise),0 0 38px -16px #B388FF}
 .tv-game.rz.upset{box-shadow:var(--raise),0 0 42px -14px var(--bad),0 0 38px -16px #B388FF}
-.upflag{flex:none;padding:1px 8px;border-radius:999px;background:rgba(179,136,255,.2);color:#C9A8FF;font-size:10.5px;font-weight:800;letter-spacing:.05em;white-space:nowrap}
+.upflag{flex:none;padding:1px 8px;border-radius:999px;background:rgba(179,136,255,.2);color:#C9A8FF;font-size:11px;font-weight:800;letter-spacing:.05em;white-space:nowrap}
 .upflag.done{background:rgba(179,136,255,.14);color:#A98BE0}
 @media (prefers-reduced-motion:no-preference){
   .tv-game.rz .rzflag{animation:rzpulse 1.6s ease-in-out infinite}
@@ -1871,7 +1871,7 @@ function openPin(pid,mode,why,action){
 function drawPin(msg){
   const p=player(pin.pid);
   $('#pinTitle').textContent=pin.mode==='enter'?`${p.name}’s PIN`:pin.mode==='create'?`Create a PIN for ${p.name}`:'Enter it once more';
-  $('#pinWhy').textContent=pin.mode==='enter'?pin.why:pin.mode==='create'?'4 digits. Keep it secret from everyone else.':'Just to be sure.';
+  $('#pinWhy').textContent=pin.mode==='enter'?pin.why:pin.mode==='create'?'4 digits. Keep it to yourself, and don’t reuse your phone or bank PIN.':'Just to be sure.';
   $('#pinDots').querySelectorAll('i').forEach((dot,i)=>dot.classList.toggle('on',i<pin.entry.length));
   $('#pinErr').hidden=!msg;$('#pinErr').textContent=msg||'';
   $('#pinForgot').hidden=pin.mode!=='enter';
@@ -2025,7 +2025,7 @@ function renderFamily(app){
   h+=`<section class="card"><p class="eyebrow">Big screen</p><p class="muted">Every game of the week, sized for the room. Open it on the TV or cast this tab.</p><div class="setrow"><a class="toggle" href="?tv" target="_blank" rel="noopener">Open TV mode</a></div></section>`;
   h+=alertsCard();
   if(S.parent)h+=`<section class="card"><p class="eyebrow">Parent controls</p><p class="muted">A parent is signed in on this device. <button type="button" class="linkbtn" id="parentSignOut">Sign out</button></p></section>`;
-  h+=`<details class="rules"><summary>How Sunday Picks works</summary><p class="muted">Tap your face at the top of the Picks tab, then tap the team you think will win each game. The first time, you’ll create a 4-digit PIN; after that the PIN keeps others from picking for you or seeing your picks before they lock, and it stays signed in on that device for 10 minutes. You can change a pick until kickoff; then it locks and everyone’s picks show. Each week runs Sunday through the next Thursday. When a week ends, 1st place (most correct picks) gets 3 points, 2nd gets 2 and 3rd gets 1, and last place takes home the Wooden Spoon. After Week 18 the playoffs keep going round by round with their own standings.</p></details>`;
+  h+=`<details class="rules"><summary>How Sunday Picks works</summary><p class="muted">Tap your face at the top of the Picks tab, then tap the team you think will win each game. The first time, you’ll create a 4-digit PIN; after that the app asks for it before anyone picks as you, and hides your picks from everyone else until they lock. It stays signed in on that device for 10 minutes. It’s a family lock rather than a password, so someone determined could get past it; don’t reuse a PIN you use for anything else. Only a parent can change or reset one. You can change a pick until kickoff; then it locks and everyone’s picks show. Each week runs Sunday through the next Thursday. When a week ends, 1st place (most correct picks) gets 3 points, 2nd gets 2 and 3rd gets 1, and last place takes home the Wooden Spoon. After Week 18 the playoffs keep going round by round with their own standings.</p></details>`;
   app.innerHTML=h;
 }
 
