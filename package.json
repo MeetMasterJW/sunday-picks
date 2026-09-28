@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "test": "node --test",
     "migrate": "node scripts/migrate.mjs",
     "stamp": "node scripts/stamp.mjs"
   },

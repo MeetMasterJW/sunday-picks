@@ -780,8 +780,9 @@ html.tv .wk b{font-size:22px}
 </dialog>
 
 <script type="module">
-import {firebaseConfig,parentEmail} from './config.js?v=001521f7';
-import {fetchWeek,fetchWinProb,fetchGameSummary,fetchClosingLine,groupIntoPickWeeks} from './espn.js?v=001521f7';
+import {firebaseConfig,parentEmail} from './config.js?v=83165485';
+import {fetchWeek,fetchWinProb,fetchGameSummary,fetchClosingLine,groupIntoPickWeeks} from './espn.js?v=83165485';
+import {tbMillis,compareTiebreak,rankRows} from './scoring.js?v=83165485';
 import {initializeApp} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
 import {getFirestore,doc,collection,setDoc,onSnapshot,serverTimestamp} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
 import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,signOut} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
@@ -834,15 +835,6 @@ function locked(g,w=S.week){
   return weekLocked(w)||g.st==='post'||!!g.w||inPlay||Date.now()>=lockTime(g);
 }
 function pickDoc(week,pid){return S.picks['w'+week+'-'+pid]||{week,player:pid,picks:{}}}
-// tbAt used to be a client clock reading; it's now the server's, stored as a Firestore
-// Timestamp. This reads either one (plus the moment-long gap before a fresh write echoes
-// back from the server) into a single comparable number, latest sorting last.
-function tbMillis(v){
-  if(v==null)return Infinity;
-  if(typeof v==='string'){const t=Date.parse(v);return Number.isNaN(t)?Infinity:t}
-  if(typeof v.toMillis==='function')return v.toMillis();
-  return Infinity;
-}
 function picksFor(week,pid){return pickDoc(week,pid).picks||{}}
 function weekGames(w){return (S.weeks[w]||{}).games||[]}
 // Weeks 19-22 are the playoffs; ESPN numbers those rounds 1, 2, 3 and 5
@@ -873,10 +865,7 @@ function slotLabel(g){
 
 /* ---- scoring ---- */
 // Week points by final place: 1st, 2nd, 3rd
-const PLACE_POINTS=[3,2,1];
 const PLACE_LABEL=['1st','2nd','3rd','4th','5th','6th','7th','8th'];
-/* Weekly order: most correct picks, then closest guess of total points in the
-   week's last game, then a guess that isn't over, then whoever saved their guess first. */
 // A week belongs to whoever actually played it: once it has started, anyone with no picks
 // and no tiebreaker that week sits it out of the standings, points and badges.
 function playedIn(w,p){const d=pickDoc(w,p.id);return Object.keys(d.picks||{}).length>0||typeof d.tb==='number'}
@@ -903,25 +892,7 @@ function weekScore(w){
   });
   const complete=games.length>0&&done.length===games.length;
   const mon=mondayGame(w),actual2=mon&&mon.w?mon.as+mon.hs:null;
-  // closest guess, then didn't go over — first on the week's last game, then on Monday night
-  const guessOff=(x,y,actualPts)=>{
-    if((x===null)!==(y===null))return x===null?1:-1;
-    if(x===null)return 0;
-    const d=Math.abs(x-actualPts)-Math.abs(y-actualPts);if(d)return d;
-    const ox=x>actualPts,oy=y>actualPts;return ox!==oy?(ox?1:-1):0;
-  };
-  const tiebreak=(a,b)=>{
-    if(actual===null)return 0;
-    const first=guessOff(a.tb,b.tb,actual);if(first)return first;
-    if(actual2!==null){const second=guessOff(a.tb2,b.tb2,actual2);if(second)return second}
-    return a.tbAt-b.tbAt||a.idx-b.idx;
-  };
-  rows.sort((a,b)=>b.right-a.right||(complete?tiebreak(a,b):a.wrong-b.wrong||a.idx-b.idx));
-  rows.forEach((r,i)=>{
-    r.place=i+1;
-    r.pts=complete?(PLACE_POINTS[i]||0):0;
-    r.tied=rows.some(x=>x!==r&&x.right===r.right);
-  });
+  rankRows(rows,{complete,actual,actual2});
   const top=Math.max(...rows.map(r=>r.right));
   rows.forEach(r=>r.lead=done.length>0&&r.right===top&&top>0);
   const winner=complete?rows[0]:null;
@@ -1305,8 +1276,7 @@ function winChances(w){
   const picks=docs.map(d=>d.picks||{});
   const base=ps.map((p,i)=>games.filter(g=>g.w&&g.w!=='TIE'&&picks[i][g.id]===g.w).length);
   const pickIdx=pending.map(({g})=>picks.map(pk=>pk[g.id]===g.h.ab?1:pk[g.id]===g.a.ab?0:-1));
-  const tb=docs.map(d=>typeof d.tb==='number'?d.tb:null),tbAt=docs.map(d=>tbMillis(d.tbAt));
-  const tb2=docs.map(d=>typeof d.tb2==='number'?d.tb2:null);
+  const guesses=docs.map(d=>({tb:typeof d.tb==='number'?d.tb:null,tb2:typeof d.tb2==='number'?d.tb2:null,tbAt:tbMillis(d.tbAt)}));
   const sampleTotal=totalSampler(last),sampleMon=mon?totalSampler(mon):null;
   const wins=new Array(ps.length).fill(0),score=new Array(ps.length);
   for(let n=0;n<SIMS;n++){
@@ -1315,27 +1285,11 @@ function winChances(w){
       const homeWon=Math.random()<pending[k].ph?1:0,row=pickIdx[k];
       for(let i=0;i<ps.length;i++)if(row[i]===homeWon)score[i]++;
     }
-    const total=sampleTotal(),total2=sampleMon?sampleMon():0;
+    const total=sampleTotal(),total2=sampleMon?sampleMon():null;
     let best=0;
     for(let i=1;i<ps.length;i++){
-      let d=score[i]-score[best];
-      if(!d){
-        const ti=tb[i],tj=tb[best];
-        if((ti===null)!==(tj===null))d=ti===null?-1:1;
-        else if(ti!==null){
-          d=Math.abs(tj-total)-Math.abs(ti-total);
-          if(!d){const oi=ti>total,oj=tj>total;if(oi!==oj)d=oi?-1:1}
-        }
-        if(!d&&sampleMon){
-          const ui=tb2[i],uj=tb2[best];
-          if((ui===null)!==(uj===null))d=ui===null?-1:1;
-          else if(ui!==null){
-            d=Math.abs(uj-total2)-Math.abs(ui-total2);
-            if(!d){const oi=ui>total2,oj=uj>total2;if(oi!==oj)d=oi?-1:1}
-          }
-        }
-        if(!d)d=tbAt[best]-tbAt[i];
-      }
+      // positive: i overtakes the leader so far; a dead heat keeps the earlier person, as the standings do
+      const d=score[i]-score[best]||-compareTiebreak(guesses[i],guesses[best],total,total2);
       if(d>0)best=i;
     }
     wins[best]++;
