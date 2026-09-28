@@ -3,7 +3,8 @@ rules_version = '2';
 // Sunday Picks: anyone with the link can read and make picks. Only the parent
 // login can unlock a week or change family names. Deletes are blocked.
 // Weeks 1-18 are the regular season; 19-22 are Wild Card, Divisional, Conference and Super Bowl.
-// Player PINs are a family lock checked by the page, not by these rules.
+// Player PINs are checked by the page; these rules only stop a PIN that's already set
+// from being replaced by anyone but a parent.
 service cloud.firestore {
   match /databases/{database}/documents {
 
@@ -40,13 +41,15 @@ service cloud.firestore {
         && (isParent() || !weekLocked(request.resource.data.week) || onlySecondGuess());
     }
 
-    // Anyone can lock a week (the lock button and auto-lock); only a parent can unlock.
+    // Any phone can write the auto-lock once everyone's picks are in; locking by hand
+    // and unlocking are for a parent.
     match /locks/{id} {
       allow read: if true;
       allow create, update: if id.matches('w([1-9]|1[0-9]|2[0-2])')
         && request.resource.data.keys().hasOnly(['week', 'locked', 'auto', 'at'])
         && request.resource.data.locked is bool
-        && (request.resource.data.locked == true || isParent());
+        && (isParent()
+          || (request.resource.data.locked == true && request.resource.data.get('auto', false) == true));
     }
 
     match /config/family {
@@ -58,13 +61,25 @@ service cloud.firestore {
         && request.resource.data.players.size() <= 8;
     }
 
+    // A PIN can be set when there isn't one yet (first time, or after a parent reset);
+    // after that only a parent can change it. Photos and colors save with the PIN untouched.
+    function pinUntouched() {
+      return resource != null
+        && request.resource.data.get('pinHash', '') == resource.data.get('pinHash', '')
+        && request.resource.data.get('pinSalt', '') == resource.data.get('pinSalt', '');
+    }
+    function noPinYet() {
+      return resource == null || resource.data.get('pinHash', '') == '';
+    }
+
     // Each person's color, photo (a small JPEG data URL) and hashed PIN
     match /profiles/{id} {
       allow read: if true;
       allow create, update: if id.matches('p[1-8]')
         && request.resource.data.keys().hasOnly(['color', 'avatar', 'pinHash', 'pinSalt', 'updatedAt'])
         && request.resource.data.get('avatar', '') is string
-        && request.resource.data.get('avatar', '').size() < 200000;
+        && request.resource.data.get('avatar', '').size() < 200000
+        && (isParent() || pinUntouched() || noPinYet());
     }
 
     // Pregame favorites per week, saved so upset badges work for everyone

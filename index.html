@@ -822,7 +822,12 @@ function mondayGame(w){
 // It stays open until that game kicks off, even once the rest of the week has locked:
 // Monday is after the lock, and everyone has the same Sunday results in front of them.
 function tb2Open(w){const g=mondayGame(w);return !!g&&!g.w&&g.st==='pre'&&Date.now()<lockTime(g)}
-function locked(g,w=S.week){return weekLocked(w)||g.st==='post'||!!g.w||Date.now()>=lockTime(g)}
+// ESPN's own status backs up the kickoff time, so winding the phone's clock back can't reopen a
+// game that is already being played — unless that day was deliberately given late picks
+function locked(g,w=S.week){
+  const inPlay=g.st==='in'&&!LATE_PICKS[etDate.format(new Date(g.t))];
+  return weekLocked(w)||g.st==='post'||!!g.w||inPlay||Date.now()>=lockTime(g);
+}
 function pickDoc(week,pid){return S.picks['w'+week+'-'+pid]||{week,player:pid,picks:{}}}
 // tbAt used to be a client clock reading; it's now the server's, stored as a Firestore
 // Timestamp. This reads either one (plus the moment-long gap before a fresh write echoes
@@ -1853,7 +1858,8 @@ function requirePin(pid,why,action){
 }
 function changePin(pid){
   if(!(S.profiles[pid]||{}).pinHash){openPin(pid,'create','',null);return}
-  requirePin(pid,`Enter ${player(pid).name}’s current PIN first.`,()=>openPin(pid,'create','',null));
+  // the database only lets a parent replace a PIN that's already set
+  requireParent(`Enter the parent password to change ${player(pid).name}’s PIN.`,()=>openPin(pid,'create','',null));
 }
 function openPin(pid,mode,why,action){
   const p=player(pid);
@@ -2113,7 +2119,7 @@ document.addEventListener('click',(e)=>{
     return}
   if(e.target.closest('#lockToggle')){
     const w=S.week;
-    if(!weekLocked(w))setLock(w,true);
+    if(!weekLocked(w))requireParent(`Enter the parent password to lock ${weekName(w)} picks.`,()=>setLock(w,true));
     else requireParent(`Enter the parent password to unlock ${weekName(w)} picks.`,()=>setLock(w,false));
     return}
   if(e.target.closest('#alertsToggle')){store.set('alerts',alertsOn()?'off':'on');render();return}
