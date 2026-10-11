@@ -213,13 +213,15 @@ function paint(){
   renderPicks(app);
 }
 
-// Everyone has picked every game they still can (and set a tiebreaker while it's open)
+// Everyone has picked every game they still can, and set a tiebreaker. Once the week's first
+// game kicks off, a missing tiebreaker no longer holds the lock (and the win chances) hostage
+// until the last game, days later: that guess counts as missed.
 function allSubmitted(w){
   const gs=weekGames(w);if(!gs.length||gs.some(isTbd))return false;
-  const now=Date.now(),last=gs[gs.length-1];
+  const now=Date.now();
   return players().every(p=>{
     const d=pickDoc(w,p.id),pk=d.picks||{};
-    return gs.every(g=>pk[g.id]||g.w||now>=lockTime(g))&&(typeof d.tb==='number'||now>=lockTime(last));
+    return gs.every(g=>pk[g.id]||g.w||now>=lockTime(g))&&(typeof d.tb==='number'||now>=lockTime(gs[0]));
   });
 }
 // Lock a week automatically once all picks are in. A week with any lock record
