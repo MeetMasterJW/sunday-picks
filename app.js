@@ -35,10 +35,10 @@ function pickState(g,pick){
   return pick===(g.as>g.hs?g.a.ab:g.h.ab)?'up':'down';
 }
 function weekLocked(w=S.week){return !!(S.locks['w'+w]&&S.locks['w'+w].locked)}
-// From Week 7 there are no Thursday games, so a week settles on Monday night. Its first
+// From Week 6 there are no Thursday games, so a week settles on Monday night. Its first
 // tiebreaker is the Monday night total and its second is Sunday night's. Before that, the
 // week's last game (the Thursday after) carried the first and Monday night the second.
-const NO_THURSDAY_FROM=7;
+const NO_THURSDAY_FROM=6;
 function isThursday(g){return !g.tbd&&etParts.formatToParts(new Date(g.t)).find(x=>x.type==='weekday').value==='Thu'}
 // No Monday game (Week 18, most playoff rounds): the week's last game carries the first guess
 function tbGame(w){
