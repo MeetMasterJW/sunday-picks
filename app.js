@@ -1,6 +1,6 @@
-import {firebaseConfig,parentEmail} from './config.js?v=83165485';
-import {fetchWeek,fetchWinProb,fetchGameSummary,fetchClosingLine,groupIntoPickWeeks} from './espn.js?v=83165485';
-import {tbMillis,compareTiebreak,rankRows} from './scoring.js?v=83165485';
+import {firebaseConfig,parentEmail} from './config.js?v=56de8555';
+import {fetchWeek,fetchWinProb,fetchGameSummary,fetchClosingLine,groupIntoPickWeeks} from './espn.js?v=56de8555';
+import {tbMillis,compareTiebreak,rankRows} from './scoring.js?v=56de8555';
 import {initializeApp} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
 import {getFirestore,doc,collection,setDoc,onSnapshot,serverTimestamp} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
 import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,signOut} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
@@ -35,17 +35,26 @@ function pickState(g,pick){
   return pick===(g.as>g.hs?g.a.ab:g.h.ab)?'up':'down';
 }
 function weekLocked(w=S.week){return !!(S.locks['w'+w]&&S.locks['w'+w].locked)}
-// The Monday night game of a pick week carries the second tiebreaker guess. The week's
-// own last game is usually the Thursday that follows, and it already carries the first,
-// so a week whose last game IS the Monday one gets no second guess.
-function mondayGame(w){
-  const gs=weekGames(w);if(gs.length<2)return null;
-  const mon=gs.filter((g,i)=>i<gs.length-1&&slotLabel(g)==='MNF');
-  return mon.length?mon[mon.length-1]:null;
+// From Week 7 there are no Thursday games, so a week settles on Monday night. Its first
+// tiebreaker is the Monday night total and its second is Sunday night's. Before that, the
+// week's last game (the Thursday after) carried the first and Monday night the second.
+const NO_THURSDAY_FROM=7;
+function isThursday(g){return !g.tbd&&etParts.formatToParts(new Date(g.t)).find(x=>x.type==='weekday').value==='Thu'}
+// No Monday game (Week 18, most playoff rounds): the week's last game carries the first guess
+function tbGame(w){
+  const gs=weekGames(w);if(!gs.length)return null;
+  const mon=w>=NO_THURSDAY_FROM?gs.filter(g=>slotLabel(g)==='MNF'):[];
+  return mon.length?mon[mon.length-1]:gs[gs.length-1];
+}
+// A week whose only night game already carries the first guess gets no second one
+function tb2Game(w){
+  const first=tbGame(w),slot=w>=NO_THURSDAY_FROM?'SNF':'MNF';
+  const gs=weekGames(w).filter(g=>g!==first&&slotLabel(g)===slot);
+  return gs.length?gs[gs.length-1]:null;
 }
 // It stays open until that game kicks off, even once the rest of the week has locked:
 // Monday is after the lock, and everyone has the same Sunday results in front of them.
-function tb2Open(w){const g=mondayGame(w);return !!g&&!g.w&&g.st==='pre'&&Date.now()<lockTime(g)}
+function tb2Open(w){const g=tb2Game(w);return !!g&&!g.w&&g.st==='pre'&&Date.now()<lockTime(g)}
 // ESPN's own status backs up the kickoff time, so winding the phone's clock back can't reopen a
 // game that is already being played — unless that day was deliberately given late picks
 function locked(g,w=S.week){
@@ -99,8 +108,8 @@ function satOut(w){const ids=new Set(rosterFor(w).map(p=>p.id));return players()
 function satOutNote(w){const out=satOut(w);return out.length?`<p class="sat-note">Sat out: ${out.map(p=>esc(p.name)).join(', ')} · no picks, no points</p>`:''}
 function weekScore(w){
   const games=weekGames(w);const done=games.filter(g=>g.w);
-  const last=games[games.length-1];
-  const actual=last&&last.w?last.as+last.hs:null;
+  const last=games[games.length-1],first=tbGame(w);
+  const actual=first&&first.w?first.as+first.hs:null;
   const rows=rosterFor(w).map((p,idx)=>{
     const doc=pickDoc(w,p.id),pk=doc.picks||{};let right=0,wrong=0,made=0,up=0;
     games.forEach(g=>{if(pk[g.id])made++;if(pickState(g,pk[g.id])==='up')up++});
@@ -109,7 +118,7 @@ function weekScore(w){
       tb2:typeof doc.tb2==='number'?doc.tb2:null};
   });
   const complete=games.length>0&&done.length===games.length;
-  const mon=mondayGame(w),actual2=mon&&mon.w?mon.as+mon.hs:null;
+  const mon=tb2Game(w),actual2=mon&&mon.w?mon.as+mon.hs:null;
   rankRows(rows,{complete,actual,actual2});
   const top=Math.max(...rows.map(r=>r.right));
   rows.forEach(r=>r.lead=done.length>0&&r.right===top&&top>0);
@@ -320,7 +329,7 @@ function renderPicks(app){
   const jump=canSee&&open&&!S.results?'<button type="button" class="toggle" data-jump>Next pick</button>':'';
   // the one thing still open on a locked week, so nobody loses a tie by not noticing it
   const needsSecond=tb2Open(w)&&typeof pickDoc(w,me.id).tb2!=='number';
-  if(allLocked)h+=`<div class="lockbar"><span class="pill">Locked</span><span class="lb-text">${needsSecond?`${esc(me.name)}, the Monday night tiebreaker is still open.`:weekLocked(w)&&S.locks['w'+w].auto?'Everyone’s picks are in.':'Picks are closed for this week.'}</span>${weekLocked(w)?lockButton(w):''}</div>`;
+  if(allLocked)h+=`<div class="lockbar"><span class="pill">Locked</span><span class="lb-text">${needsSecond?`${esc(me.name)}, the second tiebreaker is still open.`:weekLocked(w)&&S.locks['w'+w].auto?'Everyone’s picks are in.':'Picks are closed for this week.'}</span>${weekLocked(w)?lockButton(w):''}</div>`;
   else h+=`<div class="note pickbar"><span>${status}</span>
       <span style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">${defaults&&!S.results?'<button class="linkbtn" data-tab="family">Add your names</button>':''}${jump}${S.results?'':lockButton(w)}</span></div>`;
 
@@ -330,7 +339,7 @@ function renderPicks(app){
     if(day!==lastDay){if(lastDay)h+='</section>';h+=`<section class="day"><div class="dayhead"><h2>${esc(day)}</h2></div>`;lastDay=day;lastSlot=''}
     const slot=g.tbd?'':fmtTime.format(d),badge=slotLabel(g);
     if(slot&&slot!==lastSlot){h+=`<h3 class="slothead">${esc(slot)}${badge?`<span class="slot">${esc(badge)}</span>`:''}</h3>`;lastSlot=slot}
-    h+=gameCard(g,w,me,shown,g===gs[gs.length-1]);
+    h+=gameCard(g,w,me,shown,g===tbGame(w));
   });
   h+='</section>';
   app.innerHTML=h;
@@ -355,7 +364,7 @@ function teamBtn(g,side,me,mine,pips){
   </button>`;
 }
 
-// The second guess, on the Monday night game. Open until that kickoff even on a locked
+// The second guess, on its night game. Open until that kickoff even on a locked
 // week, so it is the one thing on a locked card that can still be typed into.
 function secondGuessRow(g,w,me){
   if(tb2Open(w)){
@@ -396,7 +405,7 @@ function spreadText(g){
   return `${g.a.ab} @ ${g.h.ab}`;
 }
 
-function gameCard(g,w,me,mine,isLast){
+function gameCard(g,w,me,mine,isTb){
   const lk=locked(g);
   let status;
   if(g.w)status=`<span class="st final">${g.w==='TIE'?'Final · Tie':'Final'}</span>`;
@@ -411,8 +420,8 @@ function gameCard(g,w,me,mine,isLast){
   let h=`<article class="game${flashing(g)?' flash':''}" data-card="${esc(g.id)}"><button type="button" class="gmeta" data-box="${esc(g.id)}" aria-label="Box score, ${esc(g.a.name)} at ${esc(g.h.name)}">${status}<span class="line">${count}${lk?esc(spreadText(g)):''}<svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span></button>
     <div class="rows">${teamBtn(g,'a',me,mine,pips(g.a.ab))}${teamBtn(g,'h',me,mine,pips(g.h.ab))}</div>`;
   if(isTbd(g))h+='<p class="sealed">Matchup is set once the previous round ends</p>';
-  if(isLast)h+=tiebreakRow(g,w,me);
-  const mon=mondayGame(w);
+  if(isTb)h+=tiebreakRow(g,w,me);
+  const mon=tb2Game(w);
   if(mon&&mon.id===g.id)h+=secondGuessRow(g,w,me);
   return h+'</article>';
 }
@@ -440,9 +449,9 @@ function renderAllPicks(app){
     });
     h+='</tr>';
   });
-  const last=gs[gs.length-1],tbShow=locked(last);
+  const last=tbGame(w),tbShow=locked(last);
   h+=`<tr class="tbrow"><td class="gcell"><b>Tiebreaker</b><span>Total points, ${esc(last.a.ab)} @ ${esc(last.h.ab)}${last.w?' · final '+(last.as+last.hs):''}</span></td>${ps.map(p=>{const tb=pickDoc(w,p.id).tb;return `<td class="num">${typeof tb!=='number'?'—':tbShow?tb:'✓'}</td>`}).join('')}</tr>`;
-  const mon=mondayGame(w);
+  const mon=tb2Game(w);
   if(mon)h+=`<tr class="tbrow"><td class="gcell"><b>Second tiebreaker</b><span>Total points, ${esc(mon.a.ab)} @ ${esc(mon.h.ab)}${mon.w?' · final '+(mon.as+mon.hs):''}</span></td>${ps.map(p=>{const v=pickDoc(w,p.id).tb2;return `<td class="num">${typeof v!=='number'?'–':(tb2Open(w)&&!(S.parent||isUnlocked(p.id))?'✓':v)}</td>`}).join('')}</tr>`;
   h+='</tbody></table></div>'+satOutNote(w)+'</section>';
   app.innerHTML=h;
@@ -485,11 +494,11 @@ function winChances(w){
   if(!games.length)return null;
   // Until picks lock, anyone can still pick, so a chance would be guesswork
   if(games.some(g=>!locked(g,w)))return null;
-  const ps=players(),last=games[games.length-1];
+  const ps=players(),last=tbGame(w);
   const pending=games.filter(g=>!g.w).map(g=>({g,ph:homeWinProb(g)}));
   if(!pending.length)return null;
   const docs=ps.map(p=>pickDoc(w,p.id));
-  const mon=mondayGame(w);
+  const mon=tb2Game(w);
   const key=JSON.stringify([w,pending.map(x=>[x.g.id,Math.round(x.ph*1000)]),games.filter(g=>g.w).map(g=>g.id+g.w),last.as,last.hs,last.period,last.clock,
     mon?[mon.id,mon.as,mon.hs,mon.period,mon.clock,mon.w||'']:null,docs.map(d=>[d.picks,d.tb,d.tbAt,d.tb2])]);
   if(chanceCache.key===key)return chanceCache.value;
@@ -1212,7 +1221,7 @@ function renderFamily(app){
   h+=`<section class="card"><p class="eyebrow">Big screen</p><p class="muted">Every game of the week, sized for the room. Open it on the TV or cast this tab.</p><div class="setrow"><a class="toggle" href="?tv" target="_blank" rel="noopener">Open TV mode</a></div></section>`;
   h+=alertsCard();
   if(S.parent)h+=`<section class="card"><p class="eyebrow">Parent controls</p><p class="muted">A parent is signed in on this device. <button type="button" class="linkbtn" id="parentSignOut">Sign out</button></p></section>`;
-  h+=`<details class="rules"><summary>How Sunday Picks works</summary><p class="muted">Tap your face at the top of the Picks tab, then tap the team you think will win each game. The first time, you’ll create a 4-digit PIN; after that the app asks for it before anyone picks as you, and hides your picks from everyone else until they lock. It stays signed in on that device for 10 minutes. It’s a family lock rather than a password, so someone determined could get past it; don’t reuse a PIN you use for anything else. Only a parent can change or reset one. You can change a pick until kickoff; then it locks and everyone’s picks show. Each week runs Sunday through the next Thursday. When a week ends, 1st place (most correct picks) gets 3 points, 2nd gets 2 and 3rd gets 1, and last place takes home the Wooden Spoon. After Week 18 the playoffs keep going round by round with their own standings.</p></details>`;
+  h+=`<details class="rules"><summary>How Sunday Picks works</summary><p class="muted">Tap your face at the top of the Picks tab, then tap the team you think will win each game. The first time, you’ll create a 4-digit PIN; after that the app asks for it before anyone picks as you, and hides your picks from everyone else until they lock. It stays signed in on that device for 10 minutes. It’s a family lock rather than a password, so someone determined could get past it; don’t reuse a PIN you use for anything else. Only a parent can change or reset one. You can change a pick until kickoff; then it locks and everyone’s picks show. Each week runs Sunday through Monday night; Thursday games aren’t picked. Ties go to the closest guess at Monday night’s total points, then Sunday night’s. When a week ends, 1st place (most correct picks) gets 3 points, 2nd gets 2 and 3rd gets 1, and last place takes home the Wooden Spoon. After Week 18 the playoffs keep going round by round with their own standings.</p></details>`;
   app.innerHTML=h;
 }
 
@@ -1376,6 +1385,7 @@ let lastFullLoad=0;
 function applySchedule(){
   const regular={};for(let w=1;w<=18;w++)if(nfl[w])regular[w]=nfl[w];
   S.weeks=groupIntoPickWeeks(regular);
+  for(let w=NO_THURSDAY_FROM;w<=18;w++)if(S.weeks[w])S.weeks[w].games=S.weeks[w].games.filter(g=>!isThursday(g));
   for(const [w,r] of Object.entries(ROUNDS))S.weeks[w]={week:+w,games:(nfl[100+r.espn]||[]).slice().sort((x,y)=>x.t.localeCompare(y.t)||x.id.localeCompare(y.id))};
   rememberAllLines();syncLines();S.ready=true;S.updatedAt=new Date();S.scoreError=false;
   if(!S.week)S.week=currentWeek();
@@ -1444,7 +1454,7 @@ function nudgeSecondGuess(){
   const key=w+':'+me.id;if(nudged.has(key))return;
   if(typeof pickDoc(w,me.id).tb2==='number')return;
   nudged.add(key);
-  queueAlert({kind:'tb2',who:me,g:mondayGame(w)});
+  queueAlert({kind:'tb2',who:me,g:tb2Game(w)});
 }
 function queueAlert(ev){
   if(!alertsOn())return;
@@ -1464,11 +1474,11 @@ function alertView(ev){
   }
   if(ev.kind==='tb2'){
     const g=ev.g;
-    return {tc:'#FF6A2B',tc2:'rgba(0,0,0,.25)',tx:'#fff',title:'Monday night tiebreaker',
+    return {tc:'#FF6A2B',tc2:'rgba(0,0,0,.25)',tx:'#fff',title:'Second tiebreaker',
       meta:`${g.a.ab} @ ${g.h.ab} · ${fmtTime.format(new Date(g.t))}`,
       score:`<span>${esc(ev.who.name)}</span>`,
-      people:'<span>Open the Monday game and guess the total points</span>',
-      plain:`${ev.who.name}: enter your Monday night tiebreaker guess`};
+      people:`<span>Open the ${esc(g.a.ab)} @ ${esc(g.h.ab)} game and guess the total points</span>`,
+      plain:`${ev.who.name}: enter your second tiebreaker guess`};
   }
   if(ev.kind==='week'){
     const r=ev.sc.winner;

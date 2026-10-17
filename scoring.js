@@ -24,9 +24,8 @@ export function guessOff(x, y, actual) {
   return ox !== oy ? (ox ? 1 : -1) : 0;
 }
 
-// Negative when a goes ahead of b among people tied on correct picks: the guess on the
-// week's last game, then the Monday guess once that game has a total, then whoever saved
-// their first guess first. 0 means still tied; callers settle that by roster order.
+// Negative when a goes ahead of b among people tied on correct picks: the first guess,
+// then the second once its game has a total, then whoever saved their first guess first. 0 means still tied; callers settle that by roster order.
 export function compareTiebreak(a, b, actual, actual2) {
   const first = guessOff(a.tb, b.tb, actual);
   if (first) return first;
