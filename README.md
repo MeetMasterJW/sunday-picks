@@ -4,7 +4,7 @@ A family NFL pick 'em for five players. You pick the straight-up winner of each 
 
 - **Schedule and live scores** come from ESPN's public scoreboard feed, fetched by the page itself. During games it refreshes every minute; otherwise every 10 minutes.
 - **Picks, names and locks** are saved in Firebase Firestore, so every phone sees the same data live.
-- **Weeks run Sunday through Monday night** (Eastern). From Week 7, Thursday games aren't picked; ties go to the Monday night total, then Sunday night's. Weeks 1–6 kept the old rules: a Thursday game counted toward the Sunday before it and carried the first tiebreaker.
+- **Weeks run Sunday through Monday night** (Eastern). From Week 6, Thursday games aren't picked; ties go to the Monday night total, then Sunday night's. Weeks 1–5 kept the old rules: a Thursday game counted toward the Sunday before it and carried the first tiebreaker.
 
 ## Set up
 
