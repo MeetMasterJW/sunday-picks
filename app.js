@@ -11,6 +11,8 @@ const S={db:null,auth:null,parent:false,liveProb:{},chanceLog:{},profiles:{},lin
 const $=(s)=>document.querySelector(s);
 const esc=(v)=>String(v??'').replace(/[&<>"']/g,(c)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const store={get(k){try{return localStorage.getItem(k)}catch{return null}},set(k,v){try{localStorage.setItem(k,v)}catch{}}};
+// The family last seen on this device, so a slow or failed load shows real names, not "Player 1"
+try{const f=JSON.parse(store.get('family'));if(f&&Array.isArray(f.players)&&f.players.length)S.family=f}catch{}
 S.me=store.get('picker')||'p1';S.tab=store.get('tab')||'picks';
 // Sunday Picks on the living room screen: ?tv drops the chrome and blows the scores up
 S.tv=new URLSearchParams(location.search).has('tv');
@@ -236,7 +238,7 @@ function allSubmitted(w){
 // Lock a week automatically once all picks are in. A week with any lock record
 // (including one someone unlocked by hand) is left alone.
 function maybeAutoLock(){
-  if(!S.db||!S.ready||!S.picksLoaded||!S.locksLoaded)return;
+  if(!S.db||!S.ready||!S.picksLoaded||!S.locksLoaded||!S.familyLoaded)return;
   for(let w=1;w<=MAX_WEEK;w++){
     const key='w'+w;
     if(S.locks[key]||!allSubmitted(w))continue;
@@ -1753,7 +1755,7 @@ if(!firebaseConfig||!firebaseConfig.projectId||firebaseConfig.projectId.startsWi
   onAuthStateChanged(S.auth,(user)=>{S.parent=!!user;render()});
   const db=makeDb(getFirestore(app));
   S.db=db;
-  db.doc('config/family').onSnapshot(s=>{if(s.exists){S.family=s.data();render()}},()=>{});
+  db.doc('config/family').onSnapshot(s=>{S.familyLoaded=true;if(s.exists){S.family=s.data();store.set('family',JSON.stringify(S.family))}render();maybeAutoLock()},()=>{});
   db.collection('profiles').onSnapshot(s=>{
     const next={};s.docs.forEach(d=>next[d.id]=d.data());S.profiles=next;applyAvatarCss();render();renderProfile();
   },()=>{});
