@@ -1212,7 +1212,9 @@ function alertsCard(){
 
 function renderFamily(app){
   const roster=players();
-  let h=`<section class="card"><p class="eyebrow">${roster.length===5?'The five of you':`Everyone · ${roster.length}`}</p><p class="muted">Tap a face for a PIN, photo or color. Adding someone or changing names needs the parent password.</p><form id="famForm">`;
+  // Placeholder or remembered names: saving now would write them over the real ones
+  const stale=S.familyLoaded?'':`<p class="note">${S.familyError?'Couldn’t reach the database, so these names may be out of date. Reload the page to try again.':'Loading names from the database…'}</p>`;
+  let h=`<section class="card">${stale}<p class="eyebrow">${roster.length===5?'The five of you':`Everyone · ${roster.length}`}</p><p class="muted">Tap a face for a PIN, photo or color. Adding someone or changing names needs the parent password.</p><form id="famForm">`;
   players().forEach((p,i)=>{
     const pr=S.profiles[p.id]||{};
     h+=`<div class="frow" style="--c:${esc(p.color)}"><button type="button" class="face-btn" data-profile="${p.id}" aria-label="Open ${esc(p.name)}’s profile"><span class="jersey av-${p.id}">${initial(p)}</span>${pr.pinHash?'':'<span class="setup-dot" aria-hidden="true"></span>'}</button>
@@ -1334,6 +1336,7 @@ document.addEventListener('click',(e)=>{
     let slot=1;while(taken.has('p'+slot))slot++;
     const usedColors=new Set(base.map(p=>p.color));
     const next={players:[...base,{id:'p'+slot,name:'Player '+slot,color:COLORS.find(c=>!usedColors.has(c))||COLORS[base.length%COLORS.length]}]};
+    if(!S.familyLoaded){toast('Names haven’t loaded yet. Reload and try again.');return}
     requireParent('Enter the parent password to add someone.',async()=>{
       const prev=S.family;S.family=next;render();
       try{await S.db.doc('config/family').set(next);toast('Added. Tap their face to set a name, PIN and photo.')}
@@ -1357,6 +1360,7 @@ document.addEventListener('input',(e)=>{
 });
 document.addEventListener('submit',async(e)=>{
   if(e.target.id!=='famForm')return;e.preventDefault();
+  if(!S.familyLoaded){toast('Names haven’t loaded yet. Reload and try again.');return}
   const fd=new FormData(e.target);
   const base=(S.family.players||DEFAULT_FAMILY.players).slice(0,MAX_PLAYERS);
   const next={players:base.map((p,i)=>({id:p.id,name:(fd.get('n'+i)||'').trim().slice(0,16)||'Player '+(i+1),color:p.color||COLORS[i]}))};
@@ -1755,7 +1759,7 @@ if(!firebaseConfig||!firebaseConfig.projectId||firebaseConfig.projectId.startsWi
   onAuthStateChanged(S.auth,(user)=>{S.parent=!!user;render()});
   const db=makeDb(getFirestore(app));
   S.db=db;
-  db.doc('config/family').onSnapshot(s=>{S.familyLoaded=true;if(s.exists){S.family=s.data();store.set('family',JSON.stringify(S.family))}render();maybeAutoLock()},()=>{});
+  db.doc('config/family').onSnapshot(s=>{S.familyLoaded=true;if(s.exists){S.family=s.data();store.set('family',JSON.stringify(S.family))}S.familyError=false;render();maybeAutoLock()},()=>{S.familyError=true;render()});
   db.collection('profiles').onSnapshot(s=>{
     const next={};s.docs.forEach(d=>next[d.id]=d.data());S.profiles=next;applyAvatarCss();render();renderProfile();
   },()=>{});
