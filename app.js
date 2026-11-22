@@ -11,6 +11,8 @@ const S={db:null,auth:null,parent:false,liveProb:{},chanceLog:{},profiles:{},lin
 const $=(s)=>document.querySelector(s);
 const esc=(v)=>String(v??'').replace(/[&<>"']/g,(c)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const store={get(k){try{return localStorage.getItem(k)}catch{return null}},set(k,v){try{localStorage.setItem(k,v)}catch{}}};
+// The family last seen on this device, so a slow or failed load shows real names, not "Player 1"
+try{const f=JSON.parse(store.get('family'));if(f&&Array.isArray(f.players)&&f.players.length)S.family=f}catch{}
 S.me=store.get('picker')||'p1';S.tab=store.get('tab')||'picks';
 // Sunday Picks on the living room screen: ?tv drops the chrome and blows the scores up
 S.tv=new URLSearchParams(location.search).has('tv');
@@ -39,6 +41,9 @@ function weekLocked(w=S.week){return !!(S.locks['w'+w]&&S.locks['w'+w].locked)}
 // tiebreaker is the Monday night total and its second is Sunday night's. Before that, the
 // week's last game (the Thursday after) carried the first and Monday night the second.
 const NO_THURSDAY_FROM=6;
+// From Week 12 a pick week is the NFL's own week: Wednesday-to-Saturday games count toward
+// the Sunday after them, so Thursdays are picked again and the week still ends Monday night
+const NFL_WEEKS_FROM=12;
 function isThursday(g){return !g.tbd&&etParts.formatToParts(new Date(g.t)).find(x=>x.type==='weekday').value==='Thu'}
 // No Monday game (Week 18, most playoff rounds): the week's last game carries the first guess
 function tbGame(w){
@@ -236,7 +241,7 @@ function allSubmitted(w){
 // Lock a week automatically once all picks are in. A week with any lock record
 // (including one someone unlocked by hand) is left alone.
 function maybeAutoLock(){
-  if(!S.db||!S.ready||!S.picksLoaded||!S.locksLoaded)return;
+  if(!S.db||!S.ready||!S.picksLoaded||!S.locksLoaded||!S.familyLoaded)return;
   for(let w=1;w<=MAX_WEEK;w++){
     const key='w'+w;
     if(S.locks[key]||!allSubmitted(w))continue;
@@ -1210,7 +1215,9 @@ function alertsCard(){
 
 function renderFamily(app){
   const roster=players();
-  let h=`<section class="card"><p class="eyebrow">${roster.length===5?'The five of you':`Everyone · ${roster.length}`}</p><p class="muted">Tap a face for a PIN, photo or color. Adding someone or changing names needs the parent password.</p><form id="famForm">`;
+  // Placeholder or remembered names: saving now would write them over the real ones
+  const stale=S.familyLoaded?'':`<p class="note">${S.familyError?'Couldn’t reach the database, so these names may be out of date. Reload the page to try again.':'Loading names from the database…'}</p>`;
+  let h=`<section class="card">${stale}<p class="eyebrow">${roster.length===5?'The five of you':`Everyone · ${roster.length}`}</p><p class="muted">Tap a face for a PIN, photo or color. Adding someone or changing names needs the parent password.</p><form id="famForm">`;
   players().forEach((p,i)=>{
     const pr=S.profiles[p.id]||{};
     h+=`<div class="frow" style="--c:${esc(p.color)}"><button type="button" class="face-btn" data-profile="${p.id}" aria-label="Open ${esc(p.name)}’s profile"><span class="jersey av-${p.id}">${initial(p)}</span>${pr.pinHash?'':'<span class="setup-dot" aria-hidden="true"></span>'}</button>
@@ -1221,7 +1228,7 @@ function renderFamily(app){
   h+=`<section class="card"><p class="eyebrow">Big screen</p><p class="muted">Every game of the week, sized for the room. Open it on the TV or cast this tab.</p><div class="setrow"><a class="toggle" href="?tv" target="_blank" rel="noopener">Open TV mode</a></div></section>`;
   h+=alertsCard();
   if(S.parent)h+=`<section class="card"><p class="eyebrow">Parent controls</p><p class="muted">A parent is signed in on this device. <button type="button" class="linkbtn" id="parentSignOut">Sign out</button></p></section>`;
-  h+=`<details class="rules"><summary>How Sunday Picks works</summary><p class="muted">Tap your face at the top of the Picks tab, then tap the team you think will win each game. The first time, you’ll create a 4-digit PIN; after that the app asks for it before anyone picks as you, and hides your picks from everyone else until they lock. It stays signed in on that device for 10 minutes. It’s a family lock rather than a password, so someone determined could get past it; don’t reuse a PIN you use for anything else. Only a parent can change or reset one. You can change a pick until kickoff; then it locks and everyone’s picks show. Each week runs Sunday through Monday night; Thursday games aren’t picked. Ties go to the closest guess at Monday night’s total points, then Sunday night’s. When a week ends, 1st place (most correct picks) gets 3 points, 2nd gets 2 and 3rd gets 1, and last place takes home the Wooden Spoon. After Week 18 the playoffs keep going round by round with their own standings.</p></details>`;
+  h+=`<details class="rules"><summary>How Sunday Picks works</summary><p class="muted">Tap your face at the top of the Picks tab, then tap the team you think will win each game. The first time, you’ll create a 4-digit PIN; after that the app asks for it before anyone picks as you, and hides your picks from everyone else until they lock. It stays signed in on that device for 10 minutes. It’s a family lock rather than a password, so someone determined could get past it; don’t reuse a PIN you use for anything else. Only a parent can change or reset one. You can change a pick until kickoff; then it locks and everyone’s picks show. Each week ends Monday night. Wednesday-to-Saturday games count toward the Sunday after them, like the NFL’s own weeks. Ties go to the closest guess at Monday night’s total points, then Sunday night’s. When a week ends, 1st place (most correct picks) gets 3 points, 2nd gets 2 and 3rd gets 1, and last place takes home the Wooden Spoon. After Week 18 the playoffs keep going round by round with their own standings.</p></details>`;
   app.innerHTML=h;
 }
 
@@ -1332,6 +1339,7 @@ document.addEventListener('click',(e)=>{
     let slot=1;while(taken.has('p'+slot))slot++;
     const usedColors=new Set(base.map(p=>p.color));
     const next={players:[...base,{id:'p'+slot,name:'Player '+slot,color:COLORS.find(c=>!usedColors.has(c))||COLORS[base.length%COLORS.length]}]};
+    if(!S.familyLoaded){toast('Names haven’t loaded yet. Reload and try again.');return}
     requireParent('Enter the parent password to add someone.',async()=>{
       const prev=S.family;S.family=next;render();
       try{await S.db.doc('config/family').set(next);toast('Added. Tap their face to set a name, PIN and photo.')}
@@ -1355,6 +1363,7 @@ document.addEventListener('input',(e)=>{
 });
 document.addEventListener('submit',async(e)=>{
   if(e.target.id!=='famForm')return;e.preventDefault();
+  if(!S.familyLoaded){toast('Names haven’t loaded yet. Reload and try again.');return}
   const fd=new FormData(e.target);
   const base=(S.family.players||DEFAULT_FAMILY.players).slice(0,MAX_PLAYERS);
   const next={players:base.map((p,i)=>({id:p.id,name:(fd.get('n'+i)||'').trim().slice(0,16)||'Player '+(i+1),color:p.color||COLORS[i]}))};
@@ -1385,7 +1394,9 @@ let lastFullLoad=0;
 function applySchedule(){
   const regular={};for(let w=1;w<=18;w++)if(nfl[w])regular[w]=nfl[w];
   S.weeks=groupIntoPickWeeks(regular);
-  for(let w=NO_THURSDAY_FROM;w<=18;w++)if(S.weeks[w])S.weeks[w].games=S.weeks[w].games.filter(g=>!isThursday(g));
+  const byKick=(x,y)=>x.t.localeCompare(y.t)||x.id.localeCompare(y.id),moved=new Set();
+  for(let w=NFL_WEEKS_FROM;w<=18;w++){S.weeks[w]={week:w,games:(nfl[w]||[]).slice().sort(byKick)};S.weeks[w].games.forEach(g=>moved.add(g.id))}
+  for(let w=1;w<NFL_WEEKS_FROM;w++)if(S.weeks[w])S.weeks[w].games=S.weeks[w].games.filter(g=>!moved.has(g.id)&&!(w>=NO_THURSDAY_FROM&&isThursday(g)));
   for(const [w,r] of Object.entries(ROUNDS))S.weeks[w]={week:+w,games:(nfl[100+r.espn]||[]).slice().sort((x,y)=>x.t.localeCompare(y.t)||x.id.localeCompare(y.id))};
   rememberAllLines();syncLines();S.ready=true;S.updatedAt=new Date();S.scoreError=false;
   if(!S.week)S.week=currentWeek();
@@ -1753,7 +1764,7 @@ if(!firebaseConfig||!firebaseConfig.projectId||firebaseConfig.projectId.startsWi
   onAuthStateChanged(S.auth,(user)=>{S.parent=!!user;render()});
   const db=makeDb(getFirestore(app));
   S.db=db;
-  db.doc('config/family').onSnapshot(s=>{if(s.exists){S.family=s.data();render()}},()=>{});
+  db.doc('config/family').onSnapshot(s=>{S.familyLoaded=true;if(s.exists){S.family=s.data();store.set('family',JSON.stringify(S.family))}S.familyError=false;render();maybeAutoLock()},()=>{S.familyError=true;render()});
   db.collection('profiles').onSnapshot(s=>{
     const next={};s.docs.forEach(d=>next[d.id]=d.data());S.profiles=next;applyAvatarCss();render();renderProfile();
   },()=>{});
