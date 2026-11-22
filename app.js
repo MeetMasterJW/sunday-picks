@@ -41,6 +41,9 @@ function weekLocked(w=S.week){return !!(S.locks['w'+w]&&S.locks['w'+w].locked)}
 // tiebreaker is the Monday night total and its second is Sunday night's. Before that, the
 // week's last game (the Thursday after) carried the first and Monday night the second.
 const NO_THURSDAY_FROM=6;
+// From Week 12 a pick week is the NFL's own week: Wednesday-to-Saturday games count toward
+// the Sunday after them, so Thursdays are picked again and the week still ends Monday night
+const NFL_WEEKS_FROM=12;
 function isThursday(g){return !g.tbd&&etParts.formatToParts(new Date(g.t)).find(x=>x.type==='weekday').value==='Thu'}
 // No Monday game (Week 18, most playoff rounds): the week's last game carries the first guess
 function tbGame(w){
@@ -1225,7 +1228,7 @@ function renderFamily(app){
   h+=`<section class="card"><p class="eyebrow">Big screen</p><p class="muted">Every game of the week, sized for the room. Open it on the TV or cast this tab.</p><div class="setrow"><a class="toggle" href="?tv" target="_blank" rel="noopener">Open TV mode</a></div></section>`;
   h+=alertsCard();
   if(S.parent)h+=`<section class="card"><p class="eyebrow">Parent controls</p><p class="muted">A parent is signed in on this device. <button type="button" class="linkbtn" id="parentSignOut">Sign out</button></p></section>`;
-  h+=`<details class="rules"><summary>How Sunday Picks works</summary><p class="muted">Tap your face at the top of the Picks tab, then tap the team you think will win each game. The first time, you’ll create a 4-digit PIN; after that the app asks for it before anyone picks as you, and hides your picks from everyone else until they lock. It stays signed in on that device for 10 minutes. It’s a family lock rather than a password, so someone determined could get past it; don’t reuse a PIN you use for anything else. Only a parent can change or reset one. You can change a pick until kickoff; then it locks and everyone’s picks show. Each week runs Sunday through Monday night; Thursday games aren’t picked. Ties go to the closest guess at Monday night’s total points, then Sunday night’s. When a week ends, 1st place (most correct picks) gets 3 points, 2nd gets 2 and 3rd gets 1, and last place takes home the Wooden Spoon. After Week 18 the playoffs keep going round by round with their own standings.</p></details>`;
+  h+=`<details class="rules"><summary>How Sunday Picks works</summary><p class="muted">Tap your face at the top of the Picks tab, then tap the team you think will win each game. The first time, you’ll create a 4-digit PIN; after that the app asks for it before anyone picks as you, and hides your picks from everyone else until they lock. It stays signed in on that device for 10 minutes. It’s a family lock rather than a password, so someone determined could get past it; don’t reuse a PIN you use for anything else. Only a parent can change or reset one. You can change a pick until kickoff; then it locks and everyone’s picks show. Each week ends Monday night. Wednesday-to-Saturday games count toward the Sunday after them, like the NFL’s own weeks. Ties go to the closest guess at Monday night’s total points, then Sunday night’s. When a week ends, 1st place (most correct picks) gets 3 points, 2nd gets 2 and 3rd gets 1, and last place takes home the Wooden Spoon. After Week 18 the playoffs keep going round by round with their own standings.</p></details>`;
   app.innerHTML=h;
 }
 
@@ -1391,7 +1394,9 @@ let lastFullLoad=0;
 function applySchedule(){
   const regular={};for(let w=1;w<=18;w++)if(nfl[w])regular[w]=nfl[w];
   S.weeks=groupIntoPickWeeks(regular);
-  for(let w=NO_THURSDAY_FROM;w<=18;w++)if(S.weeks[w])S.weeks[w].games=S.weeks[w].games.filter(g=>!isThursday(g));
+  const byKick=(x,y)=>x.t.localeCompare(y.t)||x.id.localeCompare(y.id),moved=new Set();
+  for(let w=NFL_WEEKS_FROM;w<=18;w++){S.weeks[w]={week:w,games:(nfl[w]||[]).slice().sort(byKick)};S.weeks[w].games.forEach(g=>moved.add(g.id))}
+  for(let w=1;w<NFL_WEEKS_FROM;w++)if(S.weeks[w])S.weeks[w].games=S.weeks[w].games.filter(g=>!moved.has(g.id)&&!(w>=NO_THURSDAY_FROM&&isThursday(g)));
   for(const [w,r] of Object.entries(ROUNDS))S.weeks[w]={week:+w,games:(nfl[100+r.espn]||[]).slice().sort((x,y)=>x.t.localeCompare(y.t)||x.id.localeCompare(y.id))};
   rememberAllLines();syncLines();S.ready=true;S.updatedAt=new Date();S.scoreError=false;
   if(!S.week)S.week=currentWeek();
